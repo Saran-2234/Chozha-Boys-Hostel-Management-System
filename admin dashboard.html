@@ -1,0 +1,2532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Chozha Boys Hostel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            width: 100%;
+            max-width: 100vw;
+        }
+        
+        html {
+            overflow-x: hidden;
+            width: 100%;
+            max-width: 100vw;
+        }
+        
+        .professional-bg {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 25%, #334155 50%, #475569 75%, #64748b 100%);
+            position: relative;
+            min-height: 100vh;
+        }
+        
+        .professional-bg::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 40% 40%, rgba(16, 185, 129, 0.05) 0%, transparent 50%);
+        }
+        
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        .hover-lift {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .hover-lift:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 35px rgba(59, 130, 246, 0.4);
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 35px rgba(16, 185, 129, 0.4);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            box-shadow: 0 10px 25px rgba(239, 68, 68, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 35px rgba(239, 68, 68, 0.4);
+        }
+        
+        .text-gradient {
+            background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .sidebar {
+            transition: transform 0.3s ease;
+        }
+        
+        .sidebar-hidden {
+            transform: translateX(-100%);
+        }
+        
+        .main-content {
+            transition: margin-left 0.3s ease;
+        }
+        
+        .notification-badge {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        /* Light Mode Styles */
+        .light-mode {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            position: relative;
+        }
+        
+        .light-mode::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.05) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.05) 0%, transparent 50%);
+        }
+        
+        .light-mode .glass-effect {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+        }
+        
+        .light-mode .glass-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(25px);
+            border: 1px solid rgba(226, 232, 240, 0.6);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.06);
+        }
+        
+        .light-mode,
+        .light-mode h1,
+        .light-mode h2,
+        .light-mode h3,
+        .light-mode h4,
+        .light-mode h5,
+        .light-mode h6 {
+            color: #1e293b !important;
+        }
+        
+        .light-mode p,
+        .light-mode span,
+        .light-mode div,
+        .light-mode label,
+        .light-mode td,
+        .light-mode th {
+            color: #475569 !important;
+        }
+        
+        .light-mode .text-slate-300,
+        .light-mode .text-slate-400 {
+            color: #64748b !important;
+        }
+        
+        .light-mode .text-white {
+            color: #1e293b !important;
+        }
+        
+        .light-mode input,
+        .light-mode select,
+        .light-mode textarea {
+            color: #1e293b !important;
+            background: rgba(255, 255, 255, 0.9) !important;
+            border: 2px solid rgba(226, 232, 240, 0.8) !important;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05) !important;
+        }
+        
+        .light-mode input::placeholder,
+        .light-mode textarea::placeholder {
+            color: #94a3b8 !important;
+        }
+        
+        .light-mode .btn-primary {
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            color: #FFFFFF !important;
+        }
+        
+        .light-mode .btn-secondary {
+            background: rgba(255, 255, 255, 0.8);
+            border: 2px solid rgba(226, 232, 240, 0.8);
+            color: #475569 !important;
+        }
+        
+        .light-mode .theme-toggle {
+            color: #475569 !important;
+            background: rgba(255, 255, 255, 0.8) !important;
+            border: 2px solid rgba(226, 232, 240, 0.8) !important;
+        }
+        
+        /* Status Colors */
+        .status-pending { color: #f59e0b; }
+        .status-progress { color: #3b82f6; }
+        .status-resolved { color: #10b981; }
+        .status-paid { color: #10b981; }
+        .status-unpaid { color: #ef4444; }
+        .status-approved { color: #10b981; }
+        .status-rejected { color: #ef4444; }
+        .status-active { color: #10b981; }
+        .status-inactive { color: #6b7280; }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                z-index: 50;
+                height: 100vh;
+            }
+            
+            .main-content {
+                margin-left: 0 !important;
+            }
+        }
+        
+        /* Chart Container */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+        
+        /* Table Styles */
+        .data-table {
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        
+        .data-table th {
+            background: rgba(255, 255, 255, 0.05);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        .data-table tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        /* Filter Styles */
+        .filter-container {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Modal Styles */
+        .modal-overlay {
+            backdrop-filter: blur(8px);
+            background: rgba(0, 0, 0, 0.6);
+        }
+        
+        /* Progress Bar */
+        .progress-bar {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 9999px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            background: linear-gradient(90deg, #10b981, #059669);
+            height: 100%;
+            transition: width 0.5s ease;
+        }
+        
+        /* Action Buttons */
+        .action-btn {
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .action-btn:hover {
+            transform: scale(1.05);
+        }
+        
+        /* Notification Styles */
+        .notification-item {
+            border-left: 4px solid #3b82f6;
+            transition: all 0.3s ease;
+        }
+        
+        .notification-item:hover {
+            background: rgba(59, 130, 246, 0.1);
+        }
+        
+        /* Stats Cards */
+        .stats-card {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stats-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+        }
+    </style>
+</head>
+<body class="professional-bg">
+    <!-- Sidebar -->
+    <div id="sidebar" class="sidebar fixed left-0 top-0 h-full w-64 glass-effect z-40">
+        <div class="p-6">
+            <!-- Logo -->
+            <div class="flex items-center space-x-3 mb-8">
+                <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+                    <span class="text-xl">🏛️</span>
+                </div>
+                <div>
+                    <h2 class="text-lg font-bold text-white">Chozha Boys</h2>
+                    <p class="text-xs text-slate-400">Admin Portal</p>
+                </div>
+            </div>
+            
+            <!-- Navigation Menu -->
+            <nav class="space-y-2">
+                <a href="#dashboard" onclick="showSection('dashboard')" class="nav-item flex items-center space-x-3 px-4 py-3 rounded-lg text-white hover:bg-white hover:bg-opacity-10 transition-all">
+                    <span class="text-lg">📊</span>
+                    <span class="font-medium">Dashboard</span>
+                </a>
+                <a href="#students" onclick="showSection('students')" class="nav-item flex items-center space-x-3 px-4 py-3 rounded-lg text-white hover:bg-white hover:bg-opacity-10 transition-all">
+                    <span class="text-lg">👥</span>
+                    <span class="font-medium">Students</span>
+                    <span id="studentsNotification" class="notification-badge bg-blue-500 text-white text-xs px-2 py-1 rounded-full">3</span>
+                </a>
+                <a href="#attendance" onclick="showSection('attendance')" class="nav-item flex items-center space-x-3 px-4 py-3 rounded-lg text-white hover:bg-white hover:bg-opacity-10 transition-all">
+                    <span class="text-lg">✅</span>
+                    <span class="font-medium">Attendance</span>
+                </a>
+                <a href="#messbills" onclick="showSection('messbills')" class="nav-item flex items-center space-x-3 px-4 py-3 rounded-lg text-white hover:bg-white hover:bg-opacity-10 transition-all">
+                    <span class="text-lg">🍽️</span>
+                    <span class="font-medium">Mess Bills</span>
+                </a>
+                <a href="#complaints" onclick="showSection('complaints')" class="nav-item flex items-center space-x-3 px-4 py-3 rounded-lg text-white hover:bg-white hover:bg-opacity-10 transition-all">
+                    <span class="text-lg">📝</span>
+                    <span class="font-medium">Complaints</span>
+                    <span id="complaintsNotification" class="notification-badge bg-red-500 text-white text-xs px-2 py-1 rounded-full">5</span>
+                </a>
+                <a href="#rooms" onclick="showSection('rooms')" class="nav-item flex items-center space-x-3 px-4 py-3 rounded-lg text-white hover:bg-white hover:bg-opacity-10 transition-all">
+                    <span class="text-lg">🏠</span>
+                    <span class="font-medium">Room Management</span>
+                </a>
+                <a href="#visitors" onclick="showSection('visitors')" class="nav-item flex items-center space-x-3 px-4 py-3 rounded-lg text-white hover:bg-white hover:bg-opacity-10 transition-all">
+                    <span class="text-lg">👥</span>
+                    <span class="font-medium">Visitors</span>
+                </a>
+                <a href="#messaging" onclick="showSection('messaging')" class="nav-item flex items-center space-x-3 px-4 py-3 rounded-lg text-white hover:bg-white hover:bg-opacity-10 transition-all">
+                    <span class="text-lg">📢</span>
+                    <span class="font-medium">Messaging</span>
+                </a>
+                <a href="#reports" onclick="showSection('reports')" class="nav-item flex items-center space-x-3 px-4 py-3 rounded-lg text-white hover:bg-white hover:bg-opacity-10 transition-all">
+                    <span class="text-lg">📈</span>
+                    <span class="font-medium">Reports</span>
+                </a>
+                <a href="#settings" onclick="showSection('settings')" class="nav-item flex items-center space-x-3 px-4 py-3 rounded-lg text-white hover:bg-white hover:bg-opacity-10 transition-all">
+                    <span class="text-lg">⚙️</span>
+                    <span class="font-medium">Settings</span>
+                </a>
+            </nav>
+        </div>
+        
+        <!-- Logout Button -->
+        <div class="absolute bottom-6 left-6 right-6">
+            <button onclick="logout()" class="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-all">
+                <span>🚪</span>
+                <span>Logout</span>
+            </button>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div id="mainContent" class="main-content ml-64 min-h-screen">
+        <!-- Header -->
+        <header class="glass-effect sticky top-0 z-30">
+            <div class="flex items-center justify-between px-6 py-4">
+                <div class="flex items-center space-x-4">
+                    <button onclick="toggleSidebar()" class="md:hidden text-white hover:text-slate-300">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                    <div>
+                        <h1 class="text-xl font-bold text-white">Admin Dashboard</h1>
+                        <p class="text-sm text-slate-400">Welcome back, Dr. Priya Sharma</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <!-- Theme Toggle -->
+                    <button onclick="toggleTheme()" class="theme-toggle glass-effect p-2 rounded-lg text-white hover:bg-white hover:bg-opacity-20 transition-all">
+                        <svg id="darkIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                        </svg>
+                        <svg id="lightIcon" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                        </svg>
+                    </button>
+                    
+                    <!-- Profile Dropdown -->
+                    <div class="relative">
+                        <button onclick="toggleProfileDropdown()" class="flex items-center space-x-3 glass-effect px-4 py-2 rounded-lg hover:bg-white hover:bg-opacity-10 transition-all">
+                            <div class="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center">
+                                <span class="text-sm font-bold text-white">PS</span>
+                            </div>
+                            <div class="hidden md:block text-left">
+                                <p class="text-sm font-medium text-white">Dr. Priya Sharma</p>
+                                <p class="text-xs text-slate-400">Super Admin</p>
+                            </div>
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        
+                        <div id="profileDropdown" class="hidden absolute right-0 mt-2 w-48 glass-card rounded-lg shadow-lg">
+                            <div class="py-2">
+                                <a href="#" onclick="changePassword()" class="block px-4 py-2 text-sm text-white hover:bg-white hover:bg-opacity-10">
+                                    🔒 Change Password
+                                </a>
+                                <a href="#" onclick="showSection('settings')" class="block px-4 py-2 text-sm text-white hover:bg-white hover:bg-opacity-10">
+                                    ⚙️ Settings
+                                </a>
+                                <hr class="my-2 border-slate-600">
+                                <a href="#" onclick="logout()" class="block px-4 py-2 text-sm text-red-400 hover:bg-white hover:bg-opacity-10">
+                                    🚪 Logout
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        
+        <!-- Dashboard Content -->
+        <main class="p-6">
+            <!-- Dashboard Section -->
+            <div id="dashboard" class="content-section">
+                <!-- Room Occupancy Overview -->
+                <div class="glass-card rounded-xl p-6 mb-8">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-lg font-semibold text-white">Room Occupancy Overview</h3>
+                        <button onclick="showSection('rooms')" class="btn-secondary text-white px-4 py-2 rounded-lg text-sm">
+                            🏠 Manage Rooms
+                        </button>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-white mb-2">Block A</div>
+                            <div class="text-slate-400 text-sm mb-3">85/90 Occupied</div>
+                            <div class="progress-bar w-full h-3">
+                                <div class="progress-fill" style="width: 94.4%"></div>
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-white mb-2">Block B</div>
+                            <div class="text-slate-400 text-sm mb-3">78/88 Occupied</div>
+                            <div class="progress-bar w-full h-3">
+                                <div class="progress-fill" style="width: 88.6%"></div>
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-white mb-2">Block C</div>
+                            <div class="text-slate-400 text-sm mb-3">85/88 Occupied</div>
+                            <div class="progress-bar w-full h-3">
+                                <div class="progress-fill" style="width: 96.6%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Room Status Legend -->
+                    <div class="flex items-center justify-center space-x-6 text-sm">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-3 h-3 bg-emerald-500 rounded-full"></div>
+                            <span class="text-slate-400">Available</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <div class="w-3 h-3 bg-blue-500 rounded-full"></div>
+                            <span class="text-slate-400">Partially Occupied</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                            <span class="text-slate-400">Full</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                            <span class="text-slate-400">Maintenance</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Quick Stats -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="stats-card glass-card rounded-xl p-6 hover-lift">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-slate-400 text-sm font-medium">Total Students</p>
+                                <p class="text-2xl font-bold text-white">248</p>
+                            </div>
+                            <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                                <span class="text-xl">👥</span>
+                            </div>
+                        </div>
+                        <div class="mt-4 flex items-center text-sm">
+                            <span class="text-emerald-400">↗ 12</span>
+                            <span class="text-slate-400 ml-2">new this month</span>
+                        </div>
+                    </div>
+                    
+                    <div class="stats-card glass-card rounded-xl p-6 hover-lift">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-slate-400 text-sm font-medium">Pending Complaints</p>
+                                <p class="text-2xl font-bold text-white">5</p>
+                            </div>
+                            <div class="w-12 h-12 bg-gradient-to-br from-red-500 to-pink-500 rounded-lg flex items-center justify-center">
+                                <span class="text-xl">📝</span>
+                            </div>
+                        </div>
+                        <div class="mt-4 flex items-center text-sm">
+                            <span class="text-red-400">2 Urgent</span>
+                            <span class="text-slate-400 ml-2">3 Normal</span>
+                        </div>
+                    </div>
+                    
+                    <div class="stats-card glass-card rounded-xl p-6 hover-lift">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-slate-400 text-sm font-medium">Monthly Collection</p>
+                                <p class="text-2xl font-bold text-white">₹6.2L</p>
+                            </div>
+                            <div class="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center">
+                                <span class="text-xl">💰</span>
+                            </div>
+                        </div>
+                        <div class="mt-4 flex items-center text-sm">
+                            <span class="text-emerald-400">92%</span>
+                            <span class="text-slate-400 ml-2">collection rate</span>
+                        </div>
+                    </div>
+                    
+                    <div class="stats-card glass-card rounded-xl p-6 hover-lift">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-slate-400 text-sm font-medium">Occupancy</p>
+                                <p class="text-2xl font-bold text-white">93%</p>
+                            </div>
+                            <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-violet-600 rounded-lg flex items-center justify-center">
+                                <span class="text-xl">🏠</span>
+                            </div>
+                        </div>
+                        <div class="mt-4 flex items-center text-sm">
+                            <span class="text-white">248/266</span>
+                            <span class="text-slate-400 ml-2">rooms filled</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Quick Actions -->
+                <div class="glass-card rounded-xl p-6">
+                    <h3 class="text-lg font-semibold text-white mb-6">Quick Actions</h3>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <button onclick="showSection('students')" class="btn-primary text-white p-4 rounded-lg text-center hover-lift">
+                            <div class="text-2xl mb-2">👥</div>
+                            <div class="text-sm font-medium">Manage Students</div>
+                        </button>
+                        
+                        <button onclick="generateBills()" class="btn-secondary text-white p-4 rounded-lg text-center hover-lift">
+                            <div class="text-2xl mb-2">🍽️</div>
+                            <div class="text-sm font-medium">Generate Bills</div>
+                        </button>
+                        
+                        <button onclick="showSection('complaints')" class="btn-secondary text-white p-4 rounded-lg text-center hover-lift">
+                            <div class="text-2xl mb-2">📝</div>
+                            <div class="text-sm font-medium">Review Complaints</div>
+                        </button>
+                        
+                        <button onclick="showSection('messaging')" class="btn-secondary text-white p-4 rounded-lg text-center hover-lift">
+                            <div class="text-2xl mb-2">📢</div>
+                            <div class="text-sm font-medium">Send Announcement</div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Students Section -->
+            <div id="students" class="content-section hidden">
+                <div class="flex items-center justify-between mb-8">
+                    <h2 class="text-2xl font-bold text-white">Student Management</h2>
+                    <button onclick="addStudent()" class="btn-primary text-white px-6 py-3 rounded-lg font-medium">
+                        ➕ Add New Student
+                    </button>
+                </div>
+                
+                <!-- Students Table -->
+                <div class="glass-card rounded-xl p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-lg font-semibold text-white">All Students (248)</h3>
+                        <div class="flex space-x-2">
+                            <button onclick="exportStudents()" class="btn-secondary text-white px-4 py-2 rounded-lg text-sm">
+                                📄 Export
+                            </button>
+                            <button onclick="bulkActions()" class="btn-secondary text-white px-4 py-2 rounded-lg text-sm">
+                                ⚡ Bulk Actions
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="data-table w-full">
+                            <thead>
+                                <tr class="border-b border-slate-600">
+                                    <th class="text-left py-3 px-4 text-slate-400 font-medium">Student</th>
+                                    <th class="text-left py-3 px-4 text-slate-400 font-medium">Reg. No.</th>
+                                    <th class="text-left py-3 px-4 text-slate-400 font-medium">Department</th>
+                                    <th class="text-left py-3 px-4 text-slate-400 font-medium">Year</th>
+                                    <th class="text-left py-3 px-4 text-slate-400 font-medium">Room</th>
+                                    <th class="text-left py-3 px-4 text-slate-400 font-medium">Status</th>
+                                    <th class="text-left py-3 px-4 text-slate-400 font-medium">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="border-b border-slate-700">
+                                    <td class="py-3 px-4">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                                                <span class="text-xs font-bold text-white">RK</span>
+                                            </div>
+                                            <div>
+                                                <p class="text-white font-medium">Rajesh Kumar</p>
+                                                <p class="text-slate-400 text-sm">+91 9876543210</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 px-4 text-white">2021CSE001</td>
+                                    <td class="py-3 px-4 text-slate-400">Computer Science</td>
+                                    <td class="py-3 px-4 text-slate-400">3rd Year</td>
+                                    <td class="py-3 px-4 text-white">A-204</td>
+                                    <td class="py-3 px-4">
+                                        <span class="status-active bg-emerald-500 bg-opacity-20 px-2 py-1 rounded-full text-xs font-medium">Active</span>
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        <div class="flex space-x-2">
+                                            <button onclick="editStudent('RK')" class="action-btn bg-blue-500 bg-opacity-20 text-blue-400 hover:bg-opacity-30">
+                                                ✏️
+                                            </button>
+                                            <button onclick="viewStudent('RK')" class="action-btn bg-emerald-500 bg-opacity-20 text-emerald-400 hover:bg-opacity-30">
+                                                👁️
+                                            </button>
+                                            <button onclick="deactivateStudent('RK')" class="action-btn bg-red-500 bg-opacity-20 text-red-400 hover:bg-opacity-30">
+                                                🚫
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                
+                                <tr class="border-b border-slate-700">
+                                    <td class="py-3 px-4">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center">
+                                                <span class="text-xs font-bold text-white">AP</span>
+                                            </div>
+                                            <div>
+                                                <p class="text-white font-medium">Arjun Patel</p>
+                                                <p class="text-slate-400 text-sm">+91 9876543211</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 px-4 text-white">2024CSE045</td>
+                                    <td class="py-3 px-4 text-slate-400">Computer Science</td>
+                                    <td class="py-3 px-4 text-slate-400">1st Year</td>
+                                    <td class="py-3 px-4 text-yellow-400">Pending</td>
+                                    <td class="py-3 px-4">
+                                        <span class="status-pending bg-yellow-500 bg-opacity-20 px-2 py-1 rounded-full text-xs font-medium">Pending Approval</span>
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        <div class="flex space-x-2">
+                                            <button onclick="approveStudent('AP')" class="action-btn bg-emerald-500 bg-opacity-20 text-emerald-400 hover:bg-opacity-30">
+                                                ✅
+                                            </button>
+                                            <button onclick="rejectStudent('AP')" class="action-btn bg-red-500 bg-opacity-20 text-red-400 hover:bg-opacity-30">
+                                                ❌
+                                            </button>
+                                            <button onclick="viewStudent('AP')" class="action-btn bg-blue-500 bg-opacity-20 text-blue-400 hover:bg-opacity-30">
+                                                👁️
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Attendance Section -->
+            <div id="attendance" class="content-section hidden">
+                <div class="flex items-center justify-between mb-8">
+                    <h2 class="text-2xl font-bold text-white">Attendance Management</h2>
+                    <div class="flex space-x-3">
+                        <button onclick="markBulkAttendance()" class="btn-secondary text-white px-4 py-2 rounded-lg font-medium">
+                            ✅ Bulk Mark
+                        </button>
+                        <button onclick="generateAttendanceReport()" class="btn-primary text-white px-4 py-2 rounded-lg font-medium">
+                            📊 Generate Report
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Attendance Stats -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                    <div class="glass-card rounded-xl p-6 text-center">
+                        <div class="text-2xl font-bold text-white mb-2">87.5%</div>
+                        <div class="text-slate-400 text-sm">Overall Attendance</div>
+                        <div class="progress-bar w-full h-2 mt-3">
+                            <div class="progress-fill" style="width: 87.5%"></div>
+                        </div>
+                    </div>
+                    <div class="glass-card rounded-xl p-6 text-center">
+                        <div class="text-2xl font-bold text-emerald-400 mb-2">217</div>
+                        <div class="text-slate-400 text-sm">Present Today</div>
+                    </div>
+                    <div class="glass-card rounded-xl p-6 text-center">
+                        <div class="text-2xl font-bold text-red-400 mb-2">31</div>
+                        <div class="text-slate-400 text-sm">Absent Today</div>
+                    </div>
+                    <div class="glass-card rounded-xl p-6 text-center">
+                        <div class="text-2xl font-bold text-yellow-400 mb-2">45</div>
+                        <div class="text-slate-400 text-sm">Pending Confirmation</div>
+                    </div>
+                </div>
+                
+                <!-- Date Filter -->
+                <div class="glass-card rounded-xl p-6 mb-6">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-semibold text-white">Today's Attendance - Dec 20, 2024</h3>
+                        <div class="flex space-x-2">
+                            <input type="date" value="2024-12-20" class="px-3 py-2 glass-effect rounded-lg text-white border-0">
+                            <button onclick="filterAttendance()" class="btn-secondary text-white px-4 py-2 rounded-lg text-sm">
+                                🔍 Filter
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Attendance Table -->
+                <div class="glass-card rounded-xl p-6">
+                    <div class="overflow-x-auto">
+                        <table class="data-table w-full">
+                            <thead>
+                                <tr class="border-b border-slate-600">
+                                    <th class="text-left py-3 px-4 text-slate-400 font-medium">Student</th>
+                                    <th class="text-left py-3 px-4 text-slate-400 font-medium">Room</th>
+                                    <th class="text-left py-3 px-4 text-slate-400 font-medium">Self Marked</th>
+                                    <th class="text-left py-3 px-4 text-slate-400 font-medium">Time</th>
+                                    <th class="text-left py-3 px-4 text-slate-400 font-medium">Admin Status</th>
+                                    <th class="text-left py-3 px-4 text-slate-400 font-medium">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="border-b border-slate-700">
+                                    <td class="py-3 px-4">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                                                <span class="text-xs font-bold text-white">RK</span>
+                                            </div>
+                                            <div>
+                                                <p class="text-white font-medium">Rajesh Kumar</p>
+                                                <p class="text-slate-400 text-sm">2021CSE001</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 px-4 text-white">A-204</td>
+                                    <td class="py-3 px-4">
+                                        <span class="status-paid">Present</span>
+                                    </td>
+                                    <td class="py-3 px-4 text-slate-400">09:15 AM</td>
+                                    <td class="py-3 px-4">
+                                        <span class="status-pending bg-yellow-500 bg-opacity-20 px-2 py-1 rounded-full text-xs font-medium">Pending</span>
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        <div class="flex space-x-2">
+                                            <button onclick="confirmAttendance('RK', 'present')" class="action-btn bg-emerald-500 bg-opacity-20 text-emerald-400 hover:bg-opacity-30">
+                                                ✅
+                                            </button>
+                                            <button onclick="confirmAttendance('RK', 'absent')" class="action-btn bg-red-500 bg-opacity-20 text-red-400 hover:bg-opacity-30">
+                                                ❌
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                
+                                <tr class="border-b border-slate-700">
+                                    <td class="py-3 px-4">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center">
+                                                <span class="text-xs font-bold text-white">VS</span>
+                                            </div>
+                                            <div>
+                                                <p class="text-white font-medium">Vikram Singh</p>
+                                                <p class="text-slate-400 text-sm">2022ECE023</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 px-4 text-white">B-156</td>
+                                    <td class="py-3 px-4">
+                                        <span class="status-unpaid">Not Marked</span>
+                                    </td>
+                                    <td class="py-3 px-4 text-slate-400">-</td>
+                                    <td class="py-3 px-4">
+                                        <span class="status-unpaid bg-red-500 bg-opacity-20 px-2 py-1 rounded-full text-xs font-medium">Absent</span>
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        <div class="flex space-x-2">
+                                            <button onclick="markPresent('VS')" class="action-btn bg-emerald-500 bg-opacity-20 text-emerald-400 hover:bg-opacity-30">
+                                                ✅
+                                            </button>
+                                            <button onclick="addRemark('VS')" class="action-btn bg-blue-500 bg-opacity-20 text-blue-400 hover:bg-opacity-30">
+                                                📝
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Mess Bills Section -->
+            <div id="messbills" class="content-section hidden">
+                <div class="flex items-center justify-between mb-8">
+                    <h2 class="text-2xl font-bold text-white">Mess Bill Management</h2>
+                    <div class="flex space-x-3">
+                        <button onclick="setMessRates()" class="btn-secondary text-white px-4 py-2 rounded-lg font-medium">
+                            💰 Set Rates
+                        </button>
+                        <button onclick="generateBills()" class="btn-primary text-white px-4 py-2 rounded-lg font-medium">
+                            🍽️ Generate Bills
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Bill Stats -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                    <div class="glass-card rounded-xl p-6 text-center">
+                        <div class="text-2xl font-bold text-white mb-2">₹6.2L</div>
+                        <div class="text-slate-400 text-sm">Total Monthly Bill</div>
+                    </div>
+                    <div class="glass-card rounded-xl p-6 text-center">
+                        <div class="text-2xl font-bold text-emerald-400 mb-2">₹5.7L</div>
+                        <div class="text-slate-400 text-sm">Collected</div>
+                    </div>
+                    <div class="glass-card rounded-xl p-6 text-center">
+                        <div class="text-2xl font-bold text-red-400 mb-2">₹50K</div>
+                        <div class="text-slate-400 text-sm">Pending</div>
+                    </div>
+                    <div class="glass-card rounded-xl p-6 text-center">
+                        <div class="text-2xl font-bold text-blue-400 mb-2">92%</div>
+                        <div class="text-slate-400 text-sm">Collection Rate</div>
+                    </div>
+                </div>
+                
+                <!-- Current Rates -->
+                <div class="glass-card rounded-xl p-6 mb-6">
+                    <h3 class="text-lg font-semibold text-white mb-4">Current Mess Rates (December 2024)</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="glass-effect rounded-lg p-4">
+                            <div class="flex items-center justify-between">
+                                <span class="text-slate-400">Vegetarian (per day)</span>
+                                <span class="text-white font-semibold">₹80</span>
+                            </div>
+                        </div>
+                        <div class="glass-effect rounded-lg p-4">
+                            <div class="flex items-center justify-between">
+                                <span class="text-slate-400">Non-Vegetarian (per day)</span>
+                                <span class="text-white font-semibold">₹120</span>
+                            </div>
+                        </div>
+                        <div class="glass-effect rounded-lg p-4">
+                            <div class="flex items-center justify-between">
+                                <span class="text-slate-400">Service Charge</span>
+                                <span class="text-white font-semibold">₹50</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Bills Table -->
+                <div class="glass-card rounded-xl p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-lg font-semibold text-white">December 2024 Bills</h3>
+                        <div class="flex space-x-2">
+                            <select class="px-3 py-2 glass-effect rounded-lg text-white border-0">
+                                <option>All Status</option>
+                                <option>Paid</option>
+                                <option>Pending</option>
+                                <option>Overdue</option>
+                            </select>
+                            <button onclick="sendBillReminders()" class="btn-secondary text-white px-4 py-2 rounded-lg text-sm">
+                                📧 Send Reminders
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="data-table w-full">
+                            <thead>
+                                <tr class="border-b border-slate-600">
+                                    <th class="text-left py-3 px-4 text-slate-400 font-medium">Student</th>
+                                    <th class="text-left py-3 px-4 text-slate-400 font-medium">Room</th>
+                                    <th class="text-left py-3 px-4 text-slate-400 font-medium">Veg Days</th>
+                                    <th class="text-left py-3 px-4 text-slate-400 font-medium">Non-Veg Days</th>
+                                    <th class="text-left py-3 px-4 text-slate-400 font-medium">Amount</th>
+                                    <th class="text-left py-3 px-4 text-slate-400 font-medium">Status</th>
+                                    <th class="text-left py-3 px-4 text-slate-400 font-medium">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="border-b border-slate-700">
+                                    <td class="py-3 px-4">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                                                <span class="text-xs font-bold text-white">RK</span>
+                                            </div>
+                                            <div>
+                                                <p class="text-white font-medium">Rajesh Kumar</p>
+                                                <p class="text-slate-400 text-sm">2021CSE001</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 px-4 text-white">A-204</td>
+                                    <td class="py-3 px-4 text-slate-400">20</td>
+                                    <td class="py-3 px-4 text-slate-400">10</td>
+                                    <td class="py-3 px-4 text-white">₹2,450</td>
+                                    <td class="py-3 px-4">
+                                        <span class="status-unpaid bg-red-500 bg-opacity-20 px-2 py-1 rounded-full text-xs font-medium">Pending</span>
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        <div class="flex space-x-2">
+                                            <button onclick="viewBill('RK')" class="action-btn bg-blue-500 bg-opacity-20 text-blue-400 hover:bg-opacity-30">
+                                                👁️
+                                            </button>
+                                            <button onclick="sendReminder('RK')" class="action-btn bg-yellow-500 bg-opacity-20 text-yellow-400 hover:bg-opacity-30">
+                                                📧
+                                            </button>
+                                            <button onclick="markPaid('RK')" class="action-btn bg-emerald-500 bg-opacity-20 text-emerald-400 hover:bg-opacity-30">
+                                                ✅
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                
+                                <tr class="border-b border-slate-700">
+                                    <td class="py-3 px-4">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center">
+                                                <span class="text-xs font-bold text-white">VS</span>
+                                            </div>
+                                            <div>
+                                                <p class="text-white font-medium">Vikram Singh</p>
+                                                <p class="text-slate-400 text-sm">2022ECE023</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 px-4 text-white">B-156</td>
+                                    <td class="py-3 px-4 text-slate-400">25</td>
+                                    <td class="py-3 px-4 text-slate-400">5</td>
+                                    <td class="py-3 px-4 text-white">₹2,650</td>
+                                    <td class="py-3 px-4">
+                                        <span class="status-paid bg-emerald-500 bg-opacity-20 px-2 py-1 rounded-full text-xs font-medium">Paid</span>
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        <div class="flex space-x-2">
+                                            <button onclick="viewBill('VS')" class="action-btn bg-blue-500 bg-opacity-20 text-blue-400 hover:bg-opacity-30">
+                                                👁️
+                                            </button>
+                                            <button onclick="downloadReceipt('VS')" class="action-btn bg-emerald-500 bg-opacity-20 text-emerald-400 hover:bg-opacity-30">
+                                                📄
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Complaints Section -->
+            <div id="complaints" class="content-section hidden">
+                <div class="flex items-center justify-between mb-8">
+                    <h2 class="text-2xl font-bold text-white">Complaint Management</h2>
+                    <div class="flex space-x-3">
+                        <button onclick="assignWorkers()" class="btn-secondary text-white px-4 py-2 rounded-lg font-medium">
+                            👷 Assign Workers
+                        </button>
+                        <button onclick="generateComplaintReport()" class="btn-primary text-white px-4 py-2 rounded-lg font-medium">
+                            📊 Generate Report
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Complaint Stats -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                    <div class="glass-card rounded-xl p-6 text-center">
+                        <div class="text-2xl font-bold text-yellow-400 mb-2">5</div>
+                        <div class="text-slate-400 text-sm">Pending</div>
+                    </div>
+                    <div class="glass-card rounded-xl p-6 text-center">
+                        <div class="text-2xl font-bold text-blue-400 mb-2">8</div>
+                        <div class="text-slate-400 text-sm">In Progress</div>
+                    </div>
+                    <div class="glass-card rounded-xl p-6 text-center">
+                        <div class="text-2xl font-bold text-emerald-400 mb-2">42</div>
+                        <div class="text-slate-400 text-sm">Resolved</div>
+                    </div>
+                    <div class="glass-card rounded-xl p-6 text-center">
+                        <div class="text-2xl font-bold text-white mb-2">76%</div>
+                        <div class="text-slate-400 text-sm">Resolution Rate</div>
+                    </div>
+                </div>
+                
+                <!-- Complaints List -->
+                <div class="glass-card rounded-xl p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-lg font-semibold text-white">All Complaints</h3>
+                        <div class="flex space-x-2">
+                            <select class="px-3 py-2 glass-effect rounded-lg text-white border-0">
+                                <option>All Status</option>
+                                <option>Pending</option>
+                                <option>In Progress</option>
+                                <option>Resolved</option>
+                            </select>
+                            <select class="px-3 py-2 glass-effect rounded-lg text-white border-0">
+                                <option>All Categories</option>
+                                <option>Room Issues</option>
+                                <option>Mess/Food</option>
+                                <option>Maintenance</option>
+                                <option>Electrical</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div class="glass-effect rounded-lg p-4 border-l-4 border-red-400">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="flex items-center space-x-3">
+                                    <span class="text-lg">🔧</span>
+                                    <div>
+                                        <h4 class="text-white font-medium">Room AC Not Working</h4>
+                                        <p class="text-slate-400 text-sm">Complaint ID: #C001 • Rajesh Kumar (A-204)</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="status-pending bg-red-500 bg-opacity-20 px-3 py-1 rounded-full text-sm font-medium">
+                                        Urgent
+                                    </span>
+                                    <span class="status-pending bg-yellow-500 bg-opacity-20 px-3 py-1 rounded-full text-sm font-medium">
+                                        Pending
+                                    </span>
+                                </div>
+                            </div>
+                            <p class="text-slate-300 text-sm mb-3">The air conditioning unit in room A-204 has stopped working since yesterday. Please arrange for repair.</p>
+                            <div class="flex items-center justify-between text-sm mb-3">
+                                <span class="text-slate-400">Submitted: Dec 19, 2024 • Category: Maintenance</span>
+                                <div class="flex space-x-2">
+                                    <button onclick="assignComplaint('C001')" class="btn-primary text-white px-3 py-1 rounded text-xs">
+                                        👷 Assign
+                                    </button>
+                                    <button onclick="updateComplaint('C001')" class="btn-secondary text-white px-3 py-1 rounded text-xs">
+                                        📝 Update
+                                    </button>
+                                    <button onclick="resolveComplaint('C001')" class="btn-success text-white px-3 py-1 rounded text-xs">
+                                        ✅ Resolve
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="glass-effect rounded-lg p-4 border-l-4 border-blue-400">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="flex items-center space-x-3">
+                                    <span class="text-lg">🍽️</span>
+                                    <div>
+                                        <h4 class="text-white font-medium">Food Quality Issue</h4>
+                                        <p class="text-slate-400 text-sm">Complaint ID: #C002 • Vikram Singh (B-156)</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="status-progress bg-blue-500 bg-opacity-20 px-3 py-1 rounded-full text-sm font-medium">
+                                        In Progress
+                                    </span>
+                                </div>
+                            </div>
+                            <p class="text-slate-300 text-sm mb-3">The food quality has been inconsistent lately. Please improve the mess food standards.</p>
+                            <div class="flex items-center justify-between text-sm mb-3">
+                                <span class="text-slate-400">Submitted: Dec 15, 2024 • Category: Mess • Assigned to: Kitchen Staff</span>
+                                <div class="flex space-x-2">
+                                    <button onclick="updateComplaint('C002')" class="btn-secondary text-white px-3 py-1 rounded text-xs">
+                                        📝 Update
+                                    </button>
+                                    <button onclick="resolveComplaint('C002')" class="btn-success text-white px-3 py-1 rounded text-xs">
+                                        ✅ Resolve
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="glass-effect rounded p-3">
+                                <p class="text-blue-400 text-sm font-medium mb-1">Admin Response:</p>
+                                <p class="text-slate-300 text-sm">We have noted your concern and are working with the mess contractor to improve food quality. Expected resolution by Dec 25.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="glass-effect rounded-lg p-4 border-l-4 border-emerald-400">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="flex items-center space-x-3">
+                                    <span class="text-lg">💡</span>
+                                    <div>
+                                        <h4 class="text-white font-medium">Corridor Light Not Working</h4>
+                                        <p class="text-slate-400 text-sm">Complaint ID: #C003 • Arjun Patel (C-102)</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="status-resolved bg-emerald-500 bg-opacity-20 px-3 py-1 rounded-full text-sm font-medium">
+                                        Resolved
+                                    </span>
+                                </div>
+                            </div>
+                            <p class="text-slate-300 text-sm mb-3">The corridor light on 2nd floor Block C is not working.</p>
+                            <div class="flex items-center justify-between text-sm mb-3">
+                                <span class="text-slate-400">Submitted: Dec 10, 2024 • Resolved: Dec 12, 2024 • Category: Electrical</span>
+                                <button onclick="viewComplaint('C003')" class="btn-secondary text-white px-3 py-1 rounded text-xs">
+                                    👁️ View Details
+                                </button>
+                            </div>
+                            <div class="glass-effect rounded p-3">
+                                <p class="text-emerald-400 text-sm font-medium mb-1">Resolution:</p>
+                                <p class="text-slate-300 text-sm">Light bulb has been replaced and is now working properly. Resolved by Maintenance Team on Dec 12, 2024.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Room Management Section -->
+            <div id="rooms" class="content-section hidden">
+                <div class="flex items-center justify-between mb-8">
+                    <h2 class="text-2xl font-bold text-white">Room Management</h2>
+                    <div class="flex space-x-3">
+                        <button onclick="addRoom()" class="btn-secondary text-white px-4 py-2 rounded-lg font-medium">
+                            ➕ Add Room
+                        </button>
+                        <button onclick="bulkRoomActions()" class="btn-primary text-white px-4 py-2 rounded-lg font-medium">
+                            ⚡ Bulk Actions
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Room Filter -->
+                <div class="glass-card rounded-xl p-6 mb-6">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <select class="px-3 py-2 glass-effect rounded-lg text-white border-0">
+                            <option>All Blocks</option>
+                            <option>Block A</option>
+                            <option>Block B</option>
+                            <option>Block C</option>
+                        </select>
+                        <select class="px-3 py-2 glass-effect rounded-lg text-white border-0">
+                            <option>All Floors</option>
+                            <option>Ground Floor</option>
+                            <option>1st Floor</option>
+                            <option>2nd Floor</option>
+                            <option>3rd Floor</option>
+                        </select>
+                        <select class="px-3 py-2 glass-effect rounded-lg text-white border-0">
+                            <option>All Status</option>
+                            <option>Available</option>
+                            <option>Partially Occupied</option>
+                            <option>Full</option>
+                            <option>Maintenance</option>
+                        </select>
+                        <button onclick="filterRooms()" class="btn-primary text-white px-4 py-2 rounded-lg font-medium">
+                            🔍 Filter
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Room Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Room Card 1 -->
+                    <div class="glass-card rounded-xl p-6 hover-lift">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <h3 class="text-lg font-bold text-white">Room A-204</h3>
+                                <p class="text-slate-400 text-sm">Block A • 2nd Floor</p>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <div class="w-3 h-3 bg-blue-500 rounded-full"></div>
+                                <span class="text-blue-400 text-sm">Partial</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Occupancy -->
+                        <div class="mb-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-slate-400 text-sm">Occupancy</span>
+                                <span class="text-white text-sm">3/4 Students</span>
+                            </div>
+                            <div class="progress-bar w-full h-2">
+                                <div class="progress-fill" style="width: 75%"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Current Students -->
+                        <div class="mb-4">
+                            <p class="text-slate-400 text-sm mb-2">Current Students:</p>
+                            <div class="space-y-1">
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-6 h-6 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                                        <span class="text-xs font-bold text-white">RK</span>
+                                    </div>
+                                    <span class="text-white text-sm">Rajesh Kumar</span>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-6 h-6 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center">
+                                        <span class="text-xs font-bold text-white">SK</span>
+                                    </div>
+                                    <span class="text-white text-sm">Suresh Kumar</span>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-6 h-6 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full flex items-center justify-center">
+                                        <span class="text-xs font-bold text-white">MR</span>
+                                    </div>
+                                    <span class="text-white text-sm">Mohan Raj</span>
+                                </div>
+                                <div class="text-slate-400 text-sm">+ 1 Bed Available</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Room Facilities -->
+                        <div class="mb-4">
+                            <p class="text-slate-400 text-sm mb-2">Facilities:</p>
+                            <div class="grid grid-cols-2 gap-2 text-xs">
+                                <div class="flex items-center space-x-1">
+                                    <span class="text-emerald-400">✅</span>
+                                    <span class="text-slate-300">4 Beds</span>
+                                </div>
+                                <div class="flex items-center space-x-1">
+                                    <span class="text-emerald-400">✅</span>
+                                    <span class="text-slate-300">4 Tables</span>
+                                </div>
+                                <div class="flex items-center space-x-1">
+                                    <span class="text-emerald-400">✅</span>
+                                    <span class="text-slate-300">4 Chairs</span>
+                                </div>
+                                <div class="flex items-center space-x-1">
+                                    <span class="text-emerald-400">✅</span>
+                                    <span class="text-slate-300">2 Fans</span>
+                                </div>
+                                <div class="flex items-center space-x-1">
+                                    <span class="text-emerald-400">✅</span>
+                                    <span class="text-slate-300">4 Tube Lights</span>
+                                </div>
+                                <div class="flex items-center space-x-1">
+                                    <span class="text-emerald-400">✅</span>
+                                    <span class="text-slate-300">1 Cupboard</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Actions -->
+                        <div class="flex space-x-2">
+                            <button onclick="viewRoomDetails('A-204')" class="flex-1 btn-secondary text-white py-2 rounded-lg text-sm">
+                                👁️ View
+                            </button>
+                            <button onclick="assignStudent('A-204')" class="flex-1 btn-primary text-white py-2 rounded-lg text-sm">
+                                👤 Assign
+                            </button>
+                            <button onclick="editRoom('A-204')" class="btn-secondary text-white px-3 py-2 rounded-lg text-sm">
+                                ✏️
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Room Card 2 -->
+                    <div class="glass-card rounded-xl p-6 hover-lift">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <h3 class="text-lg font-bold text-white">Room B-156</h3>
+                                <p class="text-slate-400 text-sm">Block B • 1st Floor</p>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <div class="w-3 h-3 bg-emerald-500 rounded-full"></div>
+                                <span class="text-emerald-400 text-sm">Available</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Occupancy -->
+                        <div class="mb-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-slate-400 text-sm">Occupancy</span>
+                                <span class="text-white text-sm">1/4 Students</span>
+                            </div>
+                            <div class="progress-bar w-full h-2">
+                                <div class="progress-fill" style="width: 25%"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Current Students -->
+                        <div class="mb-4">
+                            <p class="text-slate-400 text-sm mb-2">Current Students:</p>
+                            <div class="space-y-1">
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-6 h-6 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center">
+                                        <span class="text-xs font-bold text-white">VS</span>
+                                    </div>
+                                    <span class="text-white text-sm">Vikram Singh</span>
+                                </div>
+                                <div class="text-slate-400 text-sm">+ 3 Beds Available</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Room Facilities -->
+                        <div class="mb-4">
+                            <p class="text-slate-400 text-sm mb-2">Facilities:</p>
+                            <div class="grid grid-cols-2 gap-2 text-xs">
+                                <div class="flex items-center space-x-1">
+                                    <span class="text-emerald-400">✅</span>
+                                    <span class="text-slate-300">4 Beds</span>
+                                </div>
+                                <div class="flex items-center space-x-1">
+                                    <span class="text-emerald-400">✅</span>
+                                    <span class="text-slate-300">4 Tables</span>
+                                </div>
+                                <div class="flex items-center space-x-1">
+                                    <span class="text-emerald-400">✅</span>
+                                    <span class="text-slate-300">4 Chairs</span>
+                                </div>
+                                <div class="flex items-center space-x-1">
+                                    <span class="text-red-400">❌</span>
+                                    <span class="text-slate-300">2 Fans (1 Faulty)</span>
+                                </div>
+                                <div class="flex items-center space-x-1">
+                                    <span class="text-emerald-400">✅</span>
+                                    <span class="text-slate-300">4 Tube Lights</span>
+                                </div>
+                                <div class="flex items-center space-x-1">
+                                    <span class="text-emerald-400">✅</span>
+                                    <span class="text-slate-300">1 Cupboard</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Actions -->
+                        <div class="flex space-x-2">
+                            <button onclick="viewRoomDetails('B-156')" class="flex-1 btn-secondary text-white py-2 rounded-lg text-sm">
+                                👁️ View
+                            </button>
+                            <button onclick="assignStudent('B-156')" class="flex-1 btn-primary text-white py-2 rounded-lg text-sm">
+                                👤 Assign
+                            </button>
+                            <button onclick="editRoom('B-156')" class="btn-secondary text-white px-3 py-2 rounded-lg text-sm">
+                                ✏️
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Room Card 3 -->
+                    <div class="glass-card rounded-xl p-6 hover-lift">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <h3 class="text-lg font-bold text-white">Room C-301</h3>
+                                <p class="text-slate-400 text-sm">Block C • 3rd Floor</p>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                                <span class="text-yellow-400 text-sm">Full</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Occupancy -->
+                        <div class="mb-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-slate-400 text-sm">Occupancy</span>
+                                <span class="text-white text-sm">4/4 Students</span>
+                            </div>
+                            <div class="progress-bar w-full h-2">
+                                <div class="progress-fill" style="width: 100%"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Current Students -->
+                        <div class="mb-4">
+                            <p class="text-slate-400 text-sm mb-2">Current Students:</p>
+                            <div class="space-y-1">
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-6 h-6 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                                        <span class="text-xs font-bold text-white">AP</span>
+                                    </div>
+                                    <span class="text-white text-sm">Arjun Patel</span>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-6 h-6 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center">
+                                        <span class="text-xs font-bold text-white">RG</span>
+                                    </div>
+                                    <span class="text-white text-sm">Rahul Gupta</span>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-6 h-6 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full flex items-center justify-center">
+                                        <span class="text-xs font-bold text-white">AS</span>
+                                    </div>
+                                    <span class="text-white text-sm">Amit Sharma</span>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-6 h-6 bg-gradient-to-br from-orange-500 to-red-600 rounded-full flex items-center justify-center">
+                                        <span class="text-xs font-bold text-white">NK</span>
+                                    </div>
+                                    <span class="text-white text-sm">Nitin Kumar</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Room Facilities -->
+                        <div class="mb-4">
+                            <p class="text-slate-400 text-sm mb-2">Facilities:</p>
+                            <div class="grid grid-cols-2 gap-2 text-xs">
+                                <div class="flex items-center space-x-1">
+                                    <span class="text-emerald-400">✅</span>
+                                    <span class="text-slate-300">4 Beds</span>
+                                </div>
+                                <div class="flex items-center space-x-1">
+                                    <span class="text-emerald-400">✅</span>
+                                    <span class="text-slate-300">4 Tables</span>
+                                </div>
+                                <div class="flex items-center space-x-1">
+                                    <span class="text-emerald-400">✅</span>
+                                    <span class="text-slate-300">4 Chairs</span>
+                                </div>
+                                <div class="flex items-center space-x-1">
+                                    <span class="text-emerald-400">✅</span>
+                                    <span class="text-slate-300">2 Fans</span>
+                                </div>
+                                <div class="flex items-center space-x-1">
+                                    <span class="text-emerald-400">✅</span>
+                                    <span class="text-slate-300">4 Tube Lights</span>
+                                </div>
+                                <div class="flex items-center space-x-1">
+                                    <span class="text-emerald-400">✅</span>
+                                    <span class="text-slate-300">1 Cupboard</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Actions -->
+                        <div class="flex space-x-2">
+                            <button onclick="viewRoomDetails('C-301')" class="flex-1 btn-secondary text-white py-2 rounded-lg text-sm">
+                                👁️ View
+                            </button>
+                            <button onclick="reassignStudent('C-301')" class="flex-1 btn-secondary text-white py-2 rounded-lg text-sm">
+                                🔄 Reassign
+                            </button>
+                            <button onclick="editRoom('C-301')" class="btn-secondary text-white px-3 py-2 rounded-lg text-sm">
+                                ✏️
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Room Card 4 - Maintenance -->
+                    <div class="glass-card rounded-xl p-6 hover-lift opacity-75">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <h3 class="text-lg font-bold text-white">Room A-105</h3>
+                                <p class="text-slate-400 text-sm">Block A • Ground Floor</p>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                                <span class="text-red-400 text-sm">Maintenance</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Maintenance Info -->
+                        <div class="mb-4">
+                            <div class="glass-effect rounded-lg p-3">
+                                <p class="text-red-400 text-sm font-medium mb-1">Under Maintenance</p>
+                                <p class="text-slate-300 text-xs">Plumbing repair in progress. Expected completion: Dec 25, 2024</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Room Facilities -->
+                        <div class="mb-4">
+                            <p class="text-slate-400 text-sm mb-2">Facilities:</p>
+                            <div class="grid grid-cols-2 gap-2 text-xs">
+                                <div class="flex items-center space-x-1">
+                                    <span class="text-emerald-400">✅</span>
+                                    <span class="text-slate-300">4 Beds</span>
+                                </div>
+                                <div class="flex items-center space-x-1">
+                                    <span class="text-emerald-400">✅</span>
+                                    <span class="text-slate-300">4 Tables</span>
+                                </div>
+                                <div class="flex items-center space-x-1">
+                                    <span class="text-emerald-400">✅</span>
+                                    <span class="text-slate-300">4 Chairs</span>
+                                </div>
+                                <div class="flex items-center space-x-1">
+                                    <span class="text-emerald-400">✅</span>
+                                    <span class="text-slate-300">2 Fans</span>
+                                </div>
+                                <div class="flex items-center space-x-1">
+                                    <span class="text-emerald-400">✅</span>
+                                    <span class="text-slate-300">4 Tube Lights</span>
+                                </div>
+                                <div class="flex items-center space-x-1">
+                                    <span class="text-red-400">❌</span>
+                                    <span class="text-slate-300">Plumbing Issue</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Actions -->
+                        <div class="flex space-x-2">
+                            <button onclick="viewRoomDetails('A-105')" class="flex-1 btn-secondary text-white py-2 rounded-lg text-sm">
+                                👁️ View
+                            </button>
+                            <button onclick="updateMaintenance('A-105')" class="flex-1 btn-danger text-white py-2 rounded-lg text-sm">
+                                🔧 Update
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Visitors Section -->
+            <div id="visitors" class="content-section hidden">
+                <div class="flex items-center justify-between mb-8">
+                    <h2 class="text-2xl font-bold text-white">Visitor Management</h2>
+                    <div class="flex space-x-3">
+                        <button onclick="addVisitor()" class="btn-secondary text-white px-4 py-2 rounded-lg font-medium">
+                            ➕ Register Visitor
+                        </button>
+                        <button onclick="generateVisitorReport()" class="btn-primary text-white px-4 py-2 rounded-lg font-medium">
+                            📊 Generate Report
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Visitor Stats -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                    <div class="glass-card rounded-xl p-6 text-center">
+                        <div class="text-2xl font-bold text-white mb-2">12</div>
+                        <div class="text-slate-400 text-sm">Today's Visitors</div>
+                    </div>
+                    <div class="glass-card rounded-xl p-6 text-center">
+                        <div class="text-2xl font-bold text-blue-400 mb-2">8</div>
+                        <div class="text-slate-400 text-sm">Currently Inside</div>
+                    </div>
+                    <div class="glass-card rounded-xl p-6 text-center">
+                        <div class="text-2xl font-bold text-emerald-400 mb-2">4</div>
+                        <div class="text-slate-400 text-sm">Checked Out</div>
+                    </div>
+                    <div class="glass-card rounded-xl p-6 text-center">
+                        <div class="text-2xl font-bold text-yellow-400 mb-2">156</div>
+                        <div class="text-slate-400 text-sm">This Month</div>
+                    </div>
+                </div>
+                
+                <!-- Visitor Table -->
+                <div class="glass-card rounded-xl p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-lg font-semibold text-white">Today's Visitors</h3>
+                        <div class="flex space-x-2">
+                            <input type="date" value="2024-12-20" class="px-3 py-2 glass-effect rounded-lg text-white border-0">
+                            <button onclick="filterVisitors()" class="btn-secondary text-white px-4 py-2 rounded-lg text-sm">
+                                🔍 Filter
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="data-table w-full">
+                            <thead>
+                                <tr class="border-b border-slate-600">
+                                    <th class="text-left py-3 px-4 text-slate-400 font-medium">Visitor</th>
+                                    <th class="text-left py-3 px-4 text-slate-400 font-medium">Visiting Student</th>
+                                    <th class="text-left py-3 px-4 text-slate-400 font-medium">Purpose</th>
+                                    <th class="text-left py-3 px-4 text-slate-400 font-medium">Check In</th>
+                                    <th class="text-left py-3 px-4 text-slate-400 font-medium">Check Out</th>
+                                    <th class="text-left py-3 px-4 text-slate-400 font-medium">Status</th>
+                                    <th class="text-left py-3 px-4 text-slate-400 font-medium">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="border-b border-slate-700">
+                                    <td class="py-3 px-4">
+                                        <div>
+                                            <p class="text-white font-medium">Mr. Ramesh Kumar</p>
+                                            <p class="text-slate-400 text-sm">+91 9876543210</p>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        <div>
+                                            <p class="text-white">Rajesh Kumar</p>
+                                            <p class="text-slate-400 text-sm">Room A-204</p>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 px-4 text-slate-400">Family Visit</td>
+                                    <td class="py-3 px-4 text-white">10:30 AM</td>
+                                    <td class="py-3 px-4 text-slate-400">-</td>
+                                    <td class="py-3 px-4">
+                                        <span class="status-progress bg-blue-500 bg-opacity-20 px-2 py-1 rounded-full text-xs font-medium">Inside</span>
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        <div class="flex space-x-2">
+                                            <button onclick="checkOutVisitor('V001')" class="action-btn bg-emerald-500 bg-opacity-20 text-emerald-400 hover:bg-opacity-30">
+                                                ✅
+                                            </button>
+                                            <button onclick="extendVisit('V001')" class="action-btn bg-blue-500 bg-opacity-20 text-blue-400 hover:bg-opacity-30">
+                                                ⏰
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                
+                                <tr class="border-b border-slate-700">
+                                    <td class="py-3 px-4">
+                                        <div>
+                                            <p class="text-white font-medium">Ms. Priya Singh</p>
+                                            <p class="text-slate-400 text-sm">+91 9876543211</p>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        <div>
+                                            <p class="text-white">Vikram Singh</p>
+                                            <p class="text-slate-400 text-sm">Room B-156</p>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 px-4 text-slate-400">Sister Visit</td>
+                                    <td class="py-3 px-4 text-white">09:15 AM</td>
+                                    <td class="py-3 px-4 text-white">11:45 AM</td>
+                                    <td class="py-3 px-4">
+                                        <span class="status-resolved bg-emerald-500 bg-opacity-20 px-2 py-1 rounded-full text-xs font-medium">Checked Out</span>
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        <button onclick="viewVisitorDetails('V002')" class="action-btn bg-blue-500 bg-opacity-20 text-blue-400 hover:bg-opacity-30">
+                                            👁️
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Messaging Section -->
+            <div id="messaging" class="content-section hidden">
+                <div class="flex items-center justify-between mb-8">
+                    <h2 class="text-2xl font-bold text-white">Notifications & Messaging</h2>
+                    <button onclick="scheduleMessage()" class="btn-primary text-white px-6 py-3 rounded-lg font-medium">
+                        ⏰ Schedule Message
+                    </button>
+                </div>
+                
+                <!-- Quick Send -->
+                <div class="glass-card rounded-xl p-6 mb-6">
+                    <h3 class="text-lg font-semibold text-white mb-6">Send Announcement</h3>
+                    <form onsubmit="sendAnnouncement(event)">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div>
+                                <label class="block text-sm font-medium text-slate-400 mb-2">Recipients</label>
+                                <select class="w-full px-4 py-3 glass-effect rounded-lg text-white border-0" required>
+                                    <option value="">Select Recipients</option>
+                                    <option value="all">All Students</option>
+                                    <option value="year1">1st Year Students</option>
+                                    <option value="year2">2nd Year Students</option>
+                                    <option value="year3">3rd Year Students</option>
+                                    <option value="year4">4th Year Students</option>
+                                    <option value="blockA">Block A Students</option>
+                                    <option value="blockB">Block B Students</option>
+                                    <option value="blockC">Block C Students</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-slate-400 mb-2">Priority</label>
+                                <select class="w-full px-4 py-3 glass-effect rounded-lg text-white border-0">
+                                    <option value="normal">Normal</option>
+                                    <option value="high">High</option>
+                                    <option value="urgent">Urgent</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <label class="block text-sm font-medium text-slate-400 mb-2">Subject</label>
+                            <input type="text" class="w-full px-4 py-3 glass-effect rounded-lg text-white placeholder-slate-400 border-0" placeholder="Enter message subject" required>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <label class="block text-sm font-medium text-slate-400 mb-2">Message</label>
+                            <textarea rows="4" class="w-full px-4 py-3 glass-effect rounded-lg text-white placeholder-slate-400 border-0 resize-none" placeholder="Type your announcement message here..." required></textarea>
+                        </div>
+                        
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-4">
+                                <label class="flex items-center space-x-2">
+                                    <input type="checkbox" class="rounded">
+                                    <span class="text-slate-400 text-sm">Send Email</span>
+                                </label>
+                                <label class="flex items-center space-x-2">
+                                    <input type="checkbox" class="rounded">
+                                    <span class="text-slate-400 text-sm">Send SMS</span>
+                                </label>
+                                <label class="flex items-center space-x-2">
+                                    <input type="checkbox" checked class="rounded">
+                                    <span class="text-slate-400 text-sm">Dashboard Notification</span>
+                                </label>
+                            </div>
+                            <button type="submit" class="btn-primary text-white px-6 py-3 rounded-lg font-medium">
+                                📢 Send Announcement
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Message History -->
+                <div class="glass-card rounded-xl p-6">
+                    <h3 class="text-lg font-semibold text-white mb-6">Recent Messages</h3>
+                    <div class="space-y-4">
+                        <div class="glass-effect rounded-lg p-4">
+                            <div class="flex items-center justify-between mb-3">
+                                <div>
+                                    <h4 class="text-white font-medium">Hostel Maintenance Notice</h4>
+                                    <p class="text-slate-400 text-sm">Sent to: All Students • Dec 18, 2024 at 2:30 PM</p>
+                                </div>
+                                <span class="status-resolved bg-emerald-500 bg-opacity-20 px-3 py-1 rounded-full text-sm font-medium">
+                                    Delivered
+                                </span>
+                            </div>
+                            <p class="text-slate-300 text-sm mb-3">Hostel will be closed for maintenance on Dec 25, 2024 from 2:00 AM to 4:00 AM. Please plan accordingly.</p>
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-slate-400">📧 248 Emails • 📱 248 SMS • 🔔 248 Dashboard</span>
+                                <div class="flex space-x-2">
+                                    <button onclick="viewMessageStats('M001')" class="text-blue-400 hover:text-blue-300 text-sm">📊 Stats</button>
+                                    <button onclick="resendMessage('M001')" class="text-emerald-400 hover:text-emerald-300 text-sm">🔄 Resend</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="glass-effect rounded-lg p-4">
+                            <div class="flex items-center justify-between mb-3">
+                                <div>
+                                    <h4 class="text-white font-medium">December Mess Bill Generated</h4>
+                                    <p class="text-slate-400 text-sm">Sent to: All Students • Dec 1, 2024 at 10:00 AM</p>
+                                </div>
+                                <span class="status-resolved bg-emerald-500 bg-opacity-20 px-3 py-1 rounded-full text-sm font-medium">
+                                    Delivered
+                                </span>
+                            </div>
+                            <p class="text-slate-300 text-sm mb-3">Your December 2024 mess bill has been generated. Please check your dashboard and make payment by Dec 30, 2024.</p>
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-slate-400">📧 248 Emails • 🔔 248 Dashboard</span>
+                                <div class="flex space-x-2">
+                                    <button onclick="viewMessageStats('M002')" class="text-blue-400 hover:text-blue-300 text-sm">📊 Stats</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Reports Section -->
+            <div id="reports" class="content-section hidden">
+                <div class="flex items-center justify-between mb-8">
+                    <h2 class="text-2xl font-bold text-white">Reports & Analytics</h2>
+                    <button onclick="scheduleReport()" class="btn-primary text-white px-6 py-3 rounded-lg font-medium">
+                        ⏰ Schedule Reports
+                    </button>
+                </div>
+                
+                <!-- Report Categories -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                    <!-- Student Reports -->
+                    <div class="glass-card rounded-xl p-6 hover-lift">
+                        <div class="flex items-center space-x-3 mb-4">
+                            <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                                <span class="text-xl">👥</span>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-bold text-white">Student Reports</h3>
+                                <p class="text-slate-400 text-sm">Registration & Demographics</p>
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            <button onclick="generateReport('student-list')" class="w-full text-left px-3 py-2 text-slate-300 hover:bg-white hover:bg-opacity-10 rounded-lg text-sm transition-all">
+                                📋 Complete Student List
+                            </button>
+                            <button onclick="generateReport('new-admissions')" class="w-full text-left px-3 py-2 text-slate-300 hover:bg-white hover:bg-opacity-10 rounded-lg text-sm transition-all">
+                                🆕 New Admissions Report
+                            </button>
+                            <button onclick="generateReport('department-wise')" class="w-full text-left px-3 py-2 text-slate-300 hover:bg-white hover:bg-opacity-10 rounded-lg text-sm transition-all">
+                                🏫 Department-wise Distribution
+                            </button>
+                            <button onclick="generateReport('year-wise')" class="w-full text-left px-3 py-2 text-slate-300 hover:bg-white hover:bg-opacity-10 rounded-lg text-sm transition-all">
+                                📅 Year-wise Analysis
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Attendance Reports -->
+                    <div class="glass-card rounded-xl p-6 hover-lift">
+                        <div class="flex items-center space-x-3 mb-4">
+                            <div class="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center">
+                                <span class="text-xl">✅</span>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-bold text-white">Attendance Reports</h3>
+                                <p class="text-slate-400 text-sm">Daily & Monthly Analysis</p>
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            <button onclick="generateReport('daily-attendance')" class="w-full text-left px-3 py-2 text-slate-300 hover:bg-white hover:bg-opacity-10 rounded-lg text-sm transition-all">
+                                📊 Daily Attendance Report
+                            </button>
+                            <button onclick="generateReport('monthly-attendance')" class="w-full text-left px-3 py-2 text-slate-300 hover:bg-white hover:bg-opacity-10 rounded-lg text-sm transition-all">
+                                📈 Monthly Attendance Trends
+                            </button>
+                            <button onclick="generateReport('low-attendance')" class="w-full text-left px-3 py-2 text-slate-300 hover:bg-white hover:bg-opacity-10 rounded-lg text-sm transition-all">
+                                ⚠️ Low Attendance Alert
+                            </button>
+                            <button onclick="generateReport('attendance-summary')" class="w-full text-left px-3 py-2 text-slate-300 hover:bg-white hover:bg-opacity-10 rounded-lg text-sm transition-all">
+                                📋 Attendance Summary
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Financial Reports -->
+                    <div class="glass-card rounded-xl p-6 hover-lift">
+                        <div class="flex items-center space-x-3 mb-4">
+                            <div class="w-12 h-12 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-lg flex items-center justify-center">
+                                <span class="text-xl">💰</span>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-bold text-white">Financial Reports</h3>
+                                <p class="text-slate-400 text-sm">Bills & Collections</p>
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            <button onclick="generateReport('monthly-collection')" class="w-full text-left px-3 py-2 text-slate-300 hover:bg-white hover:bg-opacity-10 rounded-lg text-sm transition-all">
+                                💵 Monthly Collection Report
+                            </button>
+                            <button onclick="generateReport('pending-payments')" class="w-full text-left px-3 py-2 text-slate-300 hover:bg-white hover:bg-opacity-10 rounded-lg text-sm transition-all">
+                                ⏳ Pending Payments
+                            </button>
+                            <button onclick="generateReport('mess-revenue')" class="w-full text-left px-3 py-2 text-slate-300 hover:bg-white hover:bg-opacity-10 rounded-lg text-sm transition-all">
+                                🍽️ Mess Revenue Analysis
+                            </button>
+                            <button onclick="generateReport('defaulters')" class="w-full text-left px-3 py-2 text-slate-300 hover:bg-white hover:bg-opacity-10 rounded-lg text-sm transition-all">
+                                🚨 Payment Defaulters
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Room Reports -->
+                    <div class="glass-card rounded-xl p-6 hover-lift">
+                        <div class="flex items-center space-x-3 mb-4">
+                            <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-violet-600 rounded-lg flex items-center justify-center">
+                                <span class="text-xl">🏠</span>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-bold text-white">Room Reports</h3>
+                                <p class="text-slate-400 text-sm">Occupancy & Maintenance</p>
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            <button onclick="generateReport('room-occupancy')" class="w-full text-left px-3 py-2 text-slate-300 hover:bg-white hover:bg-opacity-10 rounded-lg text-sm transition-all">
+                                🏠 Room Occupancy Report
+                            </button>
+                            <button onclick="generateReport('maintenance-log')" class="w-full text-left px-3 py-2 text-slate-300 hover:bg-white hover:bg-opacity-10 rounded-lg text-sm transition-all">
+                                🔧 Maintenance Log
+                            </button>
+                            <button onclick="generateReport('facility-status')" class="w-full text-left px-3 py-2 text-slate-300 hover:bg-white hover:bg-opacity-10 rounded-lg text-sm transition-all">
+                                ⚙️ Facility Status Report
+                            </button>
+                            <button onclick="generateReport('room-allocation')" class="w-full text-left px-3 py-2 text-slate-300 hover:bg-white hover:bg-opacity-10 rounded-lg text-sm transition-all">
+                                📍 Room Allocation History
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Complaint Reports -->
+                    <div class="glass-card rounded-xl p-6 hover-lift">
+                        <div class="flex items-center space-x-3 mb-4">
+                            <div class="w-12 h-12 bg-gradient-to-br from-red-500 to-pink-600 rounded-lg flex items-center justify-center">
+                                <span class="text-xl">📝</span>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-bold text-white">Complaint Reports</h3>
+                                <p class="text-slate-400 text-sm">Issues & Resolutions</p>
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            <button onclick="generateReport('complaint-summary')" class="w-full text-left px-3 py-2 text-slate-300 hover:bg-white hover:bg-opacity-10 rounded-lg text-sm transition-all">
+                                📊 Complaint Summary
+                            </button>
+                            <button onclick="generateReport('resolution-time')" class="w-full text-left px-3 py-2 text-slate-300 hover:bg-white hover:bg-opacity-10 rounded-lg text-sm transition-all">
+                                ⏱️ Resolution Time Analysis
+                            </button>
+                            <button onclick="generateReport('category-wise')" class="w-full text-left px-3 py-2 text-slate-300 hover:bg-white hover:bg-opacity-10 rounded-lg text-sm transition-all">
+                                📂 Category-wise Complaints
+                            </button>
+                            <button onclick="generateReport('pending-complaints')" class="w-full text-left px-3 py-2 text-slate-300 hover:bg-white hover:bg-opacity-10 rounded-lg text-sm transition-all">
+                                ⏳ Pending Complaints
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Visitor Reports -->
+                    <div class="glass-card rounded-xl p-6 hover-lift">
+                        <div class="flex items-center space-x-3 mb-4">
+                            <div class="w-12 h-12 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-lg flex items-center justify-center">
+                                <span class="text-xl">👥</span>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-bold text-white">Visitor Reports</h3>
+                                <p class="text-slate-400 text-sm">Entry & Exit Logs</p>
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            <button onclick="generateReport('daily-visitors')" class="w-full text-left px-3 py-2 text-slate-300 hover:bg-white hover:bg-opacity-10 rounded-lg text-sm transition-all">
+                                📅 Daily Visitor Log
+                            </button>
+                            <button onclick="generateReport('visitor-trends')" class="w-full text-left px-3 py-2 text-slate-300 hover:bg-white hover:bg-opacity-10 rounded-lg text-sm transition-all">
+                                📈 Visitor Trends
+                            </button>
+                            <button onclick="generateReport('frequent-visitors')" class="w-full text-left px-3 py-2 text-slate-300 hover:bg-white hover:bg-opacity-10 rounded-lg text-sm transition-all">
+                                🔄 Frequent Visitors
+                            </button>
+                            <button onclick="generateReport('security-log')" class="w-full text-left px-3 py-2 text-slate-300 hover:bg-white hover:bg-opacity-10 rounded-lg text-sm transition-all">
+                                🛡️ Security Log
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Quick Analytics Dashboard -->
+                <div class="glass-card rounded-xl p-6 mb-6">
+                    <h3 class="text-lg font-semibold text-white mb-6">Quick Analytics Dashboard</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-blue-400 mb-2">87.5%</div>
+                            <div class="text-slate-400 text-sm">Average Attendance</div>
+                            <div class="text-xs text-slate-500 mt-1">This Month</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-emerald-400 mb-2">92%</div>
+                            <div class="text-slate-400 text-sm">Collection Rate</div>
+                            <div class="text-xs text-slate-500 mt-1">December 2024</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-yellow-400 mb-2">76%</div>
+                            <div class="text-slate-400 text-sm">Complaint Resolution</div>
+                            <div class="text-xs text-slate-500 mt-1">This Quarter</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-purple-400 mb-2">93%</div>
+                            <div class="text-slate-400 text-sm">Room Occupancy</div>
+                            <div class="text-xs text-slate-500 mt-1">Current</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Recent Reports -->
+                <div class="glass-card rounded-xl p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-lg font-semibold text-white">Recent Reports</h3>
+                        <button onclick="viewAllReports()" class="btn-secondary text-white px-4 py-2 rounded-lg text-sm">
+                            📁 View All Reports
+                        </button>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div class="glass-effect rounded-lg p-4">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h4 class="text-white font-medium">December 2024 - Monthly Collection Report</h4>
+                                    <p class="text-slate-400 text-sm">Generated on Dec 20, 2024 at 10:30 AM</p>
+                                </div>
+                                <div class="flex space-x-2">
+                                    <button onclick="downloadReport('collection-dec-2024')" class="btn-secondary text-white px-3 py-1 rounded text-xs">
+                                        📥 Download
+                                    </button>
+                                    <button onclick="viewReport('collection-dec-2024')" class="btn-primary text-white px-3 py-1 rounded text-xs">
+                                        👁️ View
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="glass-effect rounded-lg p-4">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h4 class="text-white font-medium">Weekly Attendance Summary</h4>
+                                    <p class="text-slate-400 text-sm">Generated on Dec 19, 2024 at 6:00 PM</p>
+                                </div>
+                                <div class="flex space-x-2">
+                                    <button onclick="downloadReport('attendance-week-51')" class="btn-secondary text-white px-3 py-1 rounded text-xs">
+                                        📥 Download
+                                    </button>
+                                    <button onclick="viewReport('attendance-week-51')" class="btn-primary text-white px-3 py-1 rounded text-xs">
+                                        👁️ View
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="glass-effect rounded-lg p-4">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h4 class="text-white font-medium">Room Occupancy Analysis - Q4 2024</h4>
+                                    <p class="text-slate-400 text-sm">Generated on Dec 18, 2024 at 2:15 PM</p>
+                                </div>
+                                <div class="flex space-x-2">
+                                    <button onclick="downloadReport('occupancy-q4-2024')" class="btn-secondary text-white px-3 py-1 rounded text-xs">
+                                        📥 Download
+                                    </button>
+                                    <button onclick="viewReport('occupancy-q4-2024')" class="btn-primary text-white px-3 py-1 rounded text-xs">
+                                        👁️ View
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="settings" class="content-section hidden">
+                <h2 class="text-2xl font-bold text-white mb-8">Settings</h2>
+                <div class="glass-card rounded-xl p-6">
+                    <p class="text-white">Settings features coming soon...</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Global variables
+        let sidebarOpen = true;
+        let currentSection = 'dashboard';
+        
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTheme();
+            showSection('dashboard');
+            updateActiveNavItem();
+            
+            // Close dropdowns when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('#profileDropdown') && !e.target.closest('button[onclick="toggleProfileDropdown()"]')) {
+                    document.getElementById('profileDropdown').classList.add('hidden');
+                }
+            });
+        });
+        
+        // Theme Management
+        function toggleTheme() {
+            const body = document.body;
+            const darkIcon = document.getElementById('darkIcon');
+            const lightIcon = document.getElementById('lightIcon');
+            
+            body.classList.toggle('light-mode');
+            
+            if (body.classList.contains('light-mode')) {
+                darkIcon.classList.add('hidden');
+                lightIcon.classList.remove('hidden');
+                localStorage.setItem('theme', 'light');
+            } else {
+                darkIcon.classList.remove('hidden');
+                lightIcon.classList.add('hidden');
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+        
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            const body = document.body;
+            const darkIcon = document.getElementById('darkIcon');
+            const lightIcon = document.getElementById('lightIcon');
+            
+            if (savedTheme === 'light') {
+                body.classList.add('light-mode');
+                darkIcon.classList.add('hidden');
+                lightIcon.classList.remove('hidden');
+            }
+        }
+        
+        // Sidebar Management
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('mainContent');
+            
+            sidebarOpen = !sidebarOpen;
+            
+            if (sidebarOpen) {
+                sidebar.classList.remove('sidebar-hidden');
+                if (window.innerWidth >= 768) {
+                    mainContent.style.marginLeft = '16rem';
+                }
+            } else {
+                sidebar.classList.add('sidebar-hidden');
+                mainContent.style.marginLeft = '0';
+            }
+        }
+        
+        // Profile Dropdown
+        function toggleProfileDropdown() {
+            const dropdown = document.getElementById('profileDropdown');
+            dropdown.classList.toggle('hidden');
+        }
+        
+        // Section Management
+        function showSection(sectionId) {
+            // Hide all sections
+            const sections = document.querySelectorAll('.content-section');
+            sections.forEach(section => section.classList.add('hidden'));
+            
+            // Show selected section
+            const targetSection = document.getElementById(sectionId);
+            if (targetSection) {
+                targetSection.classList.remove('hidden');
+                currentSection = sectionId;
+                updateActiveNavItem();
+            }
+            
+            // Close mobile sidebar after navigation
+            if (window.innerWidth < 768) {
+                toggleSidebar();
+            }
+        }
+        
+        function updateActiveNavItem() {
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => {
+                item.classList.remove('bg-white', 'bg-opacity-10');
+            });
+            
+            const activeItem = document.querySelector(`a[href="#${currentSection}"]`);
+            if (activeItem) {
+                activeItem.classList.add('bg-white', 'bg-opacity-10');
+            }
+        }
+        
+        // Student Management Functions
+        function addStudent() {
+            showNotification('Add Student functionality - Opens student registration form', 'info');
+        }
+        
+        function editStudent(studentId) {
+            showNotification(`Edit Student: ${studentId} - Opens edit form`, 'info');
+        }
+        
+        function viewStudent(studentId) {
+            showNotification(`View Student Details: ${studentId}`, 'info');
+        }
+        
+        function approveStudent(studentId) {
+            if (confirm(`Approve student registration for ${studentId}?`)) {
+                showNotification(`Student ${studentId} approved successfully!`, 'success');
+            }
+        }
+        
+        function rejectStudent(studentId) {
+            if (confirm(`Reject student registration for ${studentId}?`)) {
+                showNotification(`Student ${studentId} registration rejected.`, 'warning');
+            }
+        }
+        
+        function deactivateStudent(studentId) {
+            if (confirm(`Deactivate student ${studentId}?`)) {
+                showNotification(`Student ${studentId} deactivated successfully!`, 'warning');
+            }
+        }
+        
+        function exportStudents() {
+            showNotification('Exporting student data to Excel...', 'info');
+            setTimeout(() => {
+                showNotification('Student data exported successfully!', 'success');
+            }, 2000);
+        }
+        
+        function bulkActions() {
+            showNotification('Bulk Actions - Select multiple students for batch operations', 'info');
+        }
+        
+        // Bill Management Functions
+        function generateBills() {
+            if (confirm('Generate bills for all students for current month?')) {
+                showNotification('Bills generated successfully for all students!', 'success');
+            }
+        }
+        
+        function setMessRates() {
+            showNotification('Set Mess Rates - Opens rate configuration form', 'info');
+        }
+        
+        function viewBill(studentId) {
+            showNotification(`View Bill Details: ${studentId}`, 'info');
+        }
+        
+        function sendReminder(studentId) {
+            showNotification(`Payment reminder sent to ${studentId}`, 'success');
+        }
+        
+        function markPaid(studentId) {
+            if (confirm(`Mark bill as paid for ${studentId}?`)) {
+                showNotification(`Bill marked as paid for ${studentId}`, 'success');
+            }
+        }
+        
+        function downloadReceipt(studentId) {
+            showNotification(`Downloading receipt for ${studentId}...`, 'info');
+        }
+        
+        function sendBillReminders() {
+            if (confirm('Send payment reminders to all pending students?')) {
+                showNotification('Payment reminders sent to all pending students!', 'success');
+            }
+        }
+        
+        // Attendance Management Functions
+        function markBulkAttendance() {
+            showNotification('Bulk Attendance - Select multiple students to mark attendance', 'info');
+        }
+        
+        function generateAttendanceReport() {
+            showNotification('Generating attendance report...', 'info');
+            setTimeout(() => {
+                showNotification('Attendance report generated successfully!', 'success');
+            }, 2000);
+        }
+        
+        function confirmAttendance(studentId, status) {
+            showNotification(`Attendance ${status} confirmed for ${studentId}`, 'success');
+        }
+        
+        function markPresent(studentId) {
+            showNotification(`${studentId} marked as present`, 'success');
+        }
+        
+        function addRemark(studentId) {
+            showNotification(`Add Remark for ${studentId} - Opens remark form`, 'info');
+        }
+        
+        function filterAttendance() {
+            showNotification('Filtering attendance by selected date...', 'info');
+        }
+        
+        // Complaint Management Functions
+        function assignWorkers() {
+            showNotification('Assign Workers - Opens worker assignment interface', 'info');
+        }
+        
+        function generateComplaintReport() {
+            showNotification('Generating complaint report...', 'info');
+            setTimeout(() => {
+                showNotification('Complaint report generated successfully!', 'success');
+            }, 2000);
+        }
+        
+        function assignComplaint(complaintId) {
+            showNotification(`Assign Complaint ${complaintId} - Opens worker assignment form`, 'info');
+        }
+        
+        function updateComplaint(complaintId) {
+            showNotification(`Update Complaint ${complaintId} - Opens update form`, 'info');
+        }
+        
+        function resolveComplaint(complaintId) {
+            if (confirm(`Mark complaint ${complaintId} as resolved?`)) {
+                showNotification(`Complaint ${complaintId} marked as resolved!`, 'success');
+            }
+        }
+        
+        function viewComplaint(complaintId) {
+            showNotification(`View Complaint Details: ${complaintId}`, 'info');
+        }
+        
+        // Messaging Functions
+        function scheduleMessage() {
+            showNotification('Schedule Message - Opens message scheduler', 'info');
+        }
+        
+        function sendAnnouncement(event) {
+            event.preventDefault();
+            showNotification('Announcement sent successfully to selected recipients!', 'success');
+            event.target.reset();
+        }
+        
+        function viewMessageStats(messageId) {
+            showNotification(`View Message Statistics: ${messageId}`, 'info');
+        }
+        
+        function resendMessage(messageId) {
+            if (confirm(`Resend message ${messageId}?`)) {
+                showNotification(`Message ${messageId} resent successfully!`, 'success');
+            }
+        }
+        
+        // Authentication Functions
+        function changePassword() {
+            showNotification('Change Password - Opens password change form', 'info');
+        }
+        
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                showNotification('Logging out...', 'info');
+                setTimeout(() => {
+                    showNotification('Logged out successfully!', 'success');
+                }, 1000);
+            }
+        }
+        
+        // Room Management Functions
+        function addRoom() {
+            showNotification('Add Room - Opens room creation form with facility configuration', 'info');
+        }
+        
+        function bulkRoomActions() {
+            showNotification('Bulk Room Actions - Select multiple rooms for batch operations', 'info');
+        }
+        
+        function filterRooms() {
+            showNotification('Filtering rooms by selected criteria...', 'info');
+        }
+        
+        function viewRoomDetails(roomId) {
+            showNotification(`View Room Details: ${roomId} - Shows complete room information and history`, 'info');
+        }
+        
+        function assignStudent(roomId) {
+            showNotification(`Assign Student to ${roomId} - Opens student selection interface`, 'info');
+        }
+        
+        function reassignStudent(roomId) {
+            showNotification(`Reassign Students from ${roomId} - Opens room transfer interface`, 'info');
+        }
+        
+        function editRoom(roomId) {
+            showNotification(`Edit Room ${roomId} - Opens room configuration and facility management`, 'info');
+        }
+        
+        function updateMaintenance(roomId) {
+            showNotification(`Update Maintenance Status for ${roomId}`, 'info');
+        }
+        
+        // Visitor Management Functions
+        function addVisitor() {
+            showNotification('Register Visitor - Opens visitor registration form', 'info');
+        }
+        
+        function generateVisitorReport() {
+            showNotification('Generating visitor report...', 'info');
+            setTimeout(() => {
+                showNotification('Visitor report generated successfully!', 'success');
+            }, 2000);
+        }
+        
+        function filterVisitors() {
+            showNotification('Filtering visitors by selected date...', 'info');
+        }
+        
+        function checkOutVisitor(visitorId) {
+            if (confirm(`Check out visitor ${visitorId}?`)) {
+                showNotification(`Visitor ${visitorId} checked out successfully!`, 'success');
+            }
+        }
+        
+        function extendVisit(visitorId) {
+            showNotification(`Extend Visit for ${visitorId} - Opens time extension form`, 'info');
+        }
+        
+        function viewVisitorDetails(visitorId) {
+            showNotification(`View Visitor Details: ${visitorId}`, 'info');
+        }
+        
+        // Reports Functions
+        function scheduleReport() {
+            showNotification('Schedule Reports - Opens automated report scheduling interface', 'info');
+        }
+        
+        function generateReport(reportType) {
+            const reportNames = {
+                'student-list': 'Complete Student List',
+                'new-admissions': 'New Admissions Report',
+                'department-wise': 'Department-wise Distribution',
+                'year-wise': 'Year-wise Analysis',
+                'daily-attendance': 'Daily Attendance Report',
+                'monthly-attendance': 'Monthly Attendance Trends',
+                'low-attendance': 'Low Attendance Alert',
+                'attendance-summary': 'Attendance Summary',
+                'monthly-collection': 'Monthly Collection Report',
+                'pending-payments': 'Pending Payments',
+                'mess-revenue': 'Mess Revenue Analysis',
+                'defaulters': 'Payment Defaulters',
+                'room-occupancy': 'Room Occupancy Report',
+                'maintenance-log': 'Maintenance Log',
+                'facility-status': 'Facility Status Report',
+                'room-allocation': 'Room Allocation History',
+                'complaint-summary': 'Complaint Summary',
+                'resolution-time': 'Resolution Time Analysis',
+                'category-wise': 'Category-wise Complaints',
+                'pending-complaints': 'Pending Complaints',
+                'daily-visitors': 'Daily Visitor Log',
+                'visitor-trends': 'Visitor Trends',
+                'frequent-visitors': 'Frequent Visitors',
+                'security-log': 'Security Log'
+            };
+            
+            const reportName = reportNames[reportType] || 'Report';
+            showNotification(`Generating ${reportName}...`, 'info');
+            
+            setTimeout(() => {
+                showNotification(`${reportName} generated successfully!`, 'success');
+            }, 2000);
+        }
+        
+        function viewAllReports() {
+            showNotification('View All Reports - Opens report archive with search and filter options', 'info');
+        }
+        
+        function downloadReport(reportId) {
+            showNotification(`Downloading report ${reportId}...`, 'info');
+            setTimeout(() => {
+                showNotification('Report downloaded successfully!', 'success');
+            }, 1000);
+        }
+        
+        function viewReport(reportId) {
+            showNotification(`Opening report ${reportId} in viewer...`, 'info');
+        }
+        
+        // Utility Functions
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transition-all duration-300 transform translate-x-full`;
+            
+            const styles = {
+                'success': 'bg-emerald-500 text-white',
+                'error': 'bg-red-500 text-white',
+                'warning': 'bg-yellow-500 text-white',
+                'info': 'bg-blue-500 text-white'
+            };
+            
+            notification.className += ` ${styles[type] || styles.info}`;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.classList.remove('translate-x-full');
+            }, 100);
+            
+            setTimeout(() => {
+                notification.classList.add('translate-x-full');
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
+        }
+        
+        // Responsive handling
+        window.addEventListener('resize', function() {
+            if (window.innerWidth >= 768) {
+                const sidebar = document.getElementById('sidebar');
+                const mainContent = document.getElementById('mainContent');
+                
+                if (sidebarOpen) {
+                    sidebar.classList.remove('sidebar-hidden');
+                    mainContent.style.marginLeft = '16rem';
+                } else {
+                    mainContent.style.marginLeft = '0';
+                }
+            } else {
+                document.getElementById('mainContent').style.marginLeft = '0';
+            }
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'975d4c96d252dc97',t:'MTc1NjMxNTg1MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>

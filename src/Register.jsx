@@ -617,6 +617,7 @@ function Register({ onClose, onOpenLogin, isLight }) {
 
         const data = await response.json();
         const token = data.token;
+        console.log(token);
         localStorage.setItem("token",token);
 
         if (response.ok) {

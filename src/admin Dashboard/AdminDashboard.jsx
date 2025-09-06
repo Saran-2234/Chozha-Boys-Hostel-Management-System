@@ -21,7 +21,10 @@ const AdminDashboard = () => {
 
   const handleLogout = () => {
     // Handle logout logic here
+    localStorage.removeItem('authToken');
     console.log('Logout clicked');
+    // Redirect to login page
+    window.location.href = '/login';
   };
 
   const renderSection = () => {
@@ -53,9 +56,22 @@ const AdminDashboard = () => {
 
   return (
     <div className={`${isDarkMode ? 'professional-bg' : 'light-mode'} flex h-screen ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-      <Sidebar setActiveSection={setActiveSection} activeSection={activeSection} onLogout={handleLogout} isDarkMode={isDarkMode} />
+      <Sidebar 
+        setActiveSection={setActiveSection} 
+        activeSection={activeSection} 
+        onLogout={handleLogout} 
+        isDarkMode={isDarkMode} 
+        sidebarOpen={sidebarOpen}
+        setSidebarOpen={setSidebarOpen}
+      />
       <div className="flex-1 flex flex-col ml-0 md:ml-64 transition-all duration-300">
-        <Header isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} onLogout={handleLogout} />
+        <Header 
+          isDarkMode={isDarkMode} 
+          setIsDarkMode={setIsDarkMode} 
+          onLogout={handleLogout} 
+          sidebarOpen={sidebarOpen}
+          setSidebarOpen={setSidebarOpen}
+        />
         <MainContent>
           {renderSection()}
         </MainContent>

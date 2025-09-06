@@ -15,8 +15,9 @@ import { useLocation, useNavigate } from 'react-router-dom';
 
 const StudentDashboard = () => {
   const location = useLocation();
-  const studentData = location.state?.data;
+  const studentData = location.state?.studentData || location.state?.data;
   console.log('Student data:', studentData);
+  
   const [activeSection, setActiveSection] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true);
@@ -36,7 +37,7 @@ const StudentDashboard = () => {
   const renderSection = () => {
     switch (activeSection) {
       case 'dashboard':
-        return <Dashboard />;
+        return <Dashboard studentData={studentData} />;
       case 'profile':
         return <Profile studentData={studentData} />;
       case 'attendance':

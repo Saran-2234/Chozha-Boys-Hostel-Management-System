@@ -43,25 +43,46 @@ function Login({ onClose, onOpenRegister, loginType }) {
 
       const data = await response.json();
 
-      if (!response.ok) {
+      if (!response.ok || !data.success) {
         throw new Error(data.message || "Invalid login credentials");
       }
 
-      console.log("User data after login:", data);
+      // Check if the user's role matches the login type they selected
+      if (data.role && data.role !== loginType) {
+        throw new Error(`You are not authorized to access the ${loginType} portal. Please use the ${data.role} login.`);
+      }
+
+      console.log("Login successful!");
+      console.log("User Role:", data.role);
+      console.log("Access Token:", data.session?.access_token);
+      console.log("User Data:", data.data);
+      console.log("Session Info:", {
+        expires_at: data.session?.expires_at,
+        user_id: data.session?.user?.id
+      });
 
       // Store authentication data
-      if (data.token) {
-        localStorage.setItem("authToken", data.token);
+      if (data.session?.access_token) {
+        localStorage.setItem("authToken", data.session.access_token);
       }
-      if (data.user) {
-        localStorage.setItem("userData", JSON.stringify(data.user));
+      if (data.data) {
+        localStorage.setItem("userData", JSON.stringify(data.data));
+      }
+      if (data.session) {
+        localStorage.setItem("sessionData", JSON.stringify(data.session));
+      }
+      if (data.role) {
+        localStorage.setItem("userRole", data.role);
       }
 
-      // Redirect based on login type
-      if (loginType === "admin") {
+      // Redirect based on user role from API response
+      const userRole = data.role || loginType;
+      
+      if (userRole === "admin") {
         navigate("/admin-dashboard", { state: { data } });
       } else {
-        navigate("/dashboard", { state: { data } });
+        // Pass the student data to the student dashboard profile
+        navigate("/dashboard", { state: { studentData: data.data || data } });
       }
       
     } catch (err) {

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { getRoomInfo } from '../../Common/roomUtils';
 
 const ProfileDropdown = ({ onLogout, studentData, setActiveSection }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -19,9 +20,16 @@ const ProfileDropdown = ({ onLogout, studentData, setActiveSection }) => {
     // Check different possible structures of studentData
     let student = {};
     
-    if (studentData.userdata && studentData.userdata.length > 0) {
+    // Handle the structure from your console log: {success: true, message: '...', session: {...}, data: {...}}
+    if (studentData.data) {
+      student = studentData.data;
+    } 
+    // Handle the old structure with userdata array
+    else if (studentData.userdata && studentData.userdata.length > 0) {
       student = studentData.userdata[0];
-    } else if (studentData.name) {
+    } 
+    // Handle direct student data
+    else if (studentData.name) {
       student = studentData;
     }
     
@@ -61,6 +69,11 @@ const ProfileDropdown = ({ onLogout, studentData, setActiveSection }) => {
     // Close dropdown
     setIsOpen(false);
 
+    // Clear authentication data from localStorage
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('userData');
+    localStorage.removeItem('sessionData');
+
     // Call the logout function passed from parent
     if (onLogout) {
       onLogout();
@@ -74,6 +87,16 @@ const ProfileDropdown = ({ onLogout, studentData, setActiveSection }) => {
     // Navigate to profile section
     if (setActiveSection) {
       setActiveSection('profile');
+    }
+  };
+
+  const handleSettings = () => {
+    // Close dropdown
+    setIsOpen(false);
+    
+    // Navigate to settings section
+    if (setActiveSection) {
+      setActiveSection('settings');
     }
   };
 
@@ -101,9 +124,12 @@ const ProfileDropdown = ({ onLogout, studentData, setActiveSection }) => {
             >
               👤 View Profile
             </button>
-            <a href="#" className="block px-4 py-2 text-sm text-white hover:bg-white hover:bg-opacity-10">
+            <button
+              onClick={handleSettings}
+              className="w-full text-left block px-4 py-2 text-sm text-white hover:bg-white hover:bg-opacity-10"
+            >
               ⚙️ Settings
-            </a>
+            </button>
             <hr className="my-2 border-slate-600" />
             <button
               onClick={handleLogout}

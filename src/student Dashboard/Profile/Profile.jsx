@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import EditProfile from './EditProfile'; // Import the EditProfile component
+import EditProfile from './EditProfile';
 
 const Profile = ({ studentData }) => {
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isEditing, setIsEditing] = useState(false); // State to toggle edit mode
+  const [isEditing, setIsEditing] = useState(false);
 
   // Fallback data if studentData is not available
   const defaultData = {
@@ -23,15 +23,15 @@ const Profile = ({ studentData }) => {
     room_number: '101',
     address: 'Address not available',
     profile_photo: null,
-    dob: '' // Added dob field
+    dob: ''
   };
 
   useEffect(() => {
     const fetchStudentProfile = async () => {
-      // Check if we have studentData with userdata array
-      if (studentData && studentData.userdata && studentData.userdata.length > 0) {
-        console.log("Using studentData from props:", studentData.userdata[0]);
-        setProfileData(studentData.userdata[0]);
+      // Check if we have studentData with the correct structure from login
+      if (studentData && studentData.data) {
+        console.log("Using studentData from props:", studentData.data);
+        setProfileData(studentData.data);
         setLoading(false);
         return;
       }

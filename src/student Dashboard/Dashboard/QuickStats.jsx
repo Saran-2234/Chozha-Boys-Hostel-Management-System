@@ -1,7 +1,9 @@
 import React from 'react';
 import Card from '../Common/Card';
+import { getRoomInfo } from '../../Common/roomUtils';
 
-const QuickStats = () => {
+const QuickStats = ({ studentData }) => {
+  const { roomNumber, block, floor } = getRoomInfo(studentData);
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
       <Card className="hover-lift">
@@ -56,15 +58,15 @@ const QuickStats = () => {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-slate-400 text-sm font-medium">Room</p>
-            <p className="text-2xl font-bold text-white">A-204</p>
+            <p className="text-2xl font-bold text-white">{roomNumber}</p>
           </div>
           <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
             <span className="text-xl">🏠</span>
           </div>
         </div>
         <div className="mt-4 flex items-center text-sm">
-          <span className="text-emerald-400">Block A</span>
-          <span className="text-slate-400 ml-2">2nd Floor</span>
+          <span className="text-emerald-400">{block}</span>
+          <span className="text-slate-400 ml-2">{floor}</span>
         </div>
       </Card>
     </div>

@@ -349,7 +349,7 @@ function Register({ onClose, onOpenLogin, isLight }) {
     };
 
     try {
-      const token1 = localStorage.getItem("token");
+      const token1 = localStorage.getItem("authToken");
       const response = await fetch('https://finalbackend-mauve.vercel.app/register/', {
         method: 'POST',
         headers: {
@@ -617,7 +617,7 @@ function Register({ onClose, onOpenLogin, isLight }) {
 
         const data = await response.json();
         const token = data.token;
-        localStorage.setItem("token",token);
+        localStorage.setItem("authToken",token);
 
         if (response.ok) {
           alert('You have registered successfully! Please wait until admin approval.');
@@ -1128,56 +1128,7 @@ function Register({ onClose, onOpenLogin, isLight }) {
                     <p><strong>Registration Number:</strong> {formData.registrationNumber}</p>
                     <p><strong>Roll Number:</strong> {formData.rollNumber}</p>
                     <p><strong>Room Number:</strong> {formData.roomNumber}</p>
-                    {/* Added Email Address input to Step 4 */}
-                    <div>
-                      <label className="block text-sm font-semibold text-slate-300 mb-2">Email Address</label>
-                      <div className="flex gap-2">
-                        <input
-                          type="email"
-                          id="emailId"
-                          name="emailId"
-                          className={`flex-1 px-4 py-3 glass-effect rounded-lg placeholder-slate-400 focus:ring-2 focus:ring-emerald-500 focus:border-transparent border-0
-                            ${errors.emailId ? 'border-red-500' : ''} ${isLight ? 'text-black' : 'text-white'}`}
-                          placeholder="Enter your email address"
-                          value={formData.emailId}
-                          onChange={handleInputChange}
-                          readOnly
-                        />
-                        <button
-                          type="button"
-                          onClick={sendOTP}
-                          className="px-4 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg font-semibold hover:from-blue-600 hover:to-indigo-700 transition-all whitespace-nowrap"
-                        >
-                          Send OTP
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* OTP input and verify button moved to Step 4 */}
-                    <div className={otpSent ? '' : 'hidden'}>
-                      <label className="block text-sm font-semibold text-slate-300 mb-2">Enter OTP</label>
-                      <div className="flex gap-2">
-                        <input
-                          type="text"
-                          id="otpCode"
-                          name="otpCode"
-                          className={`flex-1 px-4 py-3 glass-effect rounded-lg placeholder-slate-400 focus:ring-2 focus:ring-emerald-500 focus:border-transparent border-0
-                            ${errors.otpCode ? 'border-red-500' : ''} ${isLight ? 'text-black' : 'text-white'}`}
-                          placeholder="Enter 6-digit OTP"
-                          maxLength="6"
-                          value={formData.otpCode}
-                          onChange={handleInputChange}
-                        />
-                        <button
-                          type="button"
-                          onClick={verifyOTP}
-                          className="px-4 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-lg font-semibold hover:from-emerald-600 hover:to-teal-700 transition-all whitespace-nowrap"
-                        >
-                          Verify
-                        </button>
-                      </div>
-                      <p className="text-xs text-slate-400 mt-2">OTP sent to your email address</p>
-                    </div>
+                    <p><strong>Email:</strong> {formData.emailId}</p>
                   </div>
                 </div>
                 

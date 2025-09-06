@@ -67,7 +67,7 @@ function Features({isLight}) {
                 Comprehensive visitor tracking with digital logs, security protocols,
                 and entry management
               </p>
-            </div>*
+            </div>
 
             <div className="feature-card-3d glass-card rounded-2xl p-6 sm:p-8 text-center hover-lift">
               <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-xl flex items-center justify-center mx-auto mb-4 sm:mb-6 shadow-lg">

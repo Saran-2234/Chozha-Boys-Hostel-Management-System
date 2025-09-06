@@ -617,7 +617,12 @@ function Register({ onClose, onOpenLogin, isLight }) {
 
         const data = await response.json();
         const token = data.token;
+<<<<<<< HEAD
         localStorage.setItem("authToken",token);
+=======
+        console.log(token);
+        localStorage.setItem("token",token);
+>>>>>>> 89885063aeaca8e0a83d9476e0347b26e98a396f
 
         if (response.ok) {
           alert('You have registered successfully! Please wait until admin approval.');

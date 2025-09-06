@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 
 function Register({ onClose, onOpenLogin, isLight }) {
   const [currentStep, setCurrentStep] = useState(1);
+  
   const [formData, setFormData] = useState({
     // Step 1: Personal Details
     fullName: '',
@@ -348,10 +349,12 @@ function Register({ onClose, onOpenLogin, isLight }) {
     };
 
     try {
+      const token1 = localStorage.getItem("token");
       const response = await fetch('https://finalbackend-mauve.vercel.app/register/', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'user':token1
         },
         body: JSON.stringify(payload)
       });
@@ -524,6 +527,8 @@ function Register({ onClose, onOpenLogin, isLight }) {
       if (!sendCodeResponse.ok) {
         throw new Error(sendCodeData.message || 'Failed to send verification code');
       }
+       
+
       setOtpSent(true);
       alert('OTP has been sent to your email');
     } catch (error) {
@@ -611,6 +616,8 @@ function Register({ onClose, onOpenLogin, isLight }) {
         });
 
         const data = await response.json();
+        const token = data.token;
+        localStorage.setItem("token",token);
 
         if (response.ok) {
           alert('You have registered successfully! Please wait until admin approval.');

@@ -10,6 +10,11 @@ const Students = ({ isDarkMode }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [studentToApprove, setStudentToApprove] = useState(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+
   useEffect(() => {
     fetchStudents();
   }, []);
@@ -132,34 +137,68 @@ const Students = ({ isDarkMode }) => {
     console.log('Export students clicked');
   };
 
-  const handleApproveStudent = async (studentId) => {
+  const handleApproveClick = (studentId) => {
+    const student = students.find(s => s.id === studentId);
+    if (student) {
+      setStudentToApprove(student);
+      setShowConfirmDialog(true);
+    }
+  };
+
+  const handleConfirmApprove = async () => {
+    if (!studentToApprove) return;
+
+    const studentId = studentToApprove.id;
+    setShowConfirmDialog(false);
+
+    // Show full screen loading overlay
+    setLoading(true);
+
     try {
       const authToken = localStorage.getItem('authToken');
-      
-      const response = await fetch(`https://finalbackend-mauve.vercel.app/admin/students/${studentId}/approve`, {
+
+      console.log('Approving student:', studentToApprove.name, 'with registration number:', studentToApprove.registration_number);
+
+      const response = await fetch('https://finalbackend-796l.vercel.app/approve/', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${authToken}`
-        }
+        },
+        body: JSON.stringify({
+          registerno: studentToApprove.registration_number
+        })
       });
 
       if (!response.ok) {
-        throw new Error('Failed to approve student');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(`Failed to approve student: ${response.status} ${response.statusText}`);
       }
 
+      const responseData = await response.json();
+      console.log('Approval response:', responseData);
+
       // Update local state
-      setStudents(students.map(student => 
-        student.id === studentId 
-          ? { ...student, status: 'active', approved_by: 'Admin' } 
+      setStudents(students.map(student =>
+        student.id === studentId
+          ? { ...student, status: 'active' }
           : student
       ));
-      
-      alert('Student approved successfully!');
+
+      setSuccessMessage(`Student ${studentToApprove.name} has been approved successfully!`);
+      setShowSuccessModal(true);
     } catch (err) {
       console.error('Error approving student:', err);
-      alert('Failed to approve student');
+      alert(`Failed to approve student: ${err.message}`);
+    } finally {
+      setLoading(false);
+      setStudentToApprove(null);
     }
+  };
+
+  const handleCancelApprove = () => {
+    setShowConfirmDialog(false);
+    setStudentToApprove(null);
   };
 
   const handleRejectStudent = async (studentId) => {
@@ -273,17 +312,87 @@ const Students = ({ isDarkMode }) => {
           </div>
         </CardHeader>
         <CardContent>
-          <StudentTable 
-            isDarkMode={isDarkMode} 
-            searchTerm={searchTerm} 
+          <StudentTable
+            isDarkMode={isDarkMode}
+            searchTerm={searchTerm}
             filter={filter}
             students={students}
-            onApprove={handleApproveStudent}
+            onApprove={handleApproveClick}
             onReject={handleRejectStudent}
             onRefresh={fetchStudents}
           />
         </CardContent>
       </Card>
+
+      {/* Confirmation Dialog */}
+      {showConfirmDialog && studentToApprove && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className={`p-6 rounded-2xl shadow-xl max-w-md w-full mx-4 ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
+            <div className="text-center">
+              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 mb-4">
+                <svg className="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h3 className={`text-lg font-semibold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                Approve Student
+              </h3>
+              <p className={`text-sm mb-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                Are you sure you want to approve <span className="font-semibold">{studentToApprove.name}</span>?
+                <br />
+                Registration: <span className="font-mono">{studentToApprove.registration_number}</span>
+              </p>
+              <div className="flex space-x-3">
+                <Button
+                  onClick={handleCancelApprove}
+                  variant="outline"
+                  isDarkMode={isDarkMode}
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleConfirmApprove}
+                  variant="primary"
+                  isDarkMode={isDarkMode}
+                  className="flex-1"
+                >
+                  Approve
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Success Modal */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className={`p-6 rounded-2xl shadow-xl max-w-md w-full mx-4 ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
+            <div className="text-center">
+              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
+                <svg className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <h3 className={`text-lg font-semibold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                Success!
+              </h3>
+              <p className={`text-sm mb-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                {successMessage}
+              </p>
+              <Button
+                onClick={() => setShowSuccessModal(false)}
+                variant="primary"
+                isDarkMode={isDarkMode}
+                className="w-full"
+              >
+                OK
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

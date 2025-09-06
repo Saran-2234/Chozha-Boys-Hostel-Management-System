@@ -1,9 +1,46 @@
 import React, { useState } from 'react';
 import Button from '../Common/Button';
+import StudentPreviewModal from './StudentPreviewModal';
+
+// Add custom styles for status badges and action buttons
+const styles = `
+  .status-active { color: #10b981; }
+  .status-pending { color: #f59e0b; }
+  .status-rejected { color: #ef4444; }
+  .status-inactive { color: #6b7280; }
+  .action-btn {
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border: none;
+  }
+  .action-btn:hover {
+    transform: scale(1.05);
+  }
+  .data-table {
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+  .data-table th {
+    background: rgba(255, 255, 255, 0.05);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .data-table tr:hover {
+    background: rgba(255, 255, 255, 0.05);
+  }
+`;
 
 const StudentTable = ({ isDarkMode, searchTerm, filter, students, onApprove, onReject, onRefresh }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState(null);
 
   const filteredStudents = students.filter(student => {
     const matchesSearch = student.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -19,26 +56,53 @@ const StudentTable = ({ isDarkMode, searchTerm, filter, students, onApprove, onR
 
   const handleEdit = (studentId) => {
     console.log('Edit student:', studentId);
+    // TODO: Implement edit functionality
   };
 
   const handleDelete = (studentId) => {
     console.log('Delete student:', studentId);
+    // TODO: Implement delete functionality
+  };
+
+  const handlePreview = (student) => {
+    console.log('Preview button clicked for student:', student);
+    setSelectedStudent(student);
+    setIsModalOpen(true);
+  };
+
+  const handleApprove = (studentId) => {
+    console.log('Approve student:', studentId);
+    if (onApprove) {
+      onApprove(studentId);
+    }
+  };
+
+  const handleReject = (studentId) => {
+    console.log('Reject student:', studentId);
+    if (onReject) {
+      onReject(studentId);
+    }
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedStudent(null);
   };
 
   const getStatusColor = (status) => {
-    if (!status) return 'bg-gray-100 text-gray-800';
-    
+    if (!status) return 'status-inactive';
+
     switch (status.toLowerCase()) {
       case 'active':
-        return 'bg-green-100 text-green-800';
+        return 'status-active';
       case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'status-pending';
       case 'rejected':
-        return 'bg-red-100 text-red-800';
+        return 'status-rejected';
       case 'inactive':
-        return 'bg-gray-100 text-gray-800';
+        return 'status-inactive';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'status-inactive';
     }
   };
 
@@ -53,7 +117,9 @@ const StudentTable = ({ isDarkMode, searchTerm, filter, students, onApprove, onR
   };
 
   return (
-    <div className="space-y-4">
+    <>
+      <style>{styles}</style>
+      <div className="space-y-4 relative z-10">
       <div className="flex justify-between items-center">
         <div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-700'}`}>
           Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredStudents.length)} of {filteredStudents.length} students
@@ -69,103 +135,167 @@ const StudentTable = ({ isDarkMode, searchTerm, filter, students, onApprove, onR
       </div>
 
       <div className="overflow-x-auto">
-        <table className={`min-w-full divide-y ${isDarkMode ? 'divide-gray-700' : 'divide-gray-200'}`}>
-          <thead className={isDarkMode ? 'bg-gray-700' : 'bg-gray-50'}>
-            <tr>
-              <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}>
+        <table className={`data-table w-full ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+          <thead>
+            <tr className={`border-b ${isDarkMode ? 'border-slate-600' : 'border-gray-200'}`}>
+              <th className={`text-left py-3 px-4 ${isDarkMode ? 'text-slate-400' : 'text-gray-500'} font-medium`}>
                 Student
               </th>
-              <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}>
-                Registration
+              <th className={`text-left py-3 px-4 ${isDarkMode ? 'text-slate-400' : 'text-gray-500'} font-medium`}>
+                Reg. No.
               </th>
-              <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}>
+              <th className={`text-left py-3 px-4 ${isDarkMode ? 'text-slate-400' : 'text-gray-500'} font-medium`}>
+                Department
+              </th>
+              <th className={`text-left py-3 px-4 ${isDarkMode ? 'text-slate-400' : 'text-gray-500'} font-medium`}>
+                Year
+              </th>
+              <th className={`text-left py-3 px-4 ${isDarkMode ? 'text-slate-400' : 'text-gray-500'} font-medium`}>
                 Room
               </th>
-              <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}>
+              <th className={`text-left py-3 px-4 ${isDarkMode ? 'text-slate-400' : 'text-gray-500'} font-medium`}>
+                createdat
+              </th>
+              <th className={`text-left py-3 px-4 ${isDarkMode ? 'text-slate-400' : 'text-gray-500'} font-medium`}>
                 Status
               </th>
-              <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}>
-                Created At
-              </th>
-              <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}>
+              <th className={`text-left py-3 px-4 ${isDarkMode ? 'text-slate-400' : 'text-gray-500'} font-medium`}>
                 Actions
               </th>
             </tr>
           </thead>
-          <tbody className={`divide-y ${isDarkMode ? 'divide-gray-700 bg-gray-800' : 'divide-gray-200 bg-white'}`}>
+          <tbody>
             {paginatedStudents.length > 0 ? (
               paginatedStudents.map((student) => (
-                <tr key={student.id} className={isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div>
-                      <div className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                        {student.name || 'N/A'}
+                <tr key={student.id} className={`border-b ${isDarkMode ? 'border-slate-700 hover:bg-white hover:bg-opacity-5' : 'border-gray-200 hover:bg-gray-50'}`}>
+                  <td className="py-3 px-4">
+                    <div className="flex items-center space-x-3">
+                      <div className="relative group">
+                        {student.profile_photo ? (
+                          <>
+                            <img
+                              src={student.profile_photo}
+                              alt={`${student.name || 'Student'} profile`}
+                              className="w-8 h-8 rounded-full object-cover border border-gray-300 cursor-pointer transition-all duration-200 hover:scale-110 hover:shadow-lg hover:ring-2 hover:ring-blue-400"
+                            />
+                            {/* Modern tooltip positioned to the right */}
+                            <div className="absolute z-50 left-full top-0 ml-3 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 ease-out">
+                              <div className="relative">
+                                {/* Tooltip content with glassmorphism effect */}
+                                <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 p-3 min-w-40 max-w-xs">
+                                  <div className="flex items-center space-x-3">
+                                    {/* Passport-size photo */}
+                                    <div className="relative flex-shrink-0">
+                                      <img
+                                        src={student.profile_photo}
+                                        alt={`${student.name || 'Student'} profile`}
+                                        className="w-16 h-20 object-cover rounded-xl border-2 border-white dark:border-gray-600 shadow-lg"
+                                      />
+                                      {/* Online status indicator */}
+                                      <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white dark:border-gray-800"></div>
+                                    </div>
+
+                                    {/* Student details */}
+                                    <div className="flex-1 min-w-0">
+                                      <h4 className="font-bold text-gray-900 dark:text-white text-sm truncate">
+                                        {student.name || 'Student'}
+                                      </h4>
+                                      <p className="text-xs text-gray-600 dark:text-gray-300 truncate">
+                                        {student.email || 'No email'}
+                                      </p>
+                                      <div className="flex flex-col space-y-1 mt-2">
+                                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 w-fit">
+                                          {student.department || 'N/A'}
+                                        </span>
+                                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 w-fit">
+                                          Room {student.room_number || 'N/A'}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </>
+                        ) : (
+                          <div className={`w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center cursor-pointer transition-all duration-200 hover:scale-110 hover:shadow-lg hover:ring-2 hover:ring-blue-400`}>
+                            <span className="text-xs font-bold text-white">
+                              {student.name ? student.name.charAt(0).toUpperCase() : 'N'}
+                            </span>
+                          </div>
+                        )}
                       </div>
-                      <div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                        {student.email || 'N/A'}
-                      </div>
-                      <div className={`text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-600'}`}>
-                        {student.department || 'N/A'} - {student.academic_year || 'N/A'}
+                      <div>
+                        <p className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                          {student.name || 'N/A'}
+                        </p>
+                        <p className={`text-xs ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>
+                          {student.email || 'N/A'}
+                        </p>
                       </div>
                     </div>
                   </td>
-                  <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>
+                  <td className={`py-3 px-4 text-sm ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                     {student.registration_number || 'N/A'}
                   </td>
-                  <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>
+                  <td className={`py-3 px-4 text-sm ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>
+                    {student.department || 'N/A'}
+                  </td>
+                  <td className={`py-3 px-4 text-sm ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>
+                    {student.academic_year || 'N/A'}
+                  </td>
+                  <td className={`py-3 px-4 text-sm ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                     {student.room_number || 'N/A'}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(student.status)}`}>
+                  <td className={`py-3 px-4 text-sm ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>
+                    {formatDate(student.created_at)}
+                  </td>
+                  <td className="py-3 px-4">
+                    <span className={`status-${getStatusColor(student.status)} bg-opacity-20 px-2 py-1 rounded-full text-xs font-medium`}>
                       {student.status || 'N/A'}
                     </span>
                   </td>
-                  <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>
-                    {formatDate(student.created_at)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                    {student.status === 'pending' && (
-                      <>
-                        <Button
-                          onClick={() => onApprove(student.id)}
-                          variant="success"
-                          size="small"
-                          isDarkMode={isDarkMode}
-                        >
-                          Approve
-                        </Button>
-                        <Button
-                          onClick={() => onReject(student.id)}
-                          variant="danger"
-                          size="small"
-                          isDarkMode={isDarkMode}
-                        >
-                          Reject
-                        </Button>
-                      </>
-                    )}
-                    <Button
-                      onClick={() => handleEdit(student.id)}
-                      variant="outline"
-                      size="small"
-                      isDarkMode={isDarkMode}
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      onClick={() => handleDelete(student.id)}
-                      variant="danger"
-                      size="small"
-                      isDarkMode={isDarkMode}
-                    >
-                      Delete
-                    </Button>
+                  <td className="py-3 px-4">
+                    <div className="flex space-x-2">
+                      {student.status === 'pending' && (
+                        <>
+                          <button
+                            onClick={() => handleApprove(student.id)}
+                            className="action-btn bg-emerald-500 bg-opacity-20 text-emerald-400 hover:bg-opacity-30"
+                            title="Approve student"
+                          >
+                            ✅
+                          </button>
+                          <button
+                            onClick={() => handleReject(student.id)}
+                            className="action-btn bg-red-500 bg-opacity-20 text-red-400 hover:bg-opacity-30"
+                            title="Reject student"
+                          >
+                            ❌
+                          </button>
+                        </>
+                      )}
+                      <button
+                        onClick={() => handleEdit(student.id)}
+                        className="action-btn bg-blue-500 bg-opacity-20 text-blue-400 hover:bg-opacity-30"
+                        title="Edit student"
+                      >
+                        ✏️
+                      </button>
+                      <button
+                        onClick={() => handlePreview(student)}
+                        className="action-btn bg-purple-500 bg-opacity-20 text-purple-400 hover:bg-opacity-30"
+                        title="Preview student details"
+                      >
+                        👁️
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan="6" className="px-6 py-4 text-center">
+                <td colSpan="8" className="px-6 py-4 text-center">
                   <div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                     No students found matching your criteria
                   </div>
@@ -204,7 +334,16 @@ const StudentTable = ({ isDarkMode, searchTerm, filter, students, onApprove, onR
           </div>
         </div>
       )}
-    </div>
+
+      {/* Student Preview Modal */}
+      <StudentPreviewModal
+        student={selectedStudent}
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        isDarkMode={isDarkMode}
+      />
+      </div>
+    </>
   );
 };
 

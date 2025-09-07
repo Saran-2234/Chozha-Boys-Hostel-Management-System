@@ -52,6 +52,8 @@ function Register({ onClose, onOpenLogin, isLight }) {
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
   const [confirmPasswordSuccess, setConfirmPasswordSuccess] = useState(false);
+  const [notificationMessage, setNotificationMessage] = useState('');
+  const [notificationType, setNotificationType] = useState(''); // 'success' or 'error'
   const fileInputRef = useRef(null);
   const currentYear = new Date().getFullYear();
 
@@ -169,13 +171,15 @@ function Register({ onClose, onOpenLogin, isLight }) {
       // Check file type (only PNG, JPEG, JPG allowed)
       const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg'];
       if (!allowedTypes.includes(file.type)) {
-        alert('Invalid file format. Only PNG, JPEG, JPG files are allowed.');
+        setNotificationMessage('Invalid file format. Only PNG, JPEG, JPG files are allowed.');
+        setNotificationType('error');
         return;
       }
 
       // Check file size (max 2MB)
       if (file.size > 2 * 1024 * 1024) {
-        alert('File size exceeds 2MB limit. Please choose a smaller file.');
+        setNotificationMessage('File size exceeds 2MB limit. Please choose a smaller file.');
+        setNotificationType('error');
         return;
       }
 
@@ -223,11 +227,21 @@ function Register({ onClose, onOpenLogin, isLight }) {
     }
     setSendingOtp(true);
     try {
-      await sendOTP(formData.emailId);
-      setOtpSent(true);
-      setResendCountdown(60); // Start 60-second countdown
+      const result = await sendOTP(formData.emailId);
+      if (result.success) {
+        setOtpSent(true);
+        setResendCountdown(60); // Start 60-second countdown
+        if (result.message) {
+          setNotificationMessage(result.message);
+          setNotificationType('success');
+        }
+      } else {
+        setNotificationMessage(result.error || result.message || 'Failed to send OTP');
+        setNotificationType('error');
+      }
     } catch (error) {
-      alert('Error sending OTP: ' + error.message);
+      setNotificationMessage('Error sending OTP: ' + error.message);
+      setNotificationType('error');
     } finally {
       setSendingOtp(false);
     }
@@ -236,19 +250,29 @@ function Register({ onClose, onOpenLogin, isLight }) {
   // Handle OTP verification
   const handleVerifyOTP = async () => {
     if (!formData.otpCode || formData.otpCode.length !== 6) {
-      alert('Please enter a valid 6-digit OTP.');
+      setNotificationMessage('Please enter a valid 6-digit OTP.');
+      setNotificationType('error');
       return;
     }
     if (!formData.emailId) {
-      alert('Email address is required.');
+      setNotificationMessage('Email address is required.');
+      setNotificationType('error');
       return;
     }
     setVerifyingOtp(true);
     try {
-      await verifyOTP(formData.emailId, formData.otpCode);
-      setOtpVerified(true);
+      const result = await verifyOTP(formData.emailId, formData.otpCode);
+      if (result.success) {
+        setOtpVerified(true);
+        setNotificationMessage(result.message); // Show success message
+        setNotificationType('success');
+      } else {
+        setNotificationMessage(result.message || 'OTP verification failed');
+        setNotificationType('error');
+      }
     } catch (error) {
-      alert('Error verifying OTP: ' + error.message);
+      setNotificationMessage('Error verifying OTP: ' + error.message);
+      setNotificationType('error');
     } finally {
       setVerifyingOtp(false);
     }
@@ -259,12 +283,14 @@ function Register({ onClose, onOpenLogin, isLight }) {
     e.preventDefault();
     // Check if passwords match
     if (formData.password !== formData.confirmPassword) {
-      alert('Passwords do not match!');
+      setNotificationMessage('Passwords do not match!');
+      setNotificationType('error');
       return;
     }
     // Check if OTP is verified
     if (!otpVerified) {
-      alert('Please verify your email address before submitting the registration.');
+      setNotificationMessage('Please verify your email address before submitting the registration.');
+      setNotificationType('error');
       return;
     }
 
@@ -290,16 +316,25 @@ function Register({ onClose, onOpenLogin, isLight }) {
     };
 
     try {
-      const data = await registerUser(payload);
-      const token = data.token;
+      const result = await registerUser(payload);
+      if (result.success) {
+        const token = result.token;
 
-      localStorage.setItem("authToken", token);
-      localStorage.setItem("token", token);
+        if (token) {
+          localStorage.setItem("authToken", token);
+          localStorage.setItem("token", token);
+        }
 
-      alert('You have registered successfully! Please wait until admin approval.');
-      onClose(); // Close the modal after successful registration
+        setNotificationMessage(result.message || 'You have registered successfully! Please wait until admin approval.');
+        setNotificationType('success');
+        onClose(); // Close the modal after successful registration
+      } else {
+        setNotificationMessage(result.message || 'Registration failed');
+        setNotificationType('error');
+      }
     } catch (error) {
-      alert('Registration failed: ' + error.message);
+      setNotificationMessage('Error during registration: ' + error.message);
+      setNotificationType('error');
     }
   };
 
@@ -335,6 +370,18 @@ function Register({ onClose, onOpenLogin, isLight }) {
               ></div>
             </div>
           </div>
+
+          {/* Notification Message */}
+          {notificationMessage && (
+            <div
+              className={`mb-4 p-3 rounded ${
+                notificationType === 'success' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'
+              }`}
+              role="alert"
+            >
+              {notificationMessage}
+            </div>
+          )}
 
           <form onSubmit={handleRegistration}>
             {currentStep === 1 && (

@@ -91,7 +91,8 @@ export const sendOTP = async (email) => {
         // Success cases: OTP still valid or new OTP sent
         sendCodeResult = {
           success: true,
-          message: sendCodeData.message || "Verification code sent to email"
+          message: sendCodeData.message || "Verification code sent to email",
+          expiringtime: sendCodeData.expiringtime || null
         };
         break;
       case 400:
@@ -130,7 +131,8 @@ export const sendOTP = async (email) => {
     // Return the emailpush result combined with sendcode success
     return {
       ...result,
-      sendCodeMessage: sendCodeResult.message
+      sendCodeMessage: sendCodeResult.message,
+      expiringtime: sendCodeResult.expiringtime
     };
   } catch (error) {
     return {

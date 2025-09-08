@@ -59,14 +59,57 @@ function Register({ onClose, onOpenLogin, isLight }) {
 
   // Handle resend countdown timer
   useEffect(() => {
+    console.log('resendCountdown useEffect triggered with value:', resendCountdown);
     let timer;
     if (resendCountdown > 0) {
       timer = setTimeout(() => {
-        setResendCountdown(resendCountdown - 1);
+        setResendCountdown(prev => prev - 1);
       }, 1000);
     }
     return () => clearTimeout(timer);
   }, [resendCountdown]);
+  
+  // Handle OTP sending
+  const handleSendOTP = async () => {
+    // Only require email field to be valid before sending OTP
+    const requiredFields = ['emailId'];
+    for (const field of requiredFields) {
+      const error = validateField(field, formData[field]);
+      if (error) {
+        return;
+      }
+    }
+    if (!formData.emailId) {
+      return;
+    }
+    setSendingOtp(true);
+    try {
+      const result = await sendOTP(formData.emailId);
+      if (result.success) {
+        setOtpSent(true);
+        // Calculate remaining time from expiringtime if available, otherwise default to 60 seconds
+        let countdown = 60;
+        if (result.expiringtime) {
+          const remainingTime = Math.max(0, Math.floor((new Date(result.expiringtime) - new Date()) / 1000));
+          countdown = remainingTime;
+        }
+        console.log('Setting resendCountdown to:', countdown);
+        setResendCountdown(countdown);
+        if (result.message) {
+          setNotificationMessage(result.message);
+          setNotificationType('success');
+        }
+      } else {
+        setNotificationMessage(result.error || result.message || 'Failed to send OTP');
+        setNotificationType('error');
+      }
+    } catch (error) {
+      setNotificationMessage('Error sending OTP: ' + error.message);
+      setNotificationType('error');
+    } finally {
+      setSendingOtp(false);
+    }
+  };
 
   // Handle input changes with validation
   const handleInputChange = (e) => {
@@ -212,40 +255,7 @@ function Register({ onClose, onOpenLogin, isLight }) {
     }
   };
 
-  // Handle OTP sending
-  const handleSendOTP = async () => {
-    // Only require email field to be valid before sending OTP
-    const requiredFields = ['emailId'];
-    for (const field of requiredFields) {
-      const error = validateField(field, formData[field]);
-      if (error) {
-        return;
-      }
-    }
-    if (!formData.emailId) {
-      return;
-    }
-    setSendingOtp(true);
-    try {
-      const result = await sendOTP(formData.emailId);
-      if (result.success) {
-        setOtpSent(true);
-        setResendCountdown(60); // Start 60-second countdown
-        if (result.message) {
-          setNotificationMessage(result.message);
-          setNotificationType('success');
-        }
-      } else {
-        setNotificationMessage(result.error || result.message || 'Failed to send OTP');
-        setNotificationType('error');
-      }
-    } catch (error) {
-      setNotificationMessage('Error sending OTP: ' + error.message);
-      setNotificationType('error');
-    } finally {
-      setSendingOtp(false);
-    }
-  };
+
 
   // Handle OTP verification
   const handleVerifyOTP = async () => {

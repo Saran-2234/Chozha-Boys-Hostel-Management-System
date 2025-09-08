@@ -1,6 +1,6 @@
 import React from 'react';
 
-const NavigationMenu = ({ setActiveSection, activeSection, isDarkMode }) => {
+const NavigationMenu = ({ setActiveSection, activeSection, isDarkMode, setSidebarOpen }) => {
   const menuItems = [
     { id: 'dashboard', icon: '📊', label: 'Dashboard' },
     { id: 'students', icon: '👥', label: 'Students', badge: '3' },
@@ -14,12 +14,17 @@ const NavigationMenu = ({ setActiveSection, activeSection, isDarkMode }) => {
     { id: 'settings', icon: '⚙️', label: 'Settings' }
   ];
 
+  const handleClick = (id) => {
+    setActiveSection(id);
+    setSidebarOpen(false);
+  };
+
   return (
     <nav className="space-y-2">
       {menuItems.map((item) => (
         <a
           key={item.id}
-          onClick={() => setActiveSection(item.id)}
+          onClick={() => handleClick(item.id)}
           className={`nav-item flex items-center space-x-3 px-4 py-3 rounded-lg transition-all cursor-pointer ${
             isDarkMode
               ? `text-white hover:bg-white hover:bg-opacity-10 ${activeSection === item.id ? 'bg-white bg-opacity-10' : ''}`

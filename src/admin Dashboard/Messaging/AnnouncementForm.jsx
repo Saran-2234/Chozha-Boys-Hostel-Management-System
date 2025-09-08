@@ -11,6 +11,18 @@ const AnnouncementForm = () => {
     scheduledTime: ''
   });
 
+  const [sendOptions, setSendOptions] = useState({
+    dashboardNotification: false,
+    email: false,
+    studentsDashboard: false
+  });
+
+  const [sendStatus, setSendStatus] = useState({
+    dashboardNotification: null,
+    email: null,
+    studentsDashboard: null
+  });
+
   const [announcements, setAnnouncements] = useState([
     {
       id: 1,
@@ -40,7 +52,36 @@ const AnnouncementForm = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSendOptionChange = (e) => {
+    const { name, checked } = e.target;
+    setSendOptions(prev => ({
+      ...prev,
+      [name]: checked
+    }));
+  };
+
+  const sendToDashboardNotification = async (announcement) => {
+    // Mock function for sending to dashboard notification
+    // Replace with actual API call later
+    console.log('Sending to dashboard notification:', announcement);
+    return new Promise((resolve) => setTimeout(() => resolve('success'), 1000));
+  };
+
+  const sendEmail = async (announcement) => {
+    // Mock function for sending email
+    // Replace with actual API call later
+    console.log('Sending email:', announcement);
+    return new Promise((resolve) => setTimeout(() => resolve('success'), 1000));
+  };
+
+  const sendToStudentsDashboard = async (announcement) => {
+    // Mock function for sending to students dashboard
+    // Replace with actual API call later
+    console.log('Sending to students dashboard:', announcement);
+    return new Promise((resolve) => setTimeout(() => resolve('success'), 1000));
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const newAnnouncement = {
       ...announcement,
@@ -48,6 +89,35 @@ const AnnouncementForm = () => {
       status: announcement.scheduledDate ? 'Scheduled' : 'Sent',
       sentDate: announcement.scheduledDate ? null : new Date().toISOString().split('T')[0]
     };
+
+    // Send to selected destinations
+    if (sendOptions.dashboardNotification) {
+      try {
+        await sendToDashboardNotification(newAnnouncement);
+        setSendStatus(prev => ({ ...prev, dashboardNotification: 'success' }));
+      } catch (error) {
+        setSendStatus(prev => ({ ...prev, dashboardNotification: 'error' }));
+      }
+    }
+
+    if (sendOptions.email) {
+      try {
+        await sendEmail(newAnnouncement);
+        setSendStatus(prev => ({ ...prev, email: 'success' }));
+      } catch (error) {
+        setSendStatus(prev => ({ ...prev, email: 'error' }));
+      }
+    }
+
+    if (sendOptions.studentsDashboard) {
+      try {
+        await sendToStudentsDashboard(newAnnouncement);
+        setSendStatus(prev => ({ ...prev, studentsDashboard: 'success' }));
+      } catch (error) {
+        setSendStatus(prev => ({ ...prev, studentsDashboard: 'error' }));
+      }
+    }
+
     setAnnouncements([newAnnouncement, ...announcements]);
     setAnnouncement({
       title: '',
@@ -56,6 +126,11 @@ const AnnouncementForm = () => {
       targetAudience: 'All Students',
       scheduledDate: '',
       scheduledTime: ''
+    });
+    setSendOptions({
+      dashboardNotification: false,
+      email: false,
+      studentsDashboard: false
     });
   };
 
@@ -187,12 +262,83 @@ const AnnouncementForm = () => {
               </div>
             </div>
 
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">
+                Send To
+              </label>
+              <div className="space-y-2">
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    name="dashboardNotification"
+                    checked={sendOptions.dashboardNotification}
+                    onChange={handleSendOptionChange}
+                    className="mr-2"
+                  />
+                  <span className="text-slate-300">Dashboard Notification</span>
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    name="email"
+                    checked={sendOptions.email}
+                    onChange={handleSendOptionChange}
+                    className="mr-2"
+                  />
+                  <span className="text-slate-300">Email</span>
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    name="studentsDashboard"
+                    checked={sendOptions.studentsDashboard}
+                    onChange={handleSendOptionChange}
+                    className="mr-2"
+                  />
+                  <span className="text-slate-300">Students Dashboard</span>
+                </label>
+              </div>
+            </div>
+
             <Button
               type="submit"
               className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg"
             >
               {announcement.scheduledDate ? 'Schedule Announcement' : 'Send Announcement'}
             </Button>
+
+            {/* Send Status Feedback */}
+            {(sendStatus.dashboardNotification || sendStatus.email || sendStatus.studentsDashboard) && (
+              <div className="mt-4 p-4 bg-slate-700 rounded-lg">
+                <h4 className="text-sm font-medium text-slate-300 mb-2">Send Status</h4>
+                <div className="space-y-1">
+                  {sendStatus.dashboardNotification && (
+                    <div className="flex items-center text-sm">
+                      <span className="text-slate-400 mr-2">Dashboard Notification:</span>
+                      <span className={sendStatus.dashboardNotification === 'success' ? 'text-green-400' : 'text-red-400'}>
+                        {sendStatus.dashboardNotification === 'success' ? 'Sent' : 'Failed'}
+                      </span>
+                    </div>
+                  )}
+                  {sendStatus.email && (
+                    <div className="flex items-center text-sm">
+                      <span className="text-slate-400 mr-2">Email:</span>
+                      <span className={sendStatus.email === 'success' ? 'text-green-400' : 'text-red-400'}>
+                        {sendStatus.email === 'success' ? 'Sent' : 'Failed'}
+                      </span>
+                    </div>
+                  )}
+                  {sendStatus.studentsDashboard && (
+                    <div className="flex items-center text-sm">
+                      <span className="text-slate-400 mr-2">Students Dashboard:</span>
+                      <span className={sendStatus.studentsDashboard === 'success' ? 'text-green-400' : 'text-red-400'}>
+                        {sendStatus.studentsDashboard === 'success' ? 'Sent' : 'Failed'}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </form>
         </div>
 

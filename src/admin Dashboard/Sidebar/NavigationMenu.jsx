@@ -22,7 +22,7 @@ const NavigationMenu = ({ setActiveSection, activeSection, isDarkMode, setSideba
   return (
     <nav className="space-y-2">
       {menuItems.map((item) => (
-        <a
+        <button
           key={item.id}
           onClick={() => handleClick(item.id)}
           className={`nav-item flex items-center space-x-3 px-4 py-3 rounded-lg transition-all cursor-pointer ${
@@ -30,6 +30,7 @@ const NavigationMenu = ({ setActiveSection, activeSection, isDarkMode, setSideba
               ? `text-white hover:bg-white hover:bg-opacity-10 ${activeSection === item.id ? 'bg-white bg-opacity-10' : ''}`
               : `text-gray-900 hover:bg-gray-100 hover:bg-opacity-80 ${activeSection === item.id ? 'bg-gray-100 bg-opacity-80' : ''}`
           }`}
+          type="button"
         >
           <span className="text-lg">{item.icon}</span>
           <span className="font-medium">{item.label}</span>
@@ -40,7 +41,7 @@ const NavigationMenu = ({ setActiveSection, activeSection, isDarkMode, setSideba
               {item.badge}
             </span>
           )}
-        </a>
+        </button>
       ))}
     </nav>
   );

@@ -91,14 +91,30 @@ const Students = ({ isDarkMode }) => {
       const responseData = await approveStudent(studentToApprove.registration_number);
       console.log('Approval response:', responseData);
 
-      // Update local state
-      setStudents(students.map(student =>
-        student.id === studentId
-          ? { ...student, status: 'active' }
-          : student
-      ));
+      // Update local state with response data
+      setStudents(students.map(student => {
+        if (student.id === studentId) {
+          // If response contains student details, use them; otherwise just update status
+          if (responseData && responseData.student) {
+            return {
+              ...student,
+              ...responseData.student,
+              status: 'active' // Ensure status is set to active
+            };
+          } else {
+            // Fallback to just updating status if no student details in response
+            return { ...student, status: 'active' };
+          }
+        }
+        return student;
+      }));
 
-      setSuccessMessage(`Student ${studentToApprove.name} has been approved successfully!`);
+      // Use response message if available, otherwise default message
+      const successMsg = responseData && responseData.message
+        ? responseData.message
+        : `Student ${studentToApprove.name} has been approved successfully!`;
+
+      setSuccessMessage(successMsg);
       setShowSuccessModal(true);
     } catch (err) {
       console.error('Error approving student:', err);

@@ -345,7 +345,7 @@ export const approveStudent = async (registrationNumber) => {
     }
 
     const response = await fetch('https://finalbackend-mauve.vercel.app/approve', {
-      method: 'PUT',
+      method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${authToken}`

@@ -54,7 +54,7 @@ function Login({ onClose, onOpenRegister, loginType }) {
 
       console.log("Login successful!");
       console.log("User Role:", data.role);
-      console.log("Access Token:", data.session?.access_token);
+      console.log("Access Token:", data.token);
       console.log("User Data:", data.data);
       console.log("Session Info:", {
         expires_at: data.session?.expires_at,
@@ -62,8 +62,8 @@ function Login({ onClose, onOpenRegister, loginType }) {
       });
 
       // Store authentication data
-      if (data.session?.access_token) {
-        localStorage.setItem("authToken", data.session.access_token);
+      if (data.token) {
+        localStorage.setItem("authToken", data.token);
       }
       if (data.data) {
         localStorage.setItem("userData", JSON.stringify(data.data));

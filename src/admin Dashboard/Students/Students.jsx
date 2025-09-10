@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardContent } from '../Common/Card';
 import Button from '../Common/Button';
 import StudentTable from './StudentTable';
+import { fetchStudents as fetchStudentsAPI, approveStudent } from '../../registration/api';
 
 const Students = ({ isDarkMode }) => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -23,101 +24,31 @@ const Students = ({ isDarkMode }) => {
     try {
       setLoading(true);
       setError(null);
-      
-      // Get the token from localStorage
-      const authToken = localStorage.getItem('authToken');
-      if (!authToken) {
-        throw new Error('No authentication token found. Please log in again.');
-      }
 
-      console.log('Attempting to fetch students from API...');
-      
-      // Use the new API endpoint
-      const response = await fetch('https://finalbackend-mauve.vercel.app/fetchstudents/', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`
-        }
-      });
-
-      console.log('API response status:', response.status);
-      
-      if (!response.ok) {
-        if (response.status === 404) {
-          throw new Error('API endpoint not found. Please check if the backend is properly deployed.');
-        } else if (response.status === 401) {
-          throw new Error('Authentication failed. Please log in again.');
-        } else if (response.status === 403) {
-          throw new Error('Access forbidden. You may not have permission to view students.');
-        } else {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-      }
-
-      const data = await response.json();
-      console.log('API response data:', data);
-      
-      // Check if the expected data structure exists
-      // The API returns { data: [], success: true }
-      if (data.success && Array.isArray(data.data)) {
-        setStudents(data.data);
-      } else if (Array.isArray(data)) {
-        setStudents(data);
-      } else if (data.students) {
-        setStudents(data.students);
-      } else if (data.studentsdata) {
-        setStudents(data.studentsdata);
-      } else {
-        console.warn('Unexpected API response structure:', data);
-        // Fallback to mock data
-        setStudents([
-          { 
-            id: 14, 
-            name: 'mega', 
-            email: 'benmega500@gmail.com', 
-            room_number: '130', 
-            status: 'inactive', 
-            registration_number: 'REG030',
-            department: 'Computer Science',
-            academic_year: '2023-24',
-            created_at: '2024-01-15'
-          },
-          { 
-            id: 15, 
-            name: 'SARAN S', 
-            email: '9788saran@gmail.com', 
-            room_number: '410', 
-            status: 'pending', 
-            registration_number: '822722104045',
-            department: 'Electrical Engineering',
-            academic_year: '2023-24',
-            created_at: '2024-01-16'
-          }
-        ]);
-      }
+      const data = await fetchStudentsAPI();
+      setStudents(data);
     } catch (err) {
       console.error('Error fetching students:', err);
       setError(err.message);
       // Fallback to mock data if API fails
       setStudents([
-        { 
-          id: 14, 
-          name: 'mega', 
-          email: 'benmega500@gmail.com', 
-          room_number: '130', 
-          status: 'inactive', 
+        {
+          id: 14,
+          name: 'mega',
+          email: 'benmega500@gmail.com',
+          room_number: '130',
+          status: 'inactive',
           registration_number: 'REG030',
           department: 'Computer Science',
           academic_year: '2023-24',
           created_at: '2024-01-15'
         },
-        { 
-          id: 15, 
-          name: 'SARAN S', 
-          email: '9788saran@gmail.com', 
-          room_number: '410', 
-          status: 'pending', 
+        {
+          id: 15,
+          name: 'SARAN S',
+          email: '9788saran@gmail.com',
+          room_number: '410',
+          status: 'pending',
           registration_number: '822722104045',
           department: 'Electrical Engineering',
           academic_year: '2023-24',
@@ -155,27 +86,9 @@ const Students = ({ isDarkMode }) => {
     setLoading(true);
 
     try {
-      const authToken = localStorage.getItem('authToken');
-
       console.log('Approving student:', studentToApprove.name, 'with registration number:', studentToApprove.registration_number);
 
-      const response = await fetch('https://finalbackend-796l.vercel.app/approve/', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`
-        },
-        body: JSON.stringify({
-          registerno: studentToApprove.registration_number
-        })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(`Failed to approve student: ${response.status} ${response.statusText}`);
-      }
-
-      const responseData = await response.json();
+      const responseData = await approveStudent(studentToApprove.registration_number);
       console.log('Approval response:', responseData);
 
       // Update local state

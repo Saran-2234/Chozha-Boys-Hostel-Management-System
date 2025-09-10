@@ -11,7 +11,7 @@ export const sendOTP = async (email) => {
 
   try {
     // Step 1: Generate & store OTP for the email
-    const emailPushResponse = await fetch('https://finalbackend-mauve.vercel.app/emailpush/', {
+    const emailPushResponse = await fetch('https://finalbackend-mauve.vercel.app/emailpush', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -75,7 +75,7 @@ export const sendOTP = async (email) => {
     }
 
     // Step 2: Send the stored code by email
-    const sendCodeResponse = await fetch('https://finalbackend-mauve.vercel.app/sendcode/', {
+    const sendCodeResponse = await fetch('https://finalbackend-mauve.vercel.app/sendcode', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -151,7 +151,7 @@ export const verifyOTP = async (email, code) => {
   }
 
   try {
-    const verifyResponse = await fetch('https://finalbackend-mauve.vercel.app/emailverify/', {
+    const verifyResponse = await fetch('https://finalbackend-mauve.vercel.app/emailverify', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -196,7 +196,7 @@ export const verifyOTP = async (email, code) => {
 
 export const registerUser = async (payload) => {
   try {
-    const response = await fetch('https://finalbackend-796l.vercel.app/register/', {
+    const response = await fetch('https://finalbackend-mauve.vercel.app/register', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -240,5 +240,130 @@ export const registerUser = async (payload) => {
       success: false,
       message: "Error during registration: " + error.message
     };
+  }
+};
+
+export const fetchStudents = async () => {
+  try {
+    const authToken = localStorage.getItem('authToken');
+    if (!authToken) {
+      throw new Error('No authentication token found. Please log in again.');
+    }
+
+    const response = await fetch('https://finalbackend-mauve.vercel.app/fetchstudents/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      }
+    });
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        throw new Error('API endpoint not found. Please check if the backend is properly deployed.');
+      } else if (response.status === 401) {
+        throw new Error('Authentication failed. Please log in again.');
+      } else if (response.status === 403) {
+        throw new Error('Access forbidden. You may not have permission to view students.');
+      } else {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+    }
+
+    const data = await response.json();
+
+    if (data.success && Array.isArray(data.data)) {
+      return data.data;
+    } else if (Array.isArray(data)) {
+      return data;
+    } else if (data.students) {
+      return data.students;
+    } else if (data.studentsdata) {
+      return data.studentsdata;
+    } else {
+      console.warn('Unexpected API response structure:', data);
+      return [
+        {
+          id: 14,
+          name: 'mega',
+          email: 'benmega500@gmail.com',
+          room_number: '130',
+          status: 'inactive',
+          registration_number: 'REG030',
+          department: 'Computer Science',
+          academic_year: '2023-24',
+          created_at: '2024-01-15'
+        },
+        {
+          id: 15,
+          name: 'SARAN S',
+          email: '9788saran@gmail.com',
+          room_number: '410',
+          status: 'pending',
+          registration_number: '822722104045',
+          department: 'Electrical Engineering',
+          academic_year: '2023-24',
+          created_at: '2024-01-16'
+        }
+      ];
+    }
+  } catch (err) {
+    console.error('Error fetching students:', err);
+    return [
+      {
+        id: 14,
+        name: 'mega',
+        email: 'benmega500@gmail.com',
+        room_number: '130',
+        status: 'inactive',
+        registration_number: 'REG030',
+        department: 'Computer Science',
+        academic_year: '2023-24',
+        created_at: '2024-01-15'
+      },
+      {
+        id: 15,
+        name: 'SARAN S',
+        email: '9788saran@gmail.com',
+        room_number: '410',
+        status: 'pending',
+        registration_number: '822722104045',
+        department: 'Electrical Engineering',
+        academic_year: '2023-24',
+        created_at: '2024-01-16'
+      }
+    ];
+  }
+};
+
+// API call for approving student
+export const approveStudent = async (registrationNumber) => {
+  try {
+    const authToken = localStorage.getItem('authToken');
+    if (!authToken) {
+      throw new Error('No authentication token found. Please log in again.');
+    }
+
+    const response = await fetch('https://finalbackend-mauve.vercel.app/approve', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
+      body: JSON.stringify({
+        registerno: registrationNumber
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(`Failed to approve student: ${response.status} ${response.statusText}`);
+    }
+
+    const responseData = await response.json();
+    return responseData;
+  } catch (error) {
+    console.error('Error approving student:', error);
+    throw error;
   }
 };

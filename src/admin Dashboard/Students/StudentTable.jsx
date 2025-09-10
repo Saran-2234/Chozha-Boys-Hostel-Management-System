@@ -257,7 +257,7 @@ const StudentTable = ({ isDarkMode, searchTerm, filter, students, onApprove, onR
                   </td>
                   <td className="py-3 px-4">
                     <div className="flex space-x-2">
-                      {student.status === 'pending' && (
+                      {student.status === 'inactive' && (
                         <>
                           <button
                             onClick={() => handleApprove(student.id)}

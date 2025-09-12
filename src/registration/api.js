@@ -245,17 +245,16 @@ export const registerUser = async (payload) => {
 
 export const fetchStudents = async () => {
   try {
-    const authToken = localStorage.getItem('authToken');
-    if (!authToken) {
-      throw new Error('No authentication token found. Please log in again.');
-    }
+    const token = localStorage.getItem("accessToken"); // store token after login
 
-    const response = await fetch('https://finalbackend-mauve.vercel.app/fetchstudents/', {
-      method: 'POST',
+    const response = await fetch("https://finalbackend-mauve.vercel.app/fetchstudents", {
+      method: "POST",
+      credentials: "include", // ✅ sends refreshToken cookie
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${authToken}`
-      }
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`, // ✅ optional: backend also supports req.body.token
+      },
+      body: JSON.stringify({ token }), // ✅ body token
     });
 
     if (!response.ok) {
@@ -271,6 +270,11 @@ export const fetchStudents = async () => {
     }
 
     const data = await response.json();
+
+    // Update authToken if a new token is provided
+    if (data.token) {
+      localStorage.setItem('authToken', data.token);
+    }
 
     if (data.success && Array.isArray(data.data)) {
       return data.data;
@@ -339,7 +343,7 @@ export const fetchStudents = async () => {
 // API call for approving student
 export const approveStudent = async (registrationNumber) => {
   try {
-    const authToken = localStorage.getItem('authToken');
+    const authToken = localStorage.getItem('accessToken');
     if (!authToken) {
       throw new Error('No authentication token found. Please log in again.');
     }
@@ -361,6 +365,12 @@ export const approveStudent = async (registrationNumber) => {
     }
 
     const responseData = await response.json();
+
+    // Update authToken if a new token is provided
+    if (responseData.token) {
+      localStorage.setItem('authToken', responseData.token);
+    }
+
     return responseData;
   } catch (error) {
     console.error('Error approving student:', error);

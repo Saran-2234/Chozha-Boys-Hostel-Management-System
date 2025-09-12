@@ -32,8 +32,9 @@ function Login({ onClose, onOpenRegister, loginType }) {
         userType: loginType // Add this if your backend distinguishes between student/admin
       };
 
+      const endpoint = loginType === "admin" ? "adminslogin" : "studentslogin";
       const response = await fetch(
-        "https://finalbackend-mauve.vercel.app/login/",
+        `https://finalbackend-mauve.vercel.app/${endpoint}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -63,7 +64,7 @@ function Login({ onClose, onOpenRegister, loginType }) {
 
       // Store authentication data
       if (data.token) {
-        localStorage.setItem("authToken", data.token);
+        localStorage.setItem("accessToken", data.token);
       }
       if (data.data) {
         localStorage.setItem("userData", JSON.stringify(data.data));

@@ -46,7 +46,7 @@ const Profile = ({ studentData }) => {
       try {
         setLoading(true);
         // Try to fetch complete student data from your backend
-        const profileResponse = await fetch(`https://hostel-backend-three.vercel.app/student/profile/${studentData.email}`, {
+        const profileResponse = await fetch(`https://finalbackend-mauve.vercel.app/student/profile/${studentData.email}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -60,7 +60,7 @@ const Profile = ({ studentData }) => {
           setProfileData(data);
         } else {
           // Try to get student by email from a general students endpoint
-          const studentsResponse = await fetch(`https://hostel-backend-three.vercel.app/students?email=${studentData.email}`, {
+          const studentsResponse = await fetch(`https://finalbackend-mauve.vercel.app/students?email=${studentData.email}`, {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json'
@@ -106,11 +106,16 @@ const Profile = ({ studentData }) => {
       if (response.ok) {
         const result = await response.json();
         console.log('Profile updated successfully:', result);
-        
+
+        // Update authToken if a new token is provided
+        if (result.token) {
+          localStorage.setItem('authToken', result.token);
+        }
+
         // Update local state with new data
         setProfileData(updatedData);
         setIsEditing(false);
-        
+
         // Show success message
         alert('Profile updated successfully!');
       } else {

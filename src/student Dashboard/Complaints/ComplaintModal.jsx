@@ -1,11 +1,60 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 const ComplaintModal = ({ onClose }) => {
-  const handleSubmit = (e) => {
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [category, setCategory] = useState('');
+  const [priority, setPriority] = useState('Medium');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle form submission
-    console.log('Complaint submitted');
-    onClose();
+    setLoading(true);
+    setError('');
+    setSuccess('');
+
+    const token = localStorage.getItem('token');
+    const studentId = localStorage.getItem('studentId');
+
+    if (!token || !studentId) {
+      setError('Authentication required. Please log in again.');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetch('/registercomplaints', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          id: parseInt(studentId),
+          title,
+          description,
+          category,
+          priority,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        setSuccess('Complaint registered successfully!');
+        setTimeout(() => {
+          onClose();
+        }, 2000);
+      } else {
+        setError(data.message || data.error || 'Failed to register complaint.');
+      }
+    } catch (err) {
+      setError('Network error. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -21,62 +70,105 @@ const ComplaintModal = ({ onClose }) => {
             </button>
           </div>
 
+          {error && <div className="mb-4 p-3 bg-red-500 bg-opacity-20 text-red-400 rounded-lg">{error}</div>}
+          {success && <div className="mb-4 p-3 bg-green-500 bg-opacity-20 text-green-400 rounded-lg">{success}</div>}
+
           <form onSubmit={handleSubmit}>
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-semibold text-slate-300 mb-2">Category *</label>
-                  <select className="w-full px-4 py-3 glass-effect rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent border-0" required>
+                  <select
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                    className="w-full max-w-full px-4 py-3 glass-effect rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent border-0 max-h-48 overflow-y-auto"
+                    style={{ whiteSpace: 'normal' }}
+                    required
+                  >
                     <option value="">Select Category</option>
-                    <option value="room">Room Issues</option>
-                    <option value="mess">Mess/Food</option>
-                    <option value="maintenance">Maintenance</option>
-                    <option value="electrical">Electrical</option>
-                    <option value="plumbing">Plumbing</option>
-                    <option value="cleanliness">Cleanliness</option>
-                    <option value="security">Security</option>
-                    <option value="other">Other</option>
+
+                        {/* Infrastructure & Maintenance */}
+                        <option value="Electrical">Electrical Issues</option>
+                        <option value="Plumbing">Plumbing Issues</option>
+                        <option value="Furniture">Broken Furniture</option>
+
+                        {/* Mess / Food Related */}
+                        <option value="FoodQuality">Food Quality</option>
+                        <option value="FoodQuantity">Food Quantity</option>
+                        <option value="MenuVariety">Menu Variety</option>
+                        <option value="MessTiming">Mess Timing</option>
+                        <option value="DrinkingWater">Drinking Water</option>
+
+                        {/* Security & Safety */}
+                        <option value="GateSecurity">Gate Security</option>
+                        <option value="Visitors">Visitors Issue</option>
+                        <option value="Theft">Theft / Missing Items</option>
+                        <option value="Bullying">Bullying / Harassment</option>
+
+                        {/* Accommodation / Room */}
+                        <option value="RoomChange">Room Change Request</option>
+                        <option value="RoommateConflict">Roommate Conflict</option>
+
+                        {/* Housekeeping */}
+                        <option value="Washroom">Washroom Cleanliness</option>
+                        <option value="Garbage">Garbage Collection</option>
+                        <option value="Pests">Pest / Insects</option>
+
+                        
+                        {/* Discipline */}
+                        <option value="Noise">Noise Complaint</option>
+                        <option value="LateEntry">Late Entry/Exit</option>
+                        <option value="MisuseFacilities">Misuse of Facilities</option>
+
+                        {/* Other */}
+                        <option value="Other">Other</option>
                   </select>
                 </div>
 
                 <div>
                   <label className="block text-sm font-semibold text-slate-300 mb-2">Priority</label>
-                  <select className="w-full px-4 py-3 glass-effect rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent border-0">
-                    <option value="low">Low</option>
-                    <option value="medium" selected>Medium</option>
-                    <option value="high">High</option>
-                    <option value="urgent">Urgent</option>
+                  <select
+                    value={priority}
+                    onChange={(e) => setPriority(e.target.value)}
+                    className="w-full px-4 py-3 glass-effect rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent border-0"
+                  >
+                    <option value="Low">Low</option>
+                    <option value="Medium">Medium</option>
+                    <option value="High">High</option>
                   </select>
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-slate-300 mb-2">Subject *</label>
-                <input type="text" className="w-full px-4 py-3 glass-effect rounded-lg text-white placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent border-0" placeholder="Brief description of the issue" required />
+                <label className="block text-sm font-semibold text-slate-300 mb-2">Title *</label>
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="w-full px-4 py-3 glass-effect rounded-lg text-white placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent border-0"
+                  placeholder="Brief description of the issue"
+                  required
+                />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-slate-300 mb-2">Detailed Description *</label>
-                <textarea rows="4" className="w-full px-4 py-3 glass-effect rounded-lg text-white placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent border-0 resize-none" placeholder="Please provide detailed information about the issue..." required></textarea>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-slate-300 mb-2">Location</label>
-                <input type="text" className="w-full px-4 py-3 glass-effect rounded-lg text-white placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent border-0" placeholder="e.g., Room A-204, 2nd Floor Corridor, Mess Hall" />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-slate-300 mb-2">Attach Photo (Optional)</label>
-                <input type="file" accept="image/*" className="w-full px-4 py-3 glass-effect rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent border-0" />
-                <p className="text-xs text-slate-400 mt-1">JPG, PNG or GIF (Max 5MB)</p>
+                <label className="block text-sm font-semibold text-slate-300 mb-2">Description *</label>
+                <textarea
+                  rows="4"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  className="w-full px-4 py-3 glass-effect rounded-lg text-white placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent border-0 resize-none"
+                  placeholder="Please provide detailed information about the issue..."
+                  required
+                ></textarea>
               </div>
 
               <div className="flex justify-end space-x-4">
                 <button type="button" onClick={onClose} className="btn-secondary text-white px-6 py-3 rounded-lg font-medium">
                   Cancel
                 </button>
-                <button type="submit" className="btn-primary text-white px-6 py-3 rounded-lg font-medium">
-                  📝 Submit Complaint
+                <button type="submit" disabled={loading} className="btn-primary text-white px-6 py-3 rounded-lg font-medium">
+                  {loading ? 'Submitting...' : '📝 Submit Complaint'}
                 </button>
               </div>
             </div>

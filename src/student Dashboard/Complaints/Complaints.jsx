@@ -6,11 +6,15 @@ const Complaints = () => {
 
   return (
     <div className="max-w-6xl mx-auto">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-8" style={{ zIndex: 50, position: 'relative' }}>
         <h2 className="text-2xl font-bold text-white">Complaint Management</h2>
         <button
-          onClick={() => setShowModal(true)}
+          onClick={() => {
+            console.log('Raise New Complaint button clicked');
+            setShowModal(true);
+          }}
           className="btn-primary text-white px-6 py-3 rounded-lg font-medium"
+          style={{ pointerEvents: 'auto' }}
         >
           📝 Raise New Complaint
         </button>

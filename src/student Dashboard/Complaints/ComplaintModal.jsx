@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 
 const ComplaintModal = ({ onClose }) => {
   const [title, setTitle] = useState('');
@@ -15,8 +16,10 @@ const ComplaintModal = ({ onClose }) => {
     setError('');
     setSuccess('');
 
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('accessToken');
+    console.log("token", token);
     const studentId = localStorage.getItem('studentId');
+    console.log("student id ", studentId);
 
     if (!token || !studentId) {
       setError('Authentication required. Please log in again.');
@@ -25,24 +28,29 @@ const ComplaintModal = ({ onClose }) => {
     }
 
     try {
-      const response = await fetch('/registercomplaints', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({
+      const response = await axios.post(
+        'https://finalbackend-mauve.vercel.app/registercomplaints',
+        {
           id: parseInt(studentId),
           title,
           description,
           category,
           priority,
-        }),
-      });
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          withCredentials: true, // ensures cookies are sent
+        }
+      );
 
-      const data = await response.json();
+      console.log(document.cookie);
 
-      if (response.ok && data.success) {
+      const data = response.data;
+
+      if (data.success) {
         setSuccess('Complaint registered successfully!');
         setTimeout(() => {
           onClose();
@@ -87,41 +95,40 @@ const ComplaintModal = ({ onClose }) => {
                   >
                     <option value="">Select Category</option>
 
-                        {/* Infrastructure & Maintenance */}
-                        <option value="Electrical">Electrical Issues</option>
-                        <option value="Plumbing">Plumbing Issues</option>
-                        <option value="Furniture">Broken Furniture</option>
+                    {/* Infrastructure & Maintenance */}
+                    <option value="Electrical">Electrical Issues</option>
+                    <option value="Plumbing">Plumbing Issues</option>
+                    <option value="Furniture">Broken Furniture</option>
 
-                        {/* Mess / Food Related */}
-                        <option value="FoodQuality">Food Quality</option>
-                        <option value="FoodQuantity">Food Quantity</option>
-                        <option value="MenuVariety">Menu Variety</option>
-                        <option value="MessTiming">Mess Timing</option>
-                        <option value="DrinkingWater">Drinking Water</option>
+                    {/* Mess / Food Related */}
+                    <option value="FoodQuality">Food Quality</option>
+                    <option value="FoodQuantity">Food Quantity</option>
+                    <option value="MenuVariety">Menu Variety</option>
+                    <option value="MessTiming">Mess Timing</option>
+                    <option value="DrinkingWater">Drinking Water</option>
 
-                        {/* Security & Safety */}
-                        <option value="GateSecurity">Gate Security</option>
-                        <option value="Visitors">Visitors Issue</option>
-                        <option value="Theft">Theft / Missing Items</option>
-                        <option value="Bullying">Bullying / Harassment</option>
+                    {/* Security & Safety */}
+                    <option value="GateSecurity">Gate Security</option>
+                    <option value="Visitors">Visitors Issue</option>
+                    <option value="Theft">Theft / Missing Items</option>
+                    <option value="Bullying">Bullying / Harassment</option>
 
-                        {/* Accommodation / Room */}
-                        <option value="RoomChange">Room Change Request</option>
-                        <option value="RoommateConflict">Roommate Conflict</option>
+                    {/* Accommodation / Room */}
+                    <option value="RoomChange">Room Change Request</option>
+                    <option value="RoommateConflict">Roommate Conflict</option>
 
-                        {/* Housekeeping */}
-                        <option value="Washroom">Washroom Cleanliness</option>
-                        <option value="Garbage">Garbage Collection</option>
-                        <option value="Pests">Pest / Insects</option>
+                    {/* Housekeeping */}
+                    <option value="Washroom">Washroom Cleanliness</option>
+                    <option value="Garbage">Garbage Collection</option>
+                    <option value="Pests">Pest / Insects</option>
 
-                        
-                        {/* Discipline */}
-                        <option value="Noise">Noise Complaint</option>
-                        <option value="LateEntry">Late Entry/Exit</option>
-                        <option value="MisuseFacilities">Misuse of Facilities</option>
+                    {/* Discipline */}
+                    <option value="Noise">Noise Complaint</option>
+                    <option value="LateEntry">Late Entry/Exit</option>
+                    <option value="MisuseFacilities">Misuse of Facilities</option>
 
-                        {/* Other */}
-                        <option value="Other">Other</option>
+                    {/* Other */}
+                    <option value="Other">Other</option>
                   </select>
                 </div>
 

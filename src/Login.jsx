@@ -1,5 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 function Login({ onClose, onOpenRegister, loginType }) {
   const navigate = useNavigate();
@@ -33,18 +34,19 @@ function Login({ onClose, onOpenRegister, loginType }) {
       };
 
       const endpoint = loginType === "admin" ? "adminslogin" : "studentslogin";
-      const response = await fetch(
+
+      const response = await axios.post(
         `https://finalbackend-mauve.vercel.app/${endpoint}`,
+        requestData,
         {
-          method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(requestData),
+          withCredentials: true, // allows sending cookies
         }
       );
 
-      const data = await response.json();
+      const data = response.data;
 
-      if (!response.ok || !data.success) {
+      if (!data.success) {
         throw new Error(data.message || "Invalid login credentials");
       }
 
@@ -68,6 +70,9 @@ function Login({ onClose, onOpenRegister, loginType }) {
       }
       if (data.data) {
         localStorage.setItem("userData", JSON.stringify(data.data));
+        if (data.data.id) {
+          localStorage.setItem("studentId", data.data.id);
+        }
       }
       if (data.session) {
         localStorage.setItem("sessionData", JSON.stringify(data.session));
@@ -78,14 +83,14 @@ function Login({ onClose, onOpenRegister, loginType }) {
 
       // Redirect based on user role from API response
       const userRole = data.role || loginType;
-      
+
       if (userRole === "admin") {
         navigate("/admin-dashboard", { state: { data } });
       } else {
         // Pass the student data to the student dashboard profile
         navigate("/dashboard", { state: { studentData: data.data || data } });
       }
-      
+
     } catch (err) {
       console.error("Login error:", err);
       setError(err.message || "Something went wrong. Please try again.");

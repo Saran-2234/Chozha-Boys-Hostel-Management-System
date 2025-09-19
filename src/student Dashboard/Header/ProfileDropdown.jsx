@@ -101,7 +101,7 @@ const ProfileDropdown = ({ onLogout, studentData, setActiveSection }) => {
   };
 
   return (
-    <div className="relative">
+    <div className="relative" style={{ zIndex: 50, position: 'relative' }}>
       <button onClick={toggleDropdown} className="flex items-center space-x-3 glass-effect px-4 py-2 rounded-lg hover:bg-white hover:bg-opacity-10 transition-all">
         <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
           <span className="text-sm font-bold text-white">{initials}</span>

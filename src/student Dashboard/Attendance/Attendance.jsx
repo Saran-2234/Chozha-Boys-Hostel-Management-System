@@ -1,13 +1,81 @@
-import React from 'react';
+import React, { useState } from 'react';
+import axios from 'axios';
 
 const Attendance = () => {
+  const [attendanceMarked, setAttendanceMarked] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+
+  const markAttendance = async () => {
+    setLoading(true);
+    setMessage('');
+    setError('');
+
+    if (!navigator.geolocation) {
+      setError('Geolocation is not supported by this browser.');
+      setLoading(false);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        const token = localStorage.getItem('accessToken');
+
+        if (!token) {
+          setError('No token found. Please log in.');
+          setLoading(false);
+          return;
+        }
+
+        try {
+          const response = await axios.post('https://finalbackend-mauve.vercel.app/attendance', {
+            lat,
+            lng,
+            token
+          }, {
+            withCredentials: true
+          });
+
+          if (response.data.success) {
+            setMessage('Attendance marked successfully!');
+            setAttendanceMarked(true);
+          } else {
+            setMessage(response.data.message || 'Attendance already marked for today.');
+          }
+        } catch (err) {
+          if (err.response) {
+            setError(err.response.data.error || 'An error occurred.');
+          } else {
+            setError('Network error.');
+          }
+        } finally {
+          setLoading(false);
+        }
+      },
+      (err) => {
+        setError('Unable to retrieve your location.');
+        setLoading(false);
+      }
+    );
+  };
   return (
     <div className="max-w-6xl mx-auto">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-8" style={{ zIndex: 50, position: 'relative' }}>
         <h2 className="text-2xl font-bold text-white">Attendance Management</h2>
-        <button className="btn-primary text-white px-6 py-3 rounded-lg font-medium">
-          ✅ Mark Today's Attendance
+        
+          <button
+            onClick={markAttendance}
+            disabled={loading || attendanceMarked}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium disabled:opacity-50"
+
+          >
+          {loading ? 'Marking...' : attendanceMarked ? 'Attendance Marked' : '✅ Mark Today\'s Attendance'}
         </button>
+        {message && <p className="text-green-400 mt-2">{message}</p>}
+        {error && <p className="text-red-400 mt-2">{error}</p>}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">

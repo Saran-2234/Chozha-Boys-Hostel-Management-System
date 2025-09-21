@@ -134,7 +134,59 @@ const StudentTable = ({ isDarkMode, searchTerm, filter, students, onApprove, onR
         </Button>
       </div>
 
-      <div className="overflow-x-auto">
+      {/* Mobile: stacked cards */}
+      <div className="space-y-3 sm:hidden">
+        {paginatedStudents.length > 0 ? (
+          paginatedStudents.map(student => (
+            <div key={student.id} className={`p-3 rounded-lg border ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'}`}>
+              <div className="flex items-start space-x-3">
+                <div className="flex-shrink-0">
+                  {student.profile_photo ? (
+                    <img src={student.profile_photo} alt={`${student.name} profile`} className="w-12 h-12 rounded-md object-cover" />
+                  ) : (
+                    <div className="w-12 h-12 rounded-md bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold">{student.name ? student.name.charAt(0).toUpperCase() : 'N'}</div>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{student.name || 'N/A'}</div>
+                      <div className={`text-xs ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>{student.email || 'N/A'}</div>
+                    </div>
+                    <div className="text-right text-xs">
+                      <div className={`${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>{student.registration_number || 'N/A'}</div>
+                      <div className={`mt-1 ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>{getStatusColor(student.status).replace('status-', '')}</div>
+                    </div>
+                  </div>
+
+                  <div className="mt-2 text-sm">
+                    <div><strong>Dept:</strong> {student.department || 'N/A'}</div>
+                    <div><strong>Year:</strong> {student.academic_year || 'N/A'}</div>
+                    <div><strong>Room:</strong> {student.room_number || 'N/A'}</div>
+                    <div><strong>Joined:</strong> {formatDate(student.created_at)}</div>
+                  </div>
+
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {student.status === 'inactive' && (
+                      <>
+                        <button onClick={() => handleApprove(student.id)} className="px-2 py-1 text-xs rounded bg-emerald-500 text-white">Approve</button>
+                        <button onClick={() => handleReject(student.id)} className="px-2 py-1 text-xs rounded bg-red-500 text-white">Reject</button>
+                      </>
+                    )}
+                    <button onClick={() => handleEdit(student.id)} className="px-2 py-1 text-xs rounded bg-blue-500 text-white">Edit</button>
+                    <button onClick={() => handlePreview(student)} className="px-2 py-1 text-xs rounded bg-purple-500 text-white">Preview</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))
+        ) : (
+          <div className={`px-4 py-3 text-center ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>No students found matching your criteria</div>
+        )}
+      </div>
+
+      {/* Desktop/tablet: show table on sm+ */}
+      <div className="hidden sm:block overflow-x-auto">
         <table className={`data-table w-full ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
           <thead>
             <tr className={`border-b ${isDarkMode ? 'border-slate-600' : 'border-gray-200'}`}>
@@ -144,16 +196,17 @@ const StudentTable = ({ isDarkMode, searchTerm, filter, students, onApprove, onR
               <th className={`text-left py-3 px-4 ${isDarkMode ? 'text-slate-400' : 'text-gray-500'} font-medium`}>
                 Reg. No.
               </th>
-              <th className={`text-left py-3 px-4 ${isDarkMode ? 'text-slate-400' : 'text-gray-500'} font-medium`}>
+              {/* Hide less important columns on very small screens */}
+              <th className={`text-left py-3 px-4 hidden sm:table-cell ${isDarkMode ? 'text-slate-400' : 'text-gray-500'} font-medium`}>
                 Department
               </th>
-              <th className={`text-left py-3 px-4 ${isDarkMode ? 'text-slate-400' : 'text-gray-500'} font-medium`}>
+              <th className={`text-left py-3 px-4 hidden sm:table-cell ${isDarkMode ? 'text-slate-400' : 'text-gray-500'} font-medium`}>
                 Year
               </th>
-              <th className={`text-left py-3 px-4 ${isDarkMode ? 'text-slate-400' : 'text-gray-500'} font-medium`}>
+              <th className={`text-left py-3 px-4 hidden md:table-cell ${isDarkMode ? 'text-slate-400' : 'text-gray-500'} font-medium`}>
                 Room
               </th>
-              <th className={`text-left py-3 px-4 ${isDarkMode ? 'text-slate-400' : 'text-gray-500'} font-medium`}>
+              <th className={`text-left py-3 px-4 hidden lg:table-cell ${isDarkMode ? 'text-slate-400' : 'text-gray-500'} font-medium`}>
                 createdat
               </th>
               <th className={`text-left py-3 px-4 ${isDarkMode ? 'text-slate-400' : 'text-gray-500'} font-medium`}>
@@ -238,16 +291,16 @@ const StudentTable = ({ isDarkMode, searchTerm, filter, students, onApprove, onR
                   <td className={`py-3 px-4 text-sm ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                     {student.registration_number || 'N/A'}
                   </td>
-                  <td className={`py-3 px-4 text-sm ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>
+                  <td className={`py-3 px-4 text-sm hidden sm:table-cell ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>
                     {student.department || 'N/A'}
                   </td>
-                  <td className={`py-3 px-4 text-sm ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>
+                  <td className={`py-3 px-4 text-sm hidden sm:table-cell ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>
                     {student.academic_year || 'N/A'}
                   </td>
-                  <td className={`py-3 px-4 text-sm ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                  <td className={`py-3 px-4 text-sm hidden md:table-cell ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                     {student.room_number || 'N/A'}
                   </td>
-                  <td className={`py-3 px-4 text-sm ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>
+                  <td className={`py-3 px-4 text-sm hidden lg:table-cell ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>
                     {formatDate(student.created_at)}
                   </td>
                   <td className="py-3 px-4">
@@ -256,39 +309,75 @@ const StudentTable = ({ isDarkMode, searchTerm, filter, students, onApprove, onR
                     </span>
                   </td>
                   <td className="py-3 px-4">
-                    <div className="flex space-x-2">
-                      {student.status === 'inactive' && (
-                        <>
-                          <button
-                            onClick={() => handleApprove(student.id)}
-                            className="action-btn bg-emerald-500 bg-opacity-20 text-emerald-400 hover:bg-opacity-30"
-                            title="Approve student"
-                          >
-                            ✅
-                          </button>
-                          <button
-                            onClick={() => handleReject(student.id)}
-                            className="action-btn bg-red-500 bg-opacity-20 text-red-400 hover:bg-opacity-30"
-                            title="Reject student"
-                          >
-                            ❌
-                          </button>
-                        </>
-                      )}
-                      <button
-                        onClick={() => handleEdit(student.id)}
-                        className="action-btn bg-blue-500 bg-opacity-20 text-blue-400 hover:bg-opacity-30"
-                        title="Edit student"
-                      >
-                        ✏️
-                      </button>
-                      <button
-                        onClick={() => handlePreview(student)}
-                        className="action-btn bg-purple-500 bg-opacity-20 text-purple-400 hover:bg-opacity-30"
-                        title="Preview student details"
-                      >
-                        👁️
-                      </button>
+                    <div className="flex items-center space-x-2">
+                      {/* Visible quick actions */}
+                      <div className="hidden sm:flex space-x-2">
+                        {student.status === 'inactive' && (
+                          <>
+                            <button
+                              onClick={() => handleApprove(student.id)}
+                              className="action-btn bg-emerald-500 bg-opacity-20 text-emerald-400 hover:bg-opacity-30"
+                              title="Approve student"
+                            >
+                              ✅
+                            </button>
+                            <button
+                              onClick={() => handleReject(student.id)}
+                              className="action-btn bg-red-500 bg-opacity-20 text-red-400 hover:bg-opacity-30"
+                              title="Reject student"
+                            >
+                              ❌
+                            </button>
+                          </>
+                        )}
+                        <button
+                          onClick={() => handleEdit(student.id)}
+                          className="action-btn bg-blue-500 bg-opacity-20 text-blue-400 hover:bg-opacity-30"
+                          title="Edit student"
+                        >
+                          ✏️
+                        </button>
+                        <button
+                          onClick={() => handlePreview(student)}
+                          className="action-btn bg-purple-500 bg-opacity-20 text-purple-400 hover:bg-opacity-30"
+                          title="Preview student details"
+                        >
+                          👁️
+                        </button>
+                      </div>
+
+                      {/* Compact 'More' menu for small screens to show hidden data/actions */}
+                      <div className="sm:hidden relative">
+                        <details className="relative">
+                          <summary className={`list-none cursor-pointer action-btn bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-gray-200 p-2 rounded-md`}>
+                            ⋯
+                          </summary>
+                          <div className={`absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-200 dark:border-gray-700 p-3 z-50`}
+                               role="menu">
+                            <div className="text-sm mb-2">
+                              <div><strong>{student.name}</strong></div>
+                              <div className={`text-xs ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>{student.email}</div>
+                            </div>
+                            <div className="text-xs divide-y divide-gray-100 dark:divide-gray-700">
+                              <div className="py-1">Reg: {student.registration_number || 'N/A'}</div>
+                              <div className="py-1">Dept: {student.department || 'N/A'}</div>
+                              <div className="py-1">Year: {student.academic_year || 'N/A'}</div>
+                              <div className="py-1">Room: {student.room_number || 'N/A'}</div>
+                              <div className="py-1">Joined: {formatDate(student.created_at)}</div>
+                              <div className="py-2 flex space-x-2">
+                                {student.status === 'inactive' && (
+                                  <>
+                                    <button onClick={() => handleApprove(student.id)} className="px-2 py-1 text-xs rounded bg-emerald-500 text-white">Approve</button>
+                                    <button onClick={() => handleReject(student.id)} className="px-2 py-1 text-xs rounded bg-red-500 text-white">Reject</button>
+                                  </>
+                                )}
+                              <button onClick={() => handleEdit(student.id)} className="px-2 py-1 text-xs rounded bg-blue-500 text-white">Edit</button>
+                              <button onClick={() => handlePreview(student)} className="px-2 py-1 text-xs rounded bg-purple-500 text-white">Preview</button>
+                              </div>
+                            </div>
+                          </div>
+                        </details>
+                      </div>
                     </div>
                   </td>
                 </tr>

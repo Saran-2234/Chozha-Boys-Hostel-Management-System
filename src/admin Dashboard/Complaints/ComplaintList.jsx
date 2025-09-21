@@ -143,124 +143,172 @@ const ComplaintList = ({ isDarkMode, searchTerm, filter }) => {
 
   return (
     <div className="space-y-4">
-      <div className="overflow-x-auto max-h-[400px] overflow-y-auto block w-full" style={{ position: 'relative', zIndex: 1 }}>
-        <table className={`min-w-full divide-y ${isDarkMode ? 'divide-gray-700' : 'divide-gray-200'}`}>
-          <thead className={isDarkMode ? 'bg-gray-700' : 'bg-gray-50'}>
-            <tr>
-              <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}>
-                Complaint
-              </th>
-              <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}>
-                Student
-              </th>
-              <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}>
-                Category
-              </th>
-              <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}>
-                Priority
-              </th>
-              <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}>
-                Status
-              </th>
-              <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}>
-                Date
-              </th>
-              <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}>
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className={`divide-y ${isDarkMode ? 'divide-gray-700 bg-gray-800' : 'divide-gray-200 bg-white'}`}>
-            {paginatedComplaints.map((complaint) => (
-              <tr key={complaint.id} className={isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}>
-                <td className="px-6 py-4">
-                  <div>
-                    <div className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+      {/* Mobile: stacked complaint cards */}
+      <div className="space-y-3 sm:hidden">
+        {paginatedComplaints.length > 0 ? (
+          paginatedComplaints.map((complaint) => {
+            return (
+              <div key={complaint.id} className={isDarkMode ? 'p-3 rounded-lg bg-gray-800 border border-gray-700' : 'p-3 rounded-lg bg-white border border-gray-200'}>
+                <div className="flex items-start justify-between">
+                  <div className="flex-1 min-w-0">
+                    <div className={isDarkMode ? 'text-sm font-medium text-white' : 'text-sm font-medium text-gray-900'}>
                       {complaint.title}
                     </div>
-                    <div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} truncate max-w-xs`}>
+                    <div className={isDarkMode ? 'text-xs text-gray-400 mt-1' : 'text-xs text-gray-600 mt-1'}>
                       {complaint.description}
                     </div>
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div>
-                    <div className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                      {complaint.studentName}
-                    </div>
-                    <div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                      Room {complaint.room}
+                    <div className="mt-2 text-sm">
+                      <div><strong>Student:</strong> {complaint.studentName}</div>
+                      <div><strong>Room:</strong> {complaint.room}</div>
+                      <div><strong>Category:</strong> {complaint.category}</div>
+                      <div><strong>Priority:</strong> <span className={'inline-block px-2 py-1 rounded ' + getPriorityColor(complaint.priority)}>{complaint.priority}</span></div>
+                      <div><strong>Status:</strong> <span className={'inline-block px-2 py-1 rounded ' + getStatusColor(complaint.status)}>{complaint.status}</span></div>
+                      <div><strong>Date:</strong> {new Date(complaint.dateSubmitted).toLocaleDateString()}</div>
                     </div>
                   </div>
-                </td>
-                <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>
-                  {complaint.category}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getPriorityColor(complaint.priority)}`}>
-                    {complaint.priority}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(complaint.status)}`}>
-                    {complaint.status}
-                  </span>
-                </td>
-                <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>
-                  {new Date(complaint.dateSubmitted).toLocaleDateString()}
-                </td>
-                <td className="px-6 py-4 text-sm font-medium space-x-2">
-                  <Button
-                    onClick={() => handleViewDetails(complaint.id)}
-                    variant="outline"
-                    size="small"
-                    isDarkMode={isDarkMode}
-                  >
-                    View
-                  </Button>
-                  {complaint.status !== 'resolved' && (
-                    <select
-                      onChange={(e) => handleUpdateStatus(complaint.id, e.target.value)}
-                      className={`px-3 py-2 text-sm border rounded relative z-10 ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
-                      defaultValue=""
-                    >
-                      <option value="" disabled>Update</option>
-                      <option value="pending">Pending</option>
-                      <option value="in progress">In Progress</option>
-                      <option value="resolved">Resolved</option>
-                    </select>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                  <div className="ml-3 flex-shrink-0">
+                    <div className="flex flex-col space-y-2">
+                      <Button onClick={() => handleViewDetails(complaint.id)} variant="outline" size="small" isDarkMode={isDarkMode}>View</Button>
+                      {complaint.status !== 'resolved' && (
+                        <select onChange={(e) => handleUpdateStatus(complaint.id, e.target.value)} className={isDarkMode ? 'px-2 py-1 text-sm border rounded bg-gray-700 border-gray-600 text-white' : 'px-2 py-1 text-sm border rounded bg-white border-gray-300 text-gray-900'} defaultValue="">
+                          <option value="" disabled>Update</option>
+                          <option value="pending">Pending</option>
+                          <option value="in progress">In Progress</option>
+                          <option value="resolved">Resolved</option>
+                        </select>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })
+        ) : (
+          <div className={isDarkMode ? 'px-4 py-3 text-center text-gray-400' : 'px-4 py-3 text-center text-gray-600'}>No complaints found</div>
+        )}
       </div>
 
-      {/* Pagination */}
-      <div className="flex flex-col sm:flex-row items-center justify-between space-y-2 sm:space-y-0">
-        <div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-700'}`}>
-          Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredComplaints.length)} of {filteredComplaints.length} complaints
+      {/* Desktop/tablet: show table on sm+ */}
+      <div className="hidden sm:block">
+        <div className="overflow-x-auto max-h-[400px] overflow-y-auto block w-full" style={{ position: 'relative', zIndex: 1 }}>
+          <table className={`min-w-full divide-y ${isDarkMode ? 'divide-gray-700' : 'divide-gray-200'}`}>
+            <thead className={isDarkMode ? 'bg-gray-700' : 'bg-gray-50'}>
+              <tr>
+                <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}>
+                  Complaint
+                </th>
+                <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}>
+                  Student
+                </th>
+                <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}>
+                  Category
+                </th>
+                <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}>
+                  Priority
+                </th>
+                <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}>
+                  Status
+                </th>
+                <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}>
+                  Date
+                </th>
+                <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}>
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className={`divide-y ${isDarkMode ? 'divide-gray-700 bg-gray-800' : 'divide-gray-200 bg-white'}`}>
+              {paginatedComplaints.map((complaint) => (
+                <tr key={complaint.id} className={isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}>
+                  <td className="px-6 py-4">
+                    <div>
+                      <div className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                        {complaint.title}
+                      </div>
+                      <div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} truncate max-w-xs`}>
+                        {complaint.description}
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div>
+                      <div className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                        {complaint.studentName}
+                      </div>
+                      <div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                        Room {complaint.room}
+                      </div>
+                    </div>
+                  </td>
+                  <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>
+                    {complaint.category}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getPriorityColor(complaint.priority)}`}>
+                      {complaint.priority}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(complaint.status)}`}>
+                      {complaint.status}
+                    </span>
+                  </td>
+                  <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>
+                    {new Date(complaint.dateSubmitted).toLocaleDateString()}
+                  </td>
+                  <td className="px-6 py-4 text-sm font-medium space-x-2">
+                    <Button
+                      onClick={() => handleViewDetails(complaint.id)}
+                      variant="outline"
+                      size="small"
+                      isDarkMode={isDarkMode}
+                    >
+                      View
+                    </Button>
+                    {complaint.status !== 'resolved' && (
+                      <select
+                        onChange={(e) => handleUpdateStatus(complaint.id, e.target.value)}
+                        className={`px-3 py-2 text-sm border rounded relative z-10 ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+                        defaultValue=""
+                      >
+                        <option value="" disabled>Update</option>
+                        <option value="pending">Pending</option>
+                        <option value="in progress">In Progress</option>
+                        <option value="resolved">Resolved</option>
+                      </select>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
-        <div className="flex space-x-2">
-          <Button
-            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-            disabled={currentPage === 1}
-            variant="outline"
-            size="small"
-            isDarkMode={isDarkMode}
-          >
-            Previous
-          </Button>
-          <Button
-            onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-            disabled={currentPage === totalPages}
-            variant="outline"
-            size="small"
-            isDarkMode={isDarkMode}
-          >
-            Next
-          </Button>
+
+        {/* Pagination */}
+        <div className="flex flex-col sm:flex-row items-center justify-between space-y-2 sm:space-y-0 mt-4">
+          <div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-700'}`}>
+            Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredComplaints.length)} of {filteredComplaints.length} complaints
+          </div>
+          <div className="flex space-x-2">
+            <Button
+              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+              disabled={currentPage === 1}
+              variant="outline"
+              size="small"
+              isDarkMode={isDarkMode}
+            >
+              Previous
+            </Button>
+            <Button
+              onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+              disabled={currentPage === totalPages}
+              variant="outline"
+              size="small"
+              isDarkMode={isDarkMode}
+            >
+              Next
+            </Button>
+          </div>
         </div>
       </div>
     </div>

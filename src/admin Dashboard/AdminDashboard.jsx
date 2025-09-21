@@ -72,7 +72,7 @@ const AdminDashboard = () => {
           aria-hidden="true"
         />
       )}
-      <div className={`flex-1 flex flex-col ml-0 md:ml-64 transition-all duration-300 ${sidebarOpen ? 'md:ml-64' : 'md:ml-0'}`}>
+  <div className={`flex-1 min-w-0 flex flex-col ml-0 md:ml-64 transition-all duration-300 ${sidebarOpen ? 'md:ml-64' : 'md:ml-0'}`}>
         <Header 
           isDarkMode={isDarkMode} 
           setIsDarkMode={setIsDarkMode} 

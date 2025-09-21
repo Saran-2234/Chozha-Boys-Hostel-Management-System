@@ -204,19 +204,19 @@ const Students = ({ isDarkMode }) => {
       <Card isDarkMode={isDarkMode}>
         <CardHeader>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
-            <div>
+            <div className="min-w-0">
               <h3 className="text-lg font-semibold">All Students ({students.length})</h3>
               <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                 Manage student information and approval status
               </p>
             </div>
-            <div className="flex space-x-2">
+            <div className="flex items-center space-x-2 min-w-0">
               <input
                 type="text"
                 placeholder="Search students..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className={`px-3 py-2 border rounded-md text-sm ${
+                className={`flex-1 min-w-0 px-3 py-2 border rounded-md text-sm ${
                   isDarkMode
                     ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
                     : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
@@ -225,7 +225,7 @@ const Students = ({ isDarkMode }) => {
               <select
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
-                className={`px-3 py-2 border rounded-md text-sm ${
+                className={`w-auto px-3 py-2 border rounded-md text-sm ${
                   isDarkMode
                     ? 'bg-gray-700 border-gray-600 text-white'
                     : 'bg-white border-gray-300 text-gray-900'

@@ -76,7 +76,41 @@ const ComplaintList = ({ isDarkMode, searchTerm, filter }) => {
   };
 
   const handleUpdateStatus = (complaintId, newStatus) => {
-    console.log('Update complaint status:', complaintId, newStatus);
+    // Call admin complaint status change API
+    (async () => {
+      try {
+        const accessToken = localStorage.getItem('accessToken');
+        const payload = {
+          complaint_id: String(complaintId),
+          status: newStatus,
+        };
+
+        // If accessToken is available, prefer Authorization header
+        const headers = {
+          'Content-Type': 'application/json',
+        };
+        if (accessToken) headers['Authorization'] = `Bearer ${accessToken}`;
+
+        const resp = await axios.post(
+          'https://finalbackend-mauve.vercel.app/complaintstatuschangeforadmin',
+          accessToken ? payload : { ...payload, token: '' },
+          { headers }
+        );
+
+        if (resp && resp.data && resp.data.success) {
+          // Update local state
+          setComplaints(prev => prev.map(c => c.id === complaintId ? { ...c, status: resp.data.status || newStatus } : c));
+          alert(resp.data.message || 'Updated successfully');
+        } else {
+          const message = resp?.data?.message || resp?.data?.error || 'Failed to update status';
+          alert(message);
+        }
+      } catch (err) {
+        console.error('Error updating complaint status:', err);
+        const msg = err?.response?.data?.message || err?.message || 'Internal Server Error';
+        alert(msg);
+      }
+    })();
   };
 
   const getStatusColor = (status) => {

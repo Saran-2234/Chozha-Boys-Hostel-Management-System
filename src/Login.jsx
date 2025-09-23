@@ -55,6 +55,25 @@ function Login({ onClose, onOpenRegister, loginType }) {
         throw new Error(`You are not authorized to access the ${loginType} portal. Please use the ${data.role} login.`);
       }
 
+      // For student logins: ensure the account is active/approved before proceeding.
+      // Different backends use different field names/types for status, so check commonly used ones.
+      const userData = data.data || {};
+      const rawStatus = userData.status ?? userData.isActive ?? userData.active ?? userData.accountStatus ?? userData.account_status ?? userData.approved ?? userData.approvalStatus;
+      const normalizeIsActive = (val) => {
+        if (val === undefined || val === null) return true; // assume active if backend didn't provide a status
+        if (typeof val === 'boolean') return Boolean(val);
+        if (typeof val === 'number') return val === 1;
+        const s = String(val).toLowerCase().trim();
+        return ['active', 'approved', 'true', '1', 'yes'].includes(s);
+      };
+
+      if (loginType === 'student' && !normalizeIsActive(rawStatus)) {
+        // Don't proceed with storing tokens or navigation.
+        setIsLoading(false);
+        setError('Your account is not active yet. Please wait until an administrator approves your account.');
+        return;
+      }
+
       console.log("Login successful!");
       console.log("User Role:", data.role);
       console.log("Access Token:", data.token);
@@ -93,7 +112,44 @@ function Login({ onClose, onOpenRegister, loginType }) {
 
     } catch (err) {
       console.error("Login error:", err);
-      setError(err.message || "Something went wrong. Please try again.");
+
+      // Friendly error mapping for axios responses
+      let userMessage = "Something went wrong. Please try again.";
+
+      // If this is an axios error with a response from server
+      if (err && err.response) {
+        const status = err.response.status;
+        const serverMsg = err.response.data?.message || err.response.data?.error || null;
+
+        if (serverMsg) {
+          const s = String(serverMsg).toLowerCase();
+          if (s.includes('password') || s.includes('invalid') || status === 401) {
+            userMessage = 'Incorrect email or password.';
+          } else if (s.includes('inactive') || s.includes('not active') || status === 403) {
+            userMessage = 'Your account is not active yet. Please wait until an administrator approves your account.';
+          } else if (status === 404 || s.includes('not found') || s.includes('no user')) {
+            userMessage = 'No account found with this email.';
+          } else {
+            // Use server message if it's descriptive enough
+            userMessage = serverMsg;
+          }
+        } else {
+          // Fallback mapping based on status code
+          if (status === 401) userMessage = 'Incorrect email or password.';
+          else if (status === 403) userMessage = 'Your account is not active yet. Please wait until an administrator approves your account.';
+          else if (status === 404) userMessage = 'No account found with this email.';
+          else if (status >= 500) userMessage = 'Server error. Please try again later.';
+          else userMessage = `Request failed with status code ${status}`;
+        }
+
+      } else if (err && err.request) {
+        // Request was made but no response (network error)
+        userMessage = 'Network error. Please check your internet connection and try again.';
+      } else if (err && err.message) {
+        userMessage = err.message;
+      }
+
+      setError(userMessage);
     } finally {
       setIsLoading(false);
     }

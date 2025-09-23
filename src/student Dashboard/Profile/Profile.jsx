@@ -6,7 +6,7 @@ const Profile = ({ studentData }) => {
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isEditing, setIsEditing] = useState(false);
+  // Editing removed: profile is read-only in the dashboard
 
   // Fallback data if studentData is not available
   const defaultData = {
@@ -132,16 +132,6 @@ const Profile = ({ studentData }) => {
 
   console.log("Rendering profile with data:", data, "Loading:", loading, "Error:", error);
 
-  // If in edit mode, show the EditProfile component
-  if (isEditing) {
-    return (
-      <EditProfile 
-        studentData={data}
-        onSave={handleSaveProfile}
-        onCancel={() => setIsEditing(false)}
-      />
-    );
-  }
 
   if (loading) {
     return (
@@ -174,12 +164,6 @@ const Profile = ({ studentData }) => {
         <div className="glass-card rounded-xl p-8">
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-2xl font-bold text-white">Personal Information</h2>
-            <button 
-              onClick={() => setIsEditing(true)}
-              className="btn-primary text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-600 transition-all"
-            >
-              ✏️ Edit Profile
-            </button>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

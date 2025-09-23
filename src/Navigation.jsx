@@ -171,7 +171,7 @@ function Navigation({ isLight, onToggleTheme, onOpenLogin, onOpenRegister }) {
               </button>
 
               {/* Desktop Dropdown */}
-                <div ref={dropdownRef} className={`dropdown hidden md:block ${isDropdownOpen ? 'open' : ''}`}>
+                <div ref={dropdownRef} className={`dropdown ${isDropdownOpen ? 'open' : ''}`}>
                 <button
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                   className="btn-primary text-white px-6 py-2.5 rounded-lg font-semibold text-sm flex items-center space-x-2"

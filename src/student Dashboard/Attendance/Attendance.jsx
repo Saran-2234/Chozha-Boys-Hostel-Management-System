@@ -63,27 +63,36 @@ const Attendance = () => {
       }
     );
   };
+  // sample attendance history data (replace with real data when available)
+  const attendanceHistory = [
+    { date: 'Dec 20, 2024', self: 'Present', admin: 'Confirmed', time: '09:15 AM', remarks: 'On time' },
+    { date: 'Dec 19, 2024', self: 'Present', admin: 'Confirmed', time: '09:45 AM', remarks: 'Late entry' },
+    { date: 'Dec 18, 2024', self: 'Absent', admin: 'Confirmed', time: '-', remarks: 'Medical leave' }
+  ];
+
   return (
-    <div className="max-w-6xl mx-auto">
-      <div className="flex items-center justify-between mb-8" style={{ zIndex: 50, position: 'relative' }}>
-        <h2 className="text-2xl font-bold text-white">Attendance Management</h2>
-        
+    <div className="max-w-6xl mx-auto px-4">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6" style={{ zIndex: 50, position: 'relative' }}>
+        <h2 className="text-2xl font-bold text-white mb-3 md:mb-0">Attendance Management</h2>
+
+        <div className="w-full md:w-auto">
           <button
             onClick={markAttendance}
             disabled={loading || attendanceMarked}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium disabled:opacity-50"
-
+            className="w-full md:inline-block bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium disabled:opacity-50"
           >
-          {loading ? 'Marking...' : attendanceMarked ? 'Attendance Marked' : '✅ Mark Today\'s Attendance'}
-        </button>
-        {message && <p className="text-green-400 mt-2">{message}</p>}
-        {error && <p className="text-red-400 mt-2">{error}</p>}
+            {loading ? 'Marking...' : attendanceMarked ? "Attendance Marked" : "✅ Mark Today's Attendance"}
+          </button>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+      {message && <p className="text-green-400 mb-4">{message}</p>}
+      {error && <p className="text-red-400 mb-4">{error}</p>}
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         <div className="glass-card rounded-xl p-6 text-center">
-          <div className="relative w-32 h-32 mx-auto mb-4">
-            <svg className="progress-circle w-32 h-32" viewBox="0 0 120 120">
+          <div className="relative w-36 h-36 mx-auto mb-4 md:w-32 md:h-32">
+            <svg className="progress-circle w-full h-full" viewBox="0 0 120 120">
               <circle cx="60" cy="60" r="50" stroke="rgba(255,255,255,0.1)" strokeWidth="8" fill="none"/>
               <circle cx="60" cy="60" r="50" stroke="#10b981" strokeWidth="8" fill="none"
                       strokeDasharray="314" strokeDashoffset="39.25"/>
@@ -136,7 +145,9 @@ const Attendance = () => {
 
       <div className="glass-card rounded-xl p-6">
         <h3 className="text-lg font-semibold text-white mb-6">Attendance History</h3>
-        <div className="overflow-x-auto">
+
+        {/* Desktop/Tablet Table */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="border-b border-slate-600">
@@ -148,29 +159,40 @@ const Attendance = () => {
               </tr>
             </thead>
             <tbody>
-              <tr className="border-b border-slate-700">
-                <td className="py-3 px-4 text-white">Dec 20, 2024</td>
-                <td className="py-3 px-4"><span className="status-paid">Present</span></td>
-                <td className="py-3 px-4"><span className="status-paid">Confirmed</span></td>
-                <td className="py-3 px-4 text-slate-400">09:15 AM</td>
-                <td className="py-3 px-4 text-slate-400">On time</td>
-              </tr>
-              <tr className="border-b border-slate-700">
-                <td className="py-3 px-4 text-white">Dec 19, 2024</td>
-                <td className="py-3 px-4"><span className="status-paid">Present</span></td>
-                <td className="py-3 px-4"><span className="status-paid">Confirmed</span></td>
-                <td className="py-3 px-4 text-slate-400">09:45 AM</td>
-                <td className="py-3 px-4 text-slate-400">Late entry</td>
-              </tr>
-              <tr className="border-b border-slate-700">
-                <td className="py-3 px-4 text-white">Dec 18, 2024</td>
-                <td className="py-3 px-4"><span className="status-unpaid">Absent</span></td>
-                <td className="py-3 px-4"><span className="status-unpaid">Confirmed</span></td>
-                <td className="py-3 px-4 text-slate-400">-</td>
-                <td className="py-3 px-4 text-slate-400">Medical leave</td>
-              </tr>
+              {attendanceHistory.map((row, idx) => (
+                <tr key={idx} className="border-b border-slate-700">
+                  <td className="py-3 px-4 text-white">{row.date}</td>
+                  <td className="py-3 px-4"><span className={row.self === 'Present' ? 'status-paid' : 'status-unpaid'}>{row.self}</span></td>
+                  <td className="py-3 px-4"><span className={row.admin === 'Confirmed' ? 'status-paid' : 'status-unpaid'}>{row.admin}</span></td>
+                  <td className="py-3 px-4 text-slate-400">{row.time}</td>
+                  <td className="py-3 px-4 text-slate-400">{row.remarks}</td>
+                </tr>
+              ))}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile stacked list */}
+        <div className="md:hidden space-y-4">
+          {attendanceHistory.map((row, idx) => (
+            <div key={idx} className="p-4 bg-slate-900 bg-opacity-20 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-white font-medium">{row.date}</div>
+                <div className="text-sm text-slate-400">{row.time}</div>
+              </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-slate-400 text-sm">Self</div>
+                  <div className={row.self === 'Present' ? 'text-emerald-400 font-semibold' : 'text-red-400 font-semibold'}>{row.self}</div>
+                </div>
+                <div>
+                  <div className="text-slate-400 text-sm">Admin</div>
+                  <div className={row.admin === 'Confirmed' ? 'text-emerald-400 font-semibold' : 'text-red-400 font-semibold'}>{row.admin}</div>
+                </div>
+              </div>
+              {row.remarks && <div className="text-slate-400 text-sm mt-2">Remarks: {row.remarks}</div>}
+            </div>
+          ))}
         </div>
       </div>
     </div>

@@ -18,7 +18,7 @@ const AcademicDetailsStep = ({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-        <div>
+        <div className="relative z-50">
           <label className="block text-sm font-semibold text-slate-300 mb-2">Department *</label>
           <select
             id="department"
@@ -26,6 +26,8 @@ const AcademicDetailsStep = ({
             className={`w-full px-4 py-3 glass-effect rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent border-0
               ${errors.department ? 'border-red-500' : ''}`}
             style={{
+              zIndex: 50,
+              position: 'relative',
               backgroundColor: isLight ? 'white' : 'rgba(51, 65, 85, 0.8)',
               color: isLight ? 'black' : 'white'
             }}
@@ -48,7 +50,7 @@ const AcademicDetailsStep = ({
           )}
         </div>
 
-        <div>
+        <div className="relative z-50">
           <label className="block text-sm font-semibold text-slate-300 mb-2">Academic Year *</label>
           <select
             id="academicYear"
@@ -56,6 +58,8 @@ const AcademicDetailsStep = ({
             className={`w-full px-4 py-3 glass-effect rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent border-0
               ${errors.academicYear ? 'border-red-500' : ''}`}
             style={{
+              zIndex: 50,
+              position: 'relative',
               backgroundColor: isLight ? 'white' : 'rgba(51, 65, 85, 0.8)',
               color: isLight ? 'black' : 'white'
             }}

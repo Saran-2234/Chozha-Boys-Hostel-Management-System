@@ -1,4 +1,81 @@
-import React from 'react';
+import React, { useMemo } from 'react';
+
+// Small picker that emits dob as YYYY-MM-DD
+const DateOfBirthPicker = ({ dobValue, onChange, onBlur, isLight }) => {
+  const [day, setDay] = React.useState('');
+  const [month, setMonth] = React.useState('');
+  const [year, setYear] = React.useState('');
+
+  // sync with external dobValue when it changes
+  React.useEffect(() => {
+    if (dobValue) {
+      const parts = (dobValue || '').split('-');
+      setYear(parts[0] || '');
+      setMonth(parts[1] || '');
+      setDay(parts[2] || '');
+    } else {
+      setYear(''); setMonth(''); setDay('');
+    }
+  }, [dobValue]);
+
+  const currentYear = new Date().getFullYear();
+  const years = useMemo(() => {
+    const list = [];
+    for (let y = currentYear; y >= 1900; y--) list.push(y);
+    return list;
+  }, [currentYear]);
+
+  const months = [
+    { value: '01', label: 'Jan' },{ value: '02', label: 'Feb' },{ value: '03', label: 'Mar' },{ value: '04', label: 'Apr' },{ value: '05', label: 'May' },{ value: '06', label: 'Jun' },{ value: '07', label: 'Jul' },{ value: '08', label: 'Aug' },{ value: '09', label: 'Sep' },{ value: '10', label: 'Oct' },{ value: '11', label: 'Nov' },{ value: '12', label: 'Dec' }
+  ];
+
+  const daysInMonth = (y, m) => {
+    if (!y || !m) return 31;
+    return new Date(parseInt(y,10), parseInt(m,10), 0).getDate();
+  };
+
+  const maxDays = daysInMonth(year || currentYear, month || '01');
+  const days = Array.from({ length: maxDays }, (_, i) => (i + 1).toString().padStart(2, '0'));
+
+  const emit = (y, m, d) => {
+    if (y && m && d) onChange(`${y}-${m}-${d}`);
+    else onChange('');
+  };
+
+  return (
+    <div className="flex w-full gap-2">
+      <select
+        value={day}
+        onChange={(e) => { setDay(e.target.value); emit(year, month, e.target.value); }}
+        onBlur={onBlur}
+        className={`w-1/3 px-3 py-2 glass-effect rounded-lg focus:ring-2 focus:ring-emerald-500 border-0 ${isLight ? 'text-black' : 'text-white'}`}
+      >
+        <option value="">Day</option>
+        {days.map(d => <option key={d} value={d} style={{ backgroundColor: isLight ? 'white' : '#1e293b', color: isLight ? 'black' : 'white' }}>{d}</option>)}
+      </select>
+
+      <select
+        value={month}
+        onChange={(e) => { setMonth(e.target.value); emit(year, e.target.value, day); }}
+        onBlur={onBlur}
+        className={`w-1/3 px-3 py-2 glass-effect rounded-lg focus:ring-2 focus:ring-emerald-500 border-0 ${isLight ? 'text-black' : 'text-white'}`}
+      >
+        <option value="">Month</option>
+        {months.map(m => <option key={m.value} value={m.value} style={{ backgroundColor: isLight ? 'white' : '#1e293b', color: isLight ? 'black' : 'white' }}>{m.label}</option>)}
+      </select>
+
+      <select
+        value={year}
+        onChange={(e) => { setYear(e.target.value); emit(e.target.value, month, day); }}
+        onBlur={onBlur}
+        className={`w-1/3 px-3 py-2 glass-effect rounded-lg focus:ring-2 focus:ring-emerald-500 border-0 ${isLight ? 'text-black' : 'text-white'}`}
+      >
+        <option value="">Year</option>
+        {years.map(y => <option key={y} value={y} style={{ backgroundColor: isLight ? 'white' : '#1e293b', color: isLight ? 'black' : 'white' }}>{y}</option>)}
+      </select>
+    </div>
+  );
+};
 
 const PersonalDetailsStep = ({
   formData,
@@ -56,16 +133,15 @@ const PersonalDetailsStep = ({
 
         <div>
           <label className="block text-sm font-semibold text-slate-300 mb-2">Date of Birth *</label>
-          <input
-            type="date"
-            id="dob"
-            name="dob"
-            className={`w-full px-4 py-3 glass-effect rounded-lg placeholder-slate-400 focus:ring-2 focus:ring-emerald-500 focus:border-transparent border-0
-              ${errors.dob ? 'border-red-500' : ''} ${isLight ? 'text-black' : 'text-white'}`}
-            value={formData.dob}
-            onChange={handleInputChange}
-            onBlur={handleBlur}
-          />
+          <div className="flex gap-2">
+            {/* Day / Month / Year selects */}
+            <DateOfBirthPicker
+              dobValue={formData.dob}
+              onChange={(dob) => handleInputChange({ target: { id: 'dob', value: dob } })}
+              onBlur={() => handleBlur({ target: { id: 'dob', value: formData.dob } })}
+              isLight={isLight}
+            />
+          </div>
           {touched.dob && errors.dob && (
             <p className={`${isLight ? 'text-red-600' : 'text-red-400'} text-xs mt-1`}>{errors.dob}</p>
           )}

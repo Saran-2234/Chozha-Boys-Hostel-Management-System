@@ -44,8 +44,11 @@ function Register({ onClose, onOpenLogin, isLight }) {
   });
 
   const [photoPreview, setPhotoPreview] = useState(null);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
   const [otpVerified, setOtpVerified] = useState(false);
+  const [emailSendMessage, setEmailSendMessage] = useState('');
   const [sendingOtp, setSendingOtp] = useState(false);
   const [verifyingOtp, setVerifyingOtp] = useState(false);
   const [resendCountdown, setResendCountdown] = useState(0);
@@ -95,10 +98,8 @@ function Register({ onClose, onOpenLogin, isLight }) {
         }
         console.log('Setting resendCountdown to:', countdown);
         setResendCountdown(countdown);
-        if (result.message) {
-          setNotificationMessage(result.message);
-          setNotificationType('success');
-        }
+        // Show a small inline message under the email input instead of the global notification
+        setEmailSendMessage(result.sendCodeMessage || result.message || 'OTP sent to your email address');
       } else {
         setNotificationMessage(result.error || result.message || 'Failed to send OTP');
         setNotificationType('error');
@@ -116,6 +117,9 @@ function Register({ onClose, onOpenLogin, isLight }) {
     const { id, value, type, checked } = e.target;
     const fieldValue = type === 'checkbox' ? checked : value;
 
+    // Prevent changing email after it's verified
+    if (id === 'emailId' && otpVerified) return;
+
     const newFormData = { ...formData, [id]: fieldValue };
     setFormData(newFormData);
 
@@ -124,6 +128,7 @@ function Register({ onClose, onOpenLogin, isLight }) {
       setOtpSent(false);
       setOtpVerified(false);
       setResendCountdown(0);
+      setEmailSendMessage('');
     }
 
     // Validate field and update errors
@@ -274,8 +279,11 @@ function Register({ onClose, onOpenLogin, isLight }) {
       const result = await verifyOTP(formData.emailId, formData.otpCode);
       if (result.success) {
         setOtpVerified(true);
-        setNotificationMessage(result.message); // Show success message
-        setNotificationType('success');
+        // clear the inline OTP-sent message after successful verification
+        setEmailSendMessage('');
+        // Clear any previous global notification (like 'Invalid verification code')
+        setNotificationMessage('');
+        setNotificationType('');
       } else {
         setNotificationMessage(result.message || 'OTP verification failed');
         setNotificationType('error');
@@ -335,9 +343,10 @@ function Register({ onClose, onOpenLogin, isLight }) {
           localStorage.setItem("token", token);
         }
 
-        setNotificationMessage(result.message || 'You have registered successfully! Please wait until admin approval.');
+        setNotificationMessage(result.message || 'You have registered successfully! Please wait until warden approval.');
         setNotificationType('success');
-        onClose(); // Close the modal after successful registration
+        // Show a confirmation popup and wait for user to dismiss it
+        setShowSuccessModal(true);
       } else {
         setNotificationMessage(result.message || 'Registration failed');
         setNotificationType('error');
@@ -353,7 +362,7 @@ function Register({ onClose, onOpenLogin, isLight }) {
 
   return (
     <div id="registerModal" className="fixed inset-0 bg-black bg-opacity-60 login-modal z-50 flex items-center justify-center p-4">
-      <div className="glass-card rounded-2xl shadow-2xl max-w-2xl w-full mx-4 transform transition-all professional-shadow max-h-[90vh] overflow-y-auto">
+  <div className="glass-card rounded-2xl shadow-2xl max-w-2xl w-full mx-4 transform transition-all professional-shadow max-h-[90vh] overflow-y-auto overflow-x-visible">
         <div className="p-6 sm:p-8">
           {/* Progress Bar */}
           <div className="mb-6 sm:mb-8">
@@ -370,7 +379,14 @@ function Register({ onClose, onOpenLogin, isLight }) {
                   {currentStep === 5 && 'Terms & Confirmation'}
                 </h2>
               </div>
-              <span className="text-sm text-slate-400">Step {currentStep} of 5</span>
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-slate-400">Step {currentStep} of 5</span>
+                <button onClick={() => setShowCancelConfirm(true)} aria-label="Cancel registration" className="text-slate-300 hover:text-white transition-colors bg-slate-800 hover:bg-slate-700 px-2 py-1 rounded-full">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                  </svg>
+                </button>
+              </div>
             </div>
 
             <div className="w-full bg-slate-700 rounded-full h-2">
@@ -407,6 +423,7 @@ function Register({ onClose, onOpenLogin, isLight }) {
                 handleInputChange={handleInputChange}
                 sendOTP={handleSendOTP}
                 verifyOTP={handleVerifyOTP}
+                emailSendMessage={emailSendMessage}
                 isLight={isLight}
               />
             )}
@@ -458,94 +475,52 @@ function Register({ onClose, onOpenLogin, isLight }) {
               />
             )}
 
-            {/* Navigation Buttons */}
-            <div className="flex justify-between items-center mt-8 pt-6 border-t border-slate-600">
-              {currentStep > 1 && (
-                <button
-                  type="button"
-                  onClick={previousStep}
-                  style={{
-                    padding: '12px 24px',
-                    borderRadius: '8px',
-                    fontWeight: '600',
-                    fontSize: '14px',
-                    transition: 'all 0.3s ease',
-                    backgroundColor: isLight ? '#2563eb !important' : 'rgba(51, 65, 85, 0.8)',
-                    color: isLight ? '#ffffff !important' : '#ffffff',
-                    border: isLight ? '2px solid #3b82f6 !important' : 'none',
-                    cursor: 'pointer',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '8px'
-                  }}
-                  onMouseEnter={(e) => {
-                    if (isLight) {
-                      e.target.style.backgroundColor = '#1d4ed8 !important';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (isLight) {
-                      e.target.style.backgroundColor = '#2563eb !important';
-                    }
-                  }}
-                >
-                  ← Previous
-                </button>
-              )}
+            {/* Navigation Buttons (responsive) */}
+            <div className="mt-8 pt-6 border-t border-slate-600">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div className="flex w-full sm:w-auto gap-3">
+                  {currentStep > 1 && (
+                    <button
+                      type="button"
+                      onClick={previousStep}
+                      className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-md font-semibold transition-all text-sm sm:text-base ${isLight ? 'bg-blue-600 border-2 border-blue-500 text-white hover:bg-blue-700' : 'bg-slate-700 text-white'} px-3 py-3`}
+                    >
+                      ← Previous
+                    </button>
+                  )}
 
-              <div className="flex space-x-3 ml-auto">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  style={{
-                    padding: '12px 24px',
-                    borderRadius: '8px',
-                    fontWeight: '600',
-                    fontSize: '14px',
-                    transition: 'all 0.3s ease',
-                    backgroundColor: isLight ? '#dc2626 !important' : 'rgba(51, 65, 85, 0.8)',
-                    color: isLight ? '#ffffff !important' : '#ffffff',
-                    border: isLight ? '2px solid #ef4444 !important' : 'none',
-                    cursor: 'pointer',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '8px'
-                  }}
-                  onMouseEnter={(e) => {
-                    if (isLight) {
-                      e.target.style.backgroundColor = '#b91c1c !important';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (isLight) {
-                      e.target.style.backgroundColor = '#dc2626 !important';
-                    }
-                  }}
-                >
-                  Cancel
-                </button>
-
-                {currentStep < 5 ? (
                   <button
                     type="button"
-                    onClick={nextStep}
-                    className="px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-lg font-semibold hover:from-emerald-600 hover:to-teal-700 transition-all"
+                    onClick={() => setShowCancelConfirm(true)}
+                    className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-md font-semibold transition-all text-sm sm:text-base ${isLight ? 'bg-red-600 border-2 border-red-500 text-white hover:bg-red-700' : 'bg-slate-700 text-white'} px-3 py-3`}
                   >
-                    Next →
+                    Cancel
                   </button>
-                ) : (
-                  <button
-                    type="submit"
-                    disabled={!isFormValid(formData) || !otpVerified}
-                    className={`px-6 py-3 text-white rounded-lg font-semibold transition-all ${
-                      isFormValid(formData) && otpVerified
-                        ? 'bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700'
-                        : 'bg-gray-500 cursor-not-allowed'
-                    }`}
-                  >
-                    Complete Registration
-                  </button>
-                )}
+                </div>
+
+                <div className="w-full sm:w-auto">
+                  {currentStep < 5 ? (
+                    <button
+                      type="button"
+                      onClick={nextStep}
+                      className="w-full sm:w-auto px-4 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-lg font-semibold hover:from-emerald-600 hover:to-teal-700 transition-all"
+                    >
+                      Next →
+                    </button>
+                  ) : (
+                    <button
+                      type="submit"
+                      disabled={!isFormValid(formData) || !otpVerified}
+                      className={`w-full sm:w-auto px-4 py-3 text-white rounded-lg font-semibold transition-all ${
+                        isFormValid(formData) && otpVerified
+                          ? 'bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700'
+                          : 'bg-gray-500 cursor-not-allowed'
+                      }`}
+                    >
+                      Complete Registration
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           </form>
@@ -560,11 +535,42 @@ function Register({ onClose, onOpenLogin, isLight }) {
           </div>
         </div>
 
-        <button onClick={onClose} className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors">
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
-          </svg>
-        </button>
+        
+
+        {/* Cancel confirmation dialog */}
+        {showCancelConfirm && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-60">
+            <div className="bg-white dark:bg-slate-900 rounded-lg p-6 w-[90%] max-w-md">
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-3">Cancel registration?</h3>
+              <p className="text-sm text-slate-700 dark:text-slate-300 mb-4">Your registration is not complete. Are you sure you want to cancel?</p>
+              <div className="flex justify-end gap-3">
+                <button className="px-4 py-2 rounded-md bg-gray-200 text-gray-800" onClick={() => setShowCancelConfirm(false)}>Continue registration</button>
+                <button className="px-4 py-2 rounded-md bg-red-600 text-white" onClick={() => { setShowCancelConfirm(false); onClose(); }}>Yes, cancel</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Success popup shown after registration */}
+        {showSuccessModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-60">
+            <div className="bg-white dark:bg-slate-900 rounded-lg p-6 w-[90%] max-w-md">
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-3">Registration submitted</h3>
+              <p className="text-sm text-slate-700 dark:text-slate-300 mb-4">You have registered successfully. Please wait until the warden confirms your registration. Once approved you will be able to login.</p>
+              <div className="flex justify-end gap-3">
+                <button
+                  className="px-4 py-2 rounded-md bg-emerald-600 text-white"
+                  onClick={() => {
+                    setShowSuccessModal(false);
+                    onClose();
+                  }}
+                >
+                  OK
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -10,6 +10,8 @@ import Complaints from './Complaints/Complaints';
 import Visitors from './Visitors/Visitors';
 import Notifications from './Notifications/Notifications';
 import Settings from './Settings/Settings';
+import LogoutModal from './components/LogoutModal'; // Import the modal
+
 import './styles/studentDashboard.css';
 import { useLocation, useNavigate } from 'react-router-dom';
 
@@ -21,17 +23,33 @@ const StudentDashboard = () => {
   const [activeSection, setActiveSection] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true);
+  const [showLogoutModal, setShowLogoutModal] = useState(false); // Centralized modal state
+  
   const navigate = useNavigate();
 
-  const handleLogout = () => {
+  // Handle logout click from both sidebar and header
+  const handleLogoutClick = () => {
+    setShowLogoutModal(true);
+  };
+
+  // Handle logout confirmation
+  const handleLogoutConfirm = () => {
     // Clear any stored authentication data
     localStorage.removeItem('studentToken');
     localStorage.removeItem('studentData');
     sessionStorage.removeItem('studentToken');
     sessionStorage.removeItem('studentData');
 
+    // Close modal
+    setShowLogoutModal(false);
+
     // Redirect to login page
     navigate('/', { replace: true });
+  };
+
+  // Handle logout cancellation
+  const handleLogoutCancel = () => {
+    setShowLogoutModal(false);
   };
 
   const renderSection = () => {
@@ -69,22 +87,31 @@ const StudentDashboard = () => {
         activeSection={activeSection}
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
+        onLogoutClick={handleLogoutClick} // Pass click handler instead of direct logout
       />
+      
       <div className="flex-1 flex flex-col md:ml-64">
-        {/* Pass setActiveSection to Header */}
         <Header
           isDarkMode={isDarkMode}
           setIsDarkMode={setIsDarkMode}
-          onLogout={handleLogout}
+          onLogoutClick={handleLogoutClick} // Pass click handler instead of direct logout
           studentData={studentData}
           setActiveSection={handleSetActiveSection}
           sidebarOpen={sidebarOpen}
           setSidebarOpen={setSidebarOpen}
         />
+        
         <MainContent>
           {renderSection()}
         </MainContent>
       </div>
+
+      {/* Centralized Logout Modal - This will appear in the center of the page */}
+      <LogoutModal
+        isOpen={showLogoutModal}
+        onClose={handleLogoutCancel}
+        onConfirm={handleLogoutConfirm}
+      />
     </div>
   );
 };

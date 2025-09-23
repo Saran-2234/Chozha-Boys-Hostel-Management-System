@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getRoomInfo } from '../../Common/roomUtils';
 
-const ProfileDropdown = ({ onLogout, studentData, setActiveSection }) => {
+const ProfileDropdown = ({ onLogoutClick, studentData, setActiveSection }) => {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -58,26 +58,10 @@ const ProfileDropdown = ({ onLogout, studentData, setActiveSection }) => {
     setIsOpen(!isOpen);
   };
 
-  const handleLogout = () => {
-    // Show confirmation dialog
-    const confirmLogout = window.confirm('Are you sure you want to logout?');
-
-    if (!confirmLogout) {
-      return;
-    }
-
-    // Close dropdown
+  const handleLogoutClick = () => {
+    // Close dropdown and call parent handler to show modal
     setIsOpen(false);
-
-    // Clear authentication data from localStorage
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('userData');
-    localStorage.removeItem('sessionData');
-
-    // Call the logout function passed from parent
-    if (onLogout) {
-      onLogout();
-    }
+    onLogoutClick(); // This will trigger the centralized modal
   };
 
   const handleViewProfile = () => {
@@ -101,7 +85,7 @@ const ProfileDropdown = ({ onLogout, studentData, setActiveSection }) => {
   };
 
   return (
-    <div className="relative" style={{ zIndex: 50, position: 'relative' }}>
+    <div className="relative" style={{ zIndex: 40, position: 'relative' }}>
       <button onClick={toggleDropdown} className="flex items-center space-x-3 glass-effect px-4 py-2 rounded-lg hover:bg-white hover:bg-opacity-10 transition-all">
         <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
           <span className="text-sm font-bold text-white">{initials}</span>
@@ -132,7 +116,7 @@ const ProfileDropdown = ({ onLogout, studentData, setActiveSection }) => {
             </button>
             <hr className="my-2 border-slate-600" />
             <button
-              onClick={handleLogout}
+              onClick={handleLogoutClick}
               className="w-full text-left block px-4 py-2 text-sm text-red-400 hover:bg-white hover:bg-opacity-10"
             >
               🚪 Logout

@@ -2,12 +2,16 @@ import React from 'react';
 import ProfileDropdown from './ProfileDropdown';
 import ThemeToggle from './ThemeToggle';
 
-const Header = ({ isDarkMode, setIsDarkMode, onLogout, studentData, setActiveSection, sidebarOpen, setSidebarOpen }) => {
+const Header = ({ isDarkMode, setIsDarkMode, onLogoutClick, studentData, setActiveSection, sidebarOpen, setSidebarOpen }) => {
   // Extract student name from the studentData prop
   const getStudentName = () => {
     if (!studentData) return 'Student';
     
     // Check different possible structures of studentData
+    if (studentData.data) {
+      return studentData.data.name || 'Student';
+    }
+    
     if (studentData.userdata && studentData.userdata.length > 0) {
       return studentData.userdata[0].name || 'Student';
     }
@@ -43,7 +47,7 @@ const Header = ({ isDarkMode, setIsDarkMode, onLogout, studentData, setActiveSec
         <div className="flex items-center space-x-4">
           <ThemeToggle isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} />
           <ProfileDropdown 
-            onLogout={onLogout} 
+            onLogoutClick={onLogoutClick}
             studentData={studentData}
             setActiveSection={setActiveSection}
           />

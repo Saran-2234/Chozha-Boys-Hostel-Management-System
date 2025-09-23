@@ -1,6 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import ForgotPasswordModal from "./registration/ForgotPasswordModal";
 
 function Login({ onClose, onOpenRegister, loginType }) {
   const navigate = useNavigate();
@@ -10,6 +11,7 @@ function Login({ onClose, onOpenRegister, loginType }) {
   });
   const [error, setError] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(false);
+  const [showForgotPassword, setShowForgotPassword] = React.useState(false);
 
   const handleInputChange = (e) => {
     const { id, value } = e.target;
@@ -226,6 +228,7 @@ function Login({ onClose, onOpenRegister, loginType }) {
                 </label>
                 <button
                   type="button"
+                  onClick={() => setShowForgotPassword(true)}
                   className="text-sm text-blue-400 hover:text-blue-300 transition-colors text-center sm:text-right"
                 >
                   Forgot password?
@@ -293,6 +296,16 @@ function Login({ onClose, onOpenRegister, loginType }) {
           </svg>
         </button>
       </div>
+
+      {/* Forgot Password Modal */}
+      <ForgotPasswordModal
+        isOpen={showForgotPassword}
+        onClose={() => setShowForgotPassword(false)}
+        onLogin={() => {
+          setShowForgotPassword(false);
+          // Optionally refresh the login form or redirect
+        }}
+      />
     </div>
   );
 }

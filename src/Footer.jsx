@@ -1,6 +1,20 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 
 function Footer({isLight}) {
+  const [isOnline, setIsOnline] = useState(navigator.onLine)
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true)
+    const handleOffline = () => setIsOnline(false)
+
+    window.addEventListener('online', handleOnline)
+    window.addEventListener('offline', handleOffline)
+
+    return () => {
+      window.removeEventListener('online', handleOnline)
+      window.removeEventListener('offline', handleOffline)
+    }
+  }, [])
   return (
     <>
       <section id="contact" className={isLight?"light-mode":""}>
@@ -37,8 +51,10 @@ function Footer({isLight}) {
                 <div className={"flex items-center justify-center space-x-2 sm:space-x-4 text-slate-300 text-xs sm:text-sm"}>
                   <span className={"hidden sm:inline text-slate-300"}>Powered by Advanced Technology</span>
                   <span className={"sm:hidden text-slate-300"}>System Status</span>
-                  <div className={"w-2 h-2 bg-green-400 rounded-full animate-pulse"}></div>
-                  <span className={"text-green-400 font-medium"}>Online</span>
+                  <div className={`w-2 h-2 rounded-full animate-pulse ${isOnline ? 'bg-green-400' : 'bg-red-400'}`}></div>
+                  <span className={`font-medium ${isOnline ? 'text-green-400' : 'text-red-400'}`}>
+                    {isOnline ? 'Online' : 'Offline'}
+                  </span>
                 </div>
               </div>
             </div>

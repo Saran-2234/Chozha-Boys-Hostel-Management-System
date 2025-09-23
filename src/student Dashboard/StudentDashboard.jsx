@@ -37,7 +37,7 @@ const StudentDashboard = () => {
   const renderSection = () => {
     switch (activeSection) {
       case 'dashboard':
-        return <Dashboard studentData={studentData} />;
+        return <Dashboard studentData={studentData} setActiveSection={setActiveSection} />;
       case 'profile':
         return <Profile studentData={studentData} />;
       case 'attendance':
@@ -53,7 +53,7 @@ const StudentDashboard = () => {
       case 'settings':
         return <Settings />;
       default:
-        return <Dashboard />;
+        return <Dashboard studentData={studentData} setActiveSection={setActiveSection} />;
     }
   };
 

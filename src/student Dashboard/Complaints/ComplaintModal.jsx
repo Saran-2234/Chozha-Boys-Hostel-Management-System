@@ -67,6 +67,16 @@ const ComplaintModal = ({ onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50">
+      <style jsx>{`
+        select option {
+          background-color: #1f2937;
+          color: #f9fafb;
+          padding: 8px;
+        }
+        select option:hover {
+          background-color: #374151;
+        }
+      `}</style>
       <div className="glass-card rounded-2xl shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
         <div className="p-6 sm:p-8">
           <div className="flex items-center justify-between mb-6">
@@ -89,8 +99,11 @@ const ComplaintModal = ({ onClose }) => {
                   <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
-                    className="w-full max-w-full px-4 py-3 glass-effect rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent border-0 max-h-48 overflow-y-auto"
-                    style={{ whiteSpace: 'normal' }}
+                    className="w-full max-w-full px-4 py-3 glass-effect rounded-lg text-white bg-gray-800 bg-opacity-50 focus:ring-2 focus:ring-blue-500 focus:border-transparent border-0 max-h-48 overflow-y-auto"
+                    style={{
+                      whiteSpace: 'normal',
+                      colorScheme: 'dark'
+                    }}
                     required
                   >
                     <option value="">Select Category</option>
@@ -137,7 +150,8 @@ const ComplaintModal = ({ onClose }) => {
                   <select
                     value={priority}
                     onChange={(e) => setPriority(e.target.value)}
-                    className="w-full px-4 py-3 glass-effect rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent border-0"
+                    className="w-full px-4 py-3 glass-effect rounded-lg text-white bg-gray-800 bg-opacity-50 focus:ring-2 focus:ring-blue-500 focus:border-transparent border-0"
+                    style={{ colorScheme: 'dark' }}
                   >
                     <option value="Low">Low</option>
                     <option value="Medium">Medium</option>

@@ -5,8 +5,10 @@ import ComplaintModal from './ComplaintModal';
 const Complaints = () => {
   const [showModal, setShowModal] = useState(false);
   const [complaints, setComplaints] = useState([]);
+  const [filteredComplaints, setFilteredComplaints] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [activeFilter, setActiveFilter] = useState('all'); // 'all', 'pending', 'inProgress', 'resolved'
   const [stats, setStats] = useState({
     total: 0,
     pending: 0,
@@ -71,12 +73,38 @@ const Complaints = () => {
           if (data.success) {
             // Handle successful response
             const complaintsData = Array.isArray(data.data) ? data.data : [];
+            console.log('Raw complaints data:', complaintsData);
+
+            // Debug: Log all status values
+            complaintsData.forEach((complaint, index) => {
+              console.log(`Complaint ${index}:`, {
+                id: complaint.complaint_id,
+                title: complaint.title,
+                status: complaint.status,
+                statusType: typeof complaint.status
+              });
+            });
+
             setComplaints(complaintsData);
 
             const total = complaintsData.length;
-            const pending = complaintsData.filter(c => c.status === 'Pending').length;
-            const inProgress = complaintsData.filter(c => c.status === 'In Progress').length;
-            const resolved = complaintsData.filter(c => c.status === 'Resolved').length;
+            const pending = complaintsData.filter(c => {
+              const matches = c.status && c.status.toLowerCase() === 'pending';
+              console.log(`Pending check for "${c.status}": ${matches}`);
+              return matches;
+            }).length;
+            const inProgress = complaintsData.filter(c => {
+              const matches = c.status && c.status.toLowerCase() === 'in progress';
+              console.log(`In Progress check for "${c.status}": ${matches}`);
+              return matches;
+            }).length;
+            const resolved = complaintsData.filter(c => {
+              const matches = c.status && c.status.toLowerCase() === 'resolved';
+              console.log(`Resolved check for "${c.status}": ${matches}`);
+              return matches;
+            }).length;
+
+            console.log('Calculated stats:', { total, pending, inProgress, resolved });
             setStats({ total, pending, inProgress, resolved });
 
             return; // Success, exit the function
@@ -117,6 +145,31 @@ const Complaints = () => {
   useEffect(() => {
     fetchComplaints();
   }, []);
+
+  // Filter complaints based on active filter
+  useEffect(() => {
+    if (activeFilter === 'all') {
+      setFilteredComplaints(complaints);
+    } else {
+      const filtered = complaints.filter(complaint => {
+        switch (activeFilter) {
+          case 'pending':
+            return complaint.status && complaint.status.toLowerCase() === 'pending';
+          case 'inProgress':
+            return complaint.status && complaint.status.toLowerCase() === 'in progress';
+          case 'resolved':
+            return complaint.status && complaint.status.toLowerCase() === 'resolved';
+          default:
+            return true;
+        }
+      });
+      setFilteredComplaints(filtered);
+    }
+  }, [complaints, activeFilter]);
+
+  const handleFilterClick = (filter) => {
+    setActiveFilter(filter);
+  };
 
   const handleModalClose = () => {
     setShowModal(false);
@@ -187,27 +240,61 @@ const Complaints = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div className="glass-card rounded-xl p-6 text-center">
+        <div
+          className={`glass-card rounded-xl p-6 text-center cursor-pointer transition-all duration-200 hover:scale-105 ${
+            activeFilter === 'all' ? 'ring-2 ring-blue-400 bg-blue-900 bg-opacity-20' : ''
+          }`}
+          onClick={() => handleFilterClick('all')}
+        >
           <div className="text-2xl font-bold text-white mb-2">{stats.total}</div>
           <div className="text-slate-400 text-sm">Total Complaints</div>
         </div>
-        <div className="glass-card rounded-xl p-6 text-center">
+        <div
+          className={`glass-card rounded-xl p-6 text-center cursor-pointer transition-all duration-200 hover:scale-105 ${
+            activeFilter === 'pending' ? 'ring-2 ring-yellow-400 bg-yellow-900 bg-opacity-20' : ''
+          }`}
+          onClick={() => handleFilterClick('pending')}
+        >
           <div className="text-2xl font-bold text-yellow-400 mb-2">{stats.pending}</div>
           <div className="text-slate-400 text-sm">Pending</div>
         </div>
-        <div className="glass-card rounded-xl p-6 text-center">
+        <div
+          className={`glass-card rounded-xl p-6 text-center cursor-pointer transition-all duration-200 hover:scale-105 ${
+            activeFilter === 'inProgress' ? 'ring-2 ring-blue-400 bg-blue-900 bg-opacity-20' : ''
+          }`}
+          onClick={() => handleFilterClick('inProgress')}
+        >
           <div className="text-2xl font-bold text-blue-400 mb-2">{stats.inProgress}</div>
           <div className="text-slate-400 text-sm">In Progress</div>
         </div>
-        <div className="glass-card rounded-xl p-6 text-center">
+        <div
+          className={`glass-card rounded-xl p-6 text-center cursor-pointer transition-all duration-200 hover:scale-105 ${
+            activeFilter === 'resolved' ? 'ring-2 ring-emerald-400 bg-emerald-900 bg-opacity-20' : ''
+          }`}
+          onClick={() => handleFilterClick('resolved')}
+        >
           <div className="text-2xl font-bold text-emerald-400 mb-2">{stats.resolved}</div>
           <div className="text-slate-400 text-sm">Resolved</div>
         </div>
       </div>
 
       <div className="glass-card rounded-xl p-6">
-        <h3 className="text-lg font-semibold text-white mb-6">My Complaints</h3>
-        
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-lg font-semibold text-white">
+            My Complaints
+            {activeFilter !== 'all' && (
+              <span className="ml-2 text-sm text-slate-400">
+                ({activeFilter === 'pending' ? 'Pending' :
+                  activeFilter === 'inProgress' ? 'In Progress' :
+                  activeFilter === 'resolved' ? 'Resolved' : 'All'})
+              </span>
+            )}
+          </h3>
+          <div className="text-sm text-slate-400">
+            Showing {filteredComplaints.length} of {complaints.length} complaints
+          </div>
+        </div>
+
         {loading ? (
           <div className="text-center text-white">Loading complaints...</div>
         ) : error ? (
@@ -222,7 +309,7 @@ const Complaints = () => {
                 <li>Contact your administrator if the issue persists</li>
               </ul>
             </div>
-            <button 
+            <button
               onClick={fetchComplaints}
               className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-medium"
             >
@@ -232,20 +319,32 @@ const Complaints = () => {
         ) : complaints.length === 0 ? (
           <div className="text-center text-slate-400">
             No complaints found. Ready to submit your first complaint!
-            <button 
+            <button
               onClick={fetchComplaints}
               className="ml-4 bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded"
             >
               Refresh
             </button>
           </div>
+        ) : filteredComplaints.length === 0 ? (
+          <div className="text-center text-slate-400">
+            No {activeFilter === 'pending' ? 'pending' :
+                activeFilter === 'inProgress' ? 'in progress' :
+                activeFilter === 'resolved' ? 'resolved' : ''} complaints found.
+            <button
+              onClick={() => setActiveFilter('all')}
+              className="ml-4 bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded"
+            >
+              Show All
+            </button>
+          </div>
         ) : (
           <div className="space-y-4">
-            {complaints.map((complaint) => (
+            {filteredComplaints.map((complaint) => (
               <div key={complaint.complaint_id} className={`glass-effect rounded-lg p-4 border-l-4 ${
-                complaint.status === 'Pending' ? 'border-yellow-400' :
-                complaint.status === 'In Progress' ? 'border-blue-400' :
-                complaint.status === 'Resolved' ? 'border-emerald-400' : 'border-gray-400'
+                complaint.status && complaint.status.toLowerCase() === 'pending' ? 'border-yellow-400' :
+                complaint.status && complaint.status.toLowerCase() === 'in progress' ? 'border-blue-400' :
+                complaint.status && complaint.status.toLowerCase() === 'resolved' ? 'border-emerald-400' : 'border-gray-400'
               }`}>
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center space-x-3">
@@ -260,9 +359,9 @@ const Complaints = () => {
                     </div>
                   </div>
                   <span className={`px-3 py-1 rounded-full text-sm font-medium text-white ${
-                    complaint.status === 'Pending' ? 'bg-yellow-500 bg-opacity-20' :
-                    complaint.status === 'In Progress' ? 'bg-blue-500 bg-opacity-20' :
-                    complaint.status === 'Resolved' ? 'bg-emerald-500 bg-opacity-20' : 'bg-gray-500 bg-opacity-20'
+                    complaint.status && complaint.status.toLowerCase() === 'pending' ? 'bg-yellow-500 bg-opacity-20' :
+                    complaint.status && complaint.status.toLowerCase() === 'in progress' ? 'bg-blue-500 bg-opacity-20' :
+                    complaint.status && complaint.status.toLowerCase() === 'resolved' ? 'bg-emerald-500 bg-opacity-20' : 'bg-gray-500 bg-opacity-20'
                   }`}>
                     {complaint.status}
                   </span>

@@ -2,11 +2,21 @@ import React from 'react';
 import Card from '../Common/Card';
 import { getRoomInfo } from '../../Common/roomUtils';
 
-const QuickStats = ({ studentData }) => {
+const QuickStats = ({ studentData, setActiveSection }) => {
   const { roomNumber, block, floor } = getRoomInfo(studentData);
+
+  const handleCardClick = (section) => {
+    if (setActiveSection) {
+      setActiveSection(section);
+    }
+  };
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-      <Card className="hover-lift">
+      <Card
+        className="hover-lift cursor-pointer transition-all duration-200 hover:scale-105"
+        onClick={() => handleCardClick('attendance')}
+      >
         <div className="flex items-center justify-between">
           <div>
             <p className="text-slate-400 text-sm font-medium">Attendance</p>
@@ -22,7 +32,10 @@ const QuickStats = ({ studentData }) => {
         </div>
       </Card>
 
-      <Card className="hover-lift">
+      <Card
+        className="hover-lift cursor-pointer transition-all duration-200 hover:scale-105"
+        onClick={() => handleCardClick('messbill')}
+      >
         <div className="flex items-center justify-between">
           <div>
             <p className="text-slate-400 text-sm font-medium">Mess Bill</p>
@@ -38,7 +51,10 @@ const QuickStats = ({ studentData }) => {
         </div>
       </Card>
 
-      <Card className="hover-lift">
+      <Card
+        className="hover-lift cursor-pointer transition-all duration-200 hover:scale-105"
+        onClick={() => handleCardClick('complaints')}
+      >
         <div className="flex items-center justify-between">
           <div>
             <p className="text-slate-400 text-sm font-medium">Complaints</p>
@@ -54,7 +70,10 @@ const QuickStats = ({ studentData }) => {
         </div>
       </Card>
 
-      <Card className="hover-lift">
+      <Card
+        className="hover-lift cursor-pointer transition-all duration-200 hover:scale-105"
+        onClick={() => handleCardClick('profile')}
+      >
         <div className="flex items-center justify-between">
           <div>
             <p className="text-slate-400 text-sm font-medium">Room</p>

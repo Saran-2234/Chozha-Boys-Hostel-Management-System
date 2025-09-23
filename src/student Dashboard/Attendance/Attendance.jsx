@@ -72,14 +72,14 @@ const Attendance = () => {
 
   return (
     <div className="max-w-6xl mx-auto px-4">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6" style={{ zIndex: 50, position: 'relative' }}>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 max-w-full relative z-10">
         <h2 className="text-2xl font-bold text-white mb-3 md:mb-0">Attendance Management</h2>
 
-        <div className="w-full md:w-auto">
+        <div className="w-full md:w-auto md:flex-shrink-0">
           <button
             onClick={markAttendance}
             disabled={loading || attendanceMarked}
-            className="w-full md:inline-block bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium disabled:opacity-50"
+            className="w-full md:inline-block bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium disabled:opacity-50 transition-all duration-200 relative z-20"
           >
             {loading ? 'Marking...' : attendanceMarked ? "Attendance Marked" : "✅ Mark Today's Attendance"}
           </button>

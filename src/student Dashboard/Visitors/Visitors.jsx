@@ -3,16 +3,20 @@ import React from 'react';
 const Visitors = () => {
   return (
     <div className="max-w-6xl mx-auto">
-      <div className="flex items-center justify-between mb-8">
-        <h2 className="text-2xl font-bold text-white">Visitor Management</h2>
-        <button className="btn-primary text-white px-6 py-3 rounded-lg font-medium">
-          👥 Request Visitor Approval
-        </button>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 sm:mb-8 gap-4 max-w-full relative z-10">
+        <h2 className="text-xl sm:text-2xl font-bold text-white">Visitor Management</h2>
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 w-full sm:w-auto">
+          <button className="btn-primary text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-medium text-sm sm:text-base w-full sm:w-auto transition-all duration-200 relative z-20">
+            👥 Request Visitor Approval
+          </button>
+        </div>
       </div>
 
-      <div className="glass-card rounded-xl p-6 mb-6">
-        <h3 className="text-lg font-semibold text-white mb-6">Recent Visitors</h3>
-        <div className="overflow-x-auto">
+      <div className="glass-card rounded-xl p-4 sm:p-6 mb-6">
+        <h3 className="text-lg font-semibold text-white mb-4 sm:mb-6">Recent Visitors</h3>
+
+        {/* Desktop/Tablet Table */}
+        <div className="hidden sm:block overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="border-b border-slate-600">
@@ -43,6 +47,59 @@ const Visitors = () => {
               </tr>
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile Card Layout */}
+        <div className="sm:hidden space-y-4">
+          <div className="p-4 bg-slate-900 bg-opacity-20 rounded-lg">
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-white font-medium">Suresh Kumar</div>
+              <span className="status-resolved text-xs">Completed</span>
+            </div>
+            <div className="space-y-1 text-sm">
+              <div className="flex justify-between">
+                <span className="text-slate-400">Relation</span>
+                <span className="text-white">Father</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">Visit Date</span>
+                <span className="text-white">Dec 18, 2024</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">Entry Time</span>
+                <span className="text-slate-400">10:30 AM</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">Exit Time</span>
+                <span className="text-slate-400">02:15 PM</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-4 bg-slate-900 bg-opacity-20 rounded-lg">
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-white font-medium">Priya Kumar</div>
+              <span className="status-resolved text-xs">Completed</span>
+            </div>
+            <div className="space-y-1 text-sm">
+              <div className="flex justify-between">
+                <span className="text-slate-400">Relation</span>
+                <span className="text-white">Sister</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">Visit Date</span>
+                <span className="text-white">Dec 15, 2024</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">Entry Time</span>
+                <span className="text-slate-400">11:00 AM</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">Exit Time</span>
+                <span className="text-slate-400">01:30 PM</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 

@@ -3,22 +3,22 @@ import React from 'react';
 const MessBill = () => {
   return (
     <div className="max-w-4xl mx-auto">
-      <div className="flex items-center justify-between mb-8">
-        <h2 className="text-2xl font-bold text-white">Mess Bill Management</h2>
-        <div className="flex space-x-3">
-          <button className="btn-secondary text-white px-4 py-2 rounded-lg font-medium">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 sm:mb-8 gap-4">
+        <h2 className="text-xl sm:text-2xl font-bold text-white">Mess Bill Management</h2>
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
+          <button className="btn-secondary text-white px-3 sm:px-4 py-2 rounded-lg font-medium text-sm sm:text-base w-full sm:w-auto">
             📄 Download Bill
           </button>
-          <button className="btn-primary text-white px-4 py-2 rounded-lg font-medium">
+          <button className="btn-primary text-white px-3 sm:px-4 py-2 rounded-lg font-medium text-sm sm:text-base w-full sm:w-auto">
             💳 Pay Now
           </button>
         </div>
       </div>
 
-      <div className="glass-card rounded-xl p-6 mb-6">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-xl font-semibold text-white">December 2024 Bill</h3>
-          <span className="status-unpaid bg-red-500 bg-opacity-20 px-3 py-1 rounded-full text-sm font-medium">
+      <div className="glass-card rounded-xl p-4 sm:p-6 mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 gap-2">
+          <h3 className="text-lg sm:text-xl font-semibold text-white">December 2024 Bill</h3>
+          <span className="status-unpaid bg-red-500 bg-opacity-20 px-3 py-1 rounded-full text-xs sm:text-sm font-medium self-start sm:self-auto">
             Pending Payment
           </span>
         </div>
@@ -81,9 +81,11 @@ const MessBill = () => {
         </div>
       </div>
 
-      <div className="glass-card rounded-xl p-6">
-        <h3 className="text-lg font-semibold text-white mb-6">Payment History</h3>
-        <div className="overflow-x-auto">
+      <div className="glass-card rounded-xl p-4 sm:p-6">
+        <h3 className="text-lg font-semibold text-white mb-4 sm:mb-6">Payment History</h3>
+
+        {/* Desktop/Tablet Table */}
+        <div className="hidden sm:block overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="border-b border-slate-600">
@@ -101,7 +103,7 @@ const MessBill = () => {
                 <td className="py-3 px-4"><span className="status-paid">Paid</span></td>
                 <td className="py-3 px-4 text-slate-400">Nov 28, 2024</td>
                 <td className="py-3 px-4">
-                  <button className="text-blue-400 hover:text-blue-300">📄 Download</button>
+                  <button className="text-blue-400 hover:text-blue-300 text-sm">📄 Download</button>
                 </td>
               </tr>
               <tr className="border-b border-slate-700">
@@ -110,11 +112,54 @@ const MessBill = () => {
                 <td className="py-3 px-4"><span className="status-paid">Paid</span></td>
                 <td className="py-3 px-4 text-slate-400">Oct 30, 2024</td>
                 <td className="py-3 px-4">
-                  <button className="text-blue-400 hover:text-blue-300">📄 Download</button>
+                  <button className="text-blue-400 hover:text-blue-300 text-sm">📄 Download</button>
                 </td>
               </tr>
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile Card Layout */}
+        <div className="sm:hidden space-y-4">
+          <div className="p-4 bg-slate-900 bg-opacity-20 rounded-lg">
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-white font-medium">November 2024</div>
+              <span className="status-paid text-xs">Paid</span>
+            </div>
+            <div className="space-y-1 text-sm">
+              <div className="flex justify-between">
+                <span className="text-slate-400">Amount</span>
+                <span className="text-white">₹2,300</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">Payment Date</span>
+                <span className="text-slate-400">Nov 28, 2024</span>
+              </div>
+              <div className="pt-2">
+                <button className="text-blue-400 hover:text-blue-300 text-sm">📄 Download Receipt</button>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-4 bg-slate-900 bg-opacity-20 rounded-lg">
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-white font-medium">October 2024</div>
+              <span className="status-paid text-xs">Paid</span>
+            </div>
+            <div className="space-y-1 text-sm">
+              <div className="flex justify-between">
+                <span className="text-slate-400">Amount</span>
+                <span className="text-white">₹2,400</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">Payment Date</span>
+                <span className="text-slate-400">Oct 30, 2024</span>
+              </div>
+              <div className="pt-2">
+                <button className="text-blue-400 hover:text-blue-300 text-sm">📄 Download Receipt</button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

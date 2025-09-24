@@ -10,6 +10,7 @@ const NavigationMenu = ({ setActiveSection, activeSection, isDarkMode, setSideba
     { id: 'rooms', icon: '🏠', label: 'Room Management' },
     { id: 'visitors', icon: '👥', label: 'Visitors' },
     { id: 'messaging', icon: '📢', label: 'Messaging' },
+    { id: 'departments', icon: '🏢', label: 'Departments' },
     { id: 'reports', icon: '📈', label: 'Reports' },
     { id: 'settings', icon: '⚙️', label: 'Settings' }
   ];

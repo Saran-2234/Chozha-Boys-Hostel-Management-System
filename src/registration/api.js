@@ -378,6 +378,44 @@ export const approveStudent = async (registrationNumber) => {
   }
 };
 
+// API call to add department
+export const addDepartment = async (departmentName) => {
+  try {
+    const authToken = localStorage.getItem('authToken');
+    if (!authToken) {
+      throw new Error('No authentication token found. Please log in again.');
+    }
+
+    const response = await fetch('https://finalbackend-mauve.vercel.app/adddepartments', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
+      body: JSON.stringify({
+        department: departmentName
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `Failed to add department: ${response.status} ${response.statusText}`);
+    }
+
+    const responseData = await response.json();
+
+    // Update authToken if a new token is provided
+    if (responseData.token) {
+      localStorage.setItem('authToken', responseData.token);
+    }
+
+    return responseData;
+  } catch (error) {
+    console.error('Error adding department:', error);
+    throw error;
+  }
+};
+
 // API call to fetch departments
 export const fetchDepartments = async () => {
   try {

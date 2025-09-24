@@ -377,3 +377,30 @@ export const approveStudent = async (registrationNumber) => {
     throw error;
   }
 };
+
+// API call to fetch departments
+export const fetchDepartments = async () => {
+  try {
+    const response = await fetch('https://finalbackend-mauve.vercel.app/fetchdepartments', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (data.success && Array.isArray(data.result)) {
+      return data.result;
+    } else {
+      throw new Error('Invalid response format from API');
+    }
+  } catch (error) {
+    console.error('Error fetching departments:', error);
+    throw error;
+  }
+};

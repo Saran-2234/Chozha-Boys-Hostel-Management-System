@@ -67,14 +67,7 @@ const AdminDashboard = () => {
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
       />
-      {/* Backdrop overlay for mobile sidebar */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
-          onClick={() => setSidebarOpen(false)}
-          aria-hidden="true"
-        />
-      )}
+      {/* Backdrop overlay for mobile sidebar - removed to fix overlay issue */}
   <div className={`flex-1 min-w-0 flex flex-col ml-0 md:ml-64 transition-all duration-300 ${sidebarOpen ? 'md:ml-64' : 'md:ml-0'}`}>
         <Header 
           isDarkMode={isDarkMode} 

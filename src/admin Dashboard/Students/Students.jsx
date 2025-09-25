@@ -253,7 +253,7 @@ const Students = ({ isDarkMode }) => {
     }
   };
 
-  const handleEditSubmit = async (updatedStudentData) => {
+  const handleEditSubmit = async (studentId, updatedStudentData) => {
     if (!studentToEdit) return;
 
     setLoading(true);
@@ -261,12 +261,12 @@ const Students = ({ isDarkMode }) => {
     try {
       console.log('Editing student:', studentToEdit.name, 'with data:', updatedStudentData);
 
-      const responseData = await editStudentDetails(studentToEdit.id, updatedStudentData);
+      const responseData = await editStudentDetails(studentId, updatedStudentData);
       console.log('Edit response:', responseData);
 
       // Update local state with response data
       setStudents(students.map(student => {
-        if (student.id === studentToEdit.id) {
+        if (student.id === studentId) {
           // If response contains student details, use them; otherwise use the updated data
           if (responseData && responseData.student) {
             return { ...student, ...responseData.student };

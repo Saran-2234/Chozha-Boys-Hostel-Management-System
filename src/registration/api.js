@@ -226,7 +226,7 @@ export const editStudentDetails = async (studentId, studentData) => {
     }
 
     const response = await fetch('https://finalbackend-mauve.vercel.app/editstudentsdetails', {
-      method: 'POST',
+      method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${authToken}`
@@ -252,6 +252,41 @@ export const editStudentDetails = async (studentId, studentData) => {
     return responseData;
   } catch (error) {
     console.error('Error editing student:', error);
+    throw error;
+  }
+};
+
+// API call for showing attendance records
+export const showAttends = async (filters = {}) => {
+  try {
+    const authToken = localStorage.getItem('accessToken');
+    if (!authToken) {
+      throw new Error('No authentication token found. Please log in again.');
+    }
+
+    const requestBody = {
+      token: authToken,
+      ...filters
+    };
+
+    const response = await fetch('https://finalbackend-mauve.vercel.app/showattends', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
+      body: JSON.stringify(requestBody)
+    });
+
+    const responseData = await response.json();
+
+    if (!response.ok) {
+      throw new Error(responseData.message || `Failed to fetch attendance: ${response.status} ${response.statusText}`);
+    }
+
+    return responseData;
+  } catch (error) {
+    console.error('Error fetching attendance:', error);
     throw error;
   }
 };

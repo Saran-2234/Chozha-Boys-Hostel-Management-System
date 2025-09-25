@@ -1,13 +1,5 @@
-# TODO: Add Department Functionality to Admin Dashboard
+# TODO: Fix React Error in Departments
 
-## Steps to Complete
-
-- [x] Add addDepartment API function in src/registration/api.js
-- [x] Create src/admin Dashboard/Departments/Departments.jsx
-- [x] Create src/admin Dashboard/Departments/DepartmentTable.jsx
-- [x] Update src/admin Dashboard/Sidebar/NavigationMenu.jsx to add Departments menu item
-- [x] Update src/admin Dashboard/AdminDashboard.jsx to include Departments case and import
-- [ ] Test the functionality
-
-## Progress Tracking
-- Current Step: Testing the functionality
+## Tasks
+- [x] Update DepartmentTable.jsx to handle department objects: change {department} to {department.department}, and use {department.id} for ID
+- [x] Update Departments.jsx: in openEditModal, setNewDepartmentName(department.department); in handleEditDepartment, pass editingDepartment.department to editDepartment

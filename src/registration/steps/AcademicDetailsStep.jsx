@@ -62,8 +62,8 @@ const AcademicDetailsStep = ({
               {loading ? 'Loading...' : 'Select Department'}
             </option>
             {departments.map((dept, index) => (
-              <option key={index} value={dept} style={{ backgroundColor: isLight ? 'white' : '#1e293b', color: isLight ? 'black' : 'white' }}>
-                {dept}
+              <option key={dept.id || index} value={dept.department} style={{ backgroundColor: isLight ? 'white' : '#1e293b', color: isLight ? 'black' : 'white' }}>
+                {dept.department}
               </option>
             ))}
           </select>

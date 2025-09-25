@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Button from '../Common/Button';
+import Modal from '../Common/Modal';
 
-const DepartmentTable = ({ isDarkMode, departments, onRefresh }) => {
+const DepartmentTable = ({ isDarkMode, departments, onRefresh, onEdit }) => {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -21,17 +22,25 @@ const DepartmentTable = ({ isDarkMode, departments, onRefresh }) => {
       {/* Mobile: stacked cards */}
       <div className="space-y-3 sm:hidden">
         {departments.length > 0 ? (
-          departments.map(department => (
-            <div key={department.id} className={`p-3 rounded-lg border ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'}`}>
+          departments.map((department, index) => (
+            <div key={`department-${department.id}`} className={`p-3 rounded-lg border ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'}`}>
               <div className="flex items-center justify-between">
                 <div>
                   <div className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                    {department.department || 'N/A'}
+                    {department.department}
                   </div>
                   <div className={`text-xs ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>
-                    ID: {department.id || 'N/A'}
+                    ID: {department.id}
                   </div>
                 </div>
+                <Button
+                  onClick={() => onEdit(department)}
+                  variant="outline"
+                  size="small"
+                  isDarkMode={isDarkMode}
+                >
+                  Edit
+                </Button>
               </div>
             </div>
           ))
@@ -53,23 +62,36 @@ const DepartmentTable = ({ isDarkMode, departments, onRefresh }) => {
               <th className={`text-left py-3 px-4 ${isDarkMode ? 'text-slate-400' : 'text-gray-500'} font-medium`}>
                 Department Name
               </th>
+              <th className={`text-left py-3 px-4 ${isDarkMode ? 'text-slate-400' : 'text-gray-500'} font-medium`}>
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody>
             {departments.length > 0 ? (
-              departments.map((department) => (
-                <tr key={department.id} className={`border-b ${isDarkMode ? 'border-slate-700 hover:bg-white hover:bg-opacity-5' : 'border-gray-200 hover:bg-gray-50'}`}>
+              departments.map((department, index) => (
+                <tr key={`department-${department.id}`} className={`border-b ${isDarkMode ? 'border-slate-700 hover:bg-white hover:bg-opacity-5' : 'border-gray-200 hover:bg-gray-50'}`}>
                   <td className={`py-3 px-4 text-sm ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                    {department.id || 'N/A'}
+                    {department.id}
                   </td>
                   <td className={`py-3 px-4 text-sm ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                    {department.department || 'N/A'}
+                    {department.department}
+                  </td>
+                  <td className="py-3 px-4 text-sm">
+                    <Button
+                      onClick={() => onEdit(department)}
+                      variant="outline"
+                      size="small"
+                      isDarkMode={isDarkMode}
+                    >
+                      Edit
+                    </Button>
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan="2" className="px-6 py-4 text-center">
+                <td colSpan="3" className="px-6 py-4 text-center">
                   <div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                     No departments found
                   </div>

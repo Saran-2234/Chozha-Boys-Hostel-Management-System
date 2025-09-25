@@ -20,3 +20,26 @@
 ## Completed
 - [x] Analyze required fields
 - [x] Get user approval
+
+# Integrate /showattends API for Attendance Records
+
+## Tasks
+- [x] Add showAttends API function to api.js
+- [x] Update Attendance.jsx component to use /showattends API with filters
+- [x] Implement filtering by student_id, department, academic_year, date, status
+- [x] Display attendance records in a table with export functionality
+
+## Completed
+- [x] Analyze API documentation
+- [x] Implement the attendance records viewer
+
+# Fix Full-Page Selection on Attendance Page
+
+## Tasks
+- [x] Edit Attendance.jsx to add 'select-none' class to main container
+- [x] Verify the edit
+- [ ] Test the fix in the browser
+
+## Completed
+- [x] Analyze the issue and relevant files (Attendance.jsx, adminDashboard.css)
+- [x] Create plan and get user approval

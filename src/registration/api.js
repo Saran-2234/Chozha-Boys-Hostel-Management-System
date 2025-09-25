@@ -226,7 +226,7 @@ export const editStudentDetails = async (studentId, studentData) => {
     }
 
     const response = await fetch('https://finalbackend-mauve.vercel.app/editstudentsdetails', {
-      method: 'POST',
+      method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${authToken}`

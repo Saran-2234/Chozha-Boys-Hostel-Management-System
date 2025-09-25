@@ -36,6 +36,7 @@ const Attendance = () => {
           const response = await axios.post('https://finalbackend-mauve.vercel.app/attendance', {
             lat,
             lng,
+            status: 'present',
             token
           }, {
             withCredentials: true
@@ -90,7 +91,7 @@ const Attendance = () => {
         console.log("lat", lat);
         console.log("lng", lng);
         try {
-          const response = await axios.post('https://finalbackend-mauve.vercel.app/absent', {
+          const response = await axios.post('https://finalbackend-mauve.vercel.app/attendance', {
             lat,
             lng,
             status: 'absent',

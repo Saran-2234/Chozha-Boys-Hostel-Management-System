@@ -4,124 +4,296 @@ import Button from '../Common/Button';
 import BillTable from './BillTable';
 
 const MessBills = ({ isDarkMode }) => {
-  const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7));
-  const [filter, setFilter] = useState('all');
+  // Input states
+  const [groceryCost, setGroceryCost] = useState('');
+  const [vegetableCost, setVegetableCost] = useState('');
+  const [gasCharges, setGasCharges] = useState('');
+  const [milkCharges, setMilkCharges] = useState('');
+  const [otherCosts, setOtherCosts] = useState('');
+  const [deductions, setDeductions] = useState('');
+  const [totalStudents, setTotalStudents] = useState('');
+  const [totalDays, setTotalDays] = useState('');
+  const [reductionDays, setReductionDays] = useState('');
 
-  const handleGenerateBills = () => {
-    console.log('Generate bills clicked');
+  // Calculation results
+  const [netExpenditure, setNetExpenditure] = useState(0);
+  const [applicableStudentDays, setApplicableStudentDays] = useState(0);
+  const [messFeePerDay, setMessFeePerDay] = useState(0);
+  const [vegFeePerDay, setVegFeePerDay] = useState(0);
+  const [nonVegFeePerDay, setNonVegFeePerDay] = useState(0);
+  const [calculated, setCalculated] = useState(false);
+
+  // Filters
+  const [yearFilter, setYearFilter] = useState('all');
+  const [departmentFilter, setDepartmentFilter] = useState('all');
+
+  // Mock students data
+  const mockStudents = [
+    { id: 'ST001', name: 'John Doe', year: '1st', department: 'CSE', daysPresent: 28, vegDays: 28, nonVegDays: 0 },
+    { id: 'ST002', name: 'Jane Smith', year: '2nd', department: 'ECE', daysPresent: 25, vegDays: 25, nonVegDays: 0 },
+    { id: 'ST003', name: 'Bob Johnson', year: '3rd', department: 'MECH', daysPresent: 28, vegDays: 20, nonVegDays: 8 },
+    // Add more mock data as needed
+  ];
+
+  const handleCalculate = () => {
+    const totalExpenditure = parseFloat(groceryCost) + parseFloat(vegetableCost) + parseFloat(gasCharges) + parseFloat(milkCharges) + parseFloat(otherCosts);
+    const netExp = totalExpenditure - parseFloat(deductions || 0);
+    const totalPossibleDays = parseInt(totalStudents) * parseInt(totalDays);
+    const applicableDays = totalPossibleDays - parseInt(reductionDays || 0);
+    const feePerDay = Math.round(netExp / applicableDays);
+    // Assume veg and non-veg fees based on example; in real, calculate from separate costs
+    const vegFee = Math.round(feePerDay * 0.8); // Placeholder
+    const nonVegFee = Math.round(feePerDay * 1.2); // Placeholder
+
+    setNetExpenditure(netExp);
+    setApplicableStudentDays(applicableDays);
+    setMessFeePerDay(feePerDay);
+    setVegFeePerDay(vegFee);
+    setNonVegFeePerDay(nonVegFee);
+    setCalculated(true);
   };
 
-  const handleExport = () => {
-    console.log('Export bills clicked');
+  const handleBulkSendYearDept = () => {
+    console.log(`Send bills to ${yearFilter} year ${departmentFilter} department`);
   };
+
+  const handleSendAll = () => {
+    console.log('Send bills to all students');
+  };
+
+  const handleDownloadExcel = () => {
+    // Simulate Excel download
+    const dataStr = "data:text/csv;charset=utf-8," + encodeURIComponent(mockStudents.map(s => `${s.id},${s.name},${s.daysPresent},${s.vegDays},${s.nonVegDays},${(s.vegDays * vegFeePerDay + s.nonVegDays * nonVegFeePerDay)}`).join("\n"));
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute('href', dataStr);
+    downloadAnchor.setAttribute('download', 'mess_bills.csv');
+    downloadAnchor.click();
+  };
+
+  const filteredStudents = mockStudents.filter(student => 
+    (yearFilter === 'all' || student.year === yearFilter) &&
+    (departmentFilter === 'all' || student.department === departmentFilter)
+  );
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-          Mess Bill Management
-        </h2>
-        <div className="flex space-x-3">
-          <Button onClick={handleExport} variant="outline" isDarkMode={isDarkMode}>
-            Export Bills
-          </Button>
-          <Button onClick={handleGenerateBills} variant="primary" isDarkMode={isDarkMode}>
-            Generate Bills
-          </Button>
-        </div>
-      </div>
+      <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+        Mess Bill Management
+      </h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* Input Panel */}
+      <Card isDarkMode={isDarkMode}>
+        <CardHeader>
+          <h3 className="text-lg font-semibold">Monthly Calculation</h3>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <label className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>Grocery Cost</label>
+              <input
+                type="number"
+                value={groceryCost}
+                onChange={(e) => setGroceryCost(e.target.value)}
+                placeholder="Enter grocery cost"
+                className={`w-full px-3 py-2 border rounded-md text-sm ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>Vegetable Cost</label>
+              <input
+                type="number"
+                value={vegetableCost}
+                onChange={(e) => setVegetableCost(e.target.value)}
+                placeholder="Enter vegetable cost"
+                className={`w-full px-3 py-2 border rounded-md text-sm ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>Gas Charges</label>
+              <input
+                type="number"
+                value={gasCharges}
+                onChange={(e) => setGasCharges(e.target.value)}
+                placeholder="Enter gas charges"
+                className={`w-full px-3 py-2 border rounded-md text-sm ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>Milk Charges</label>
+              <input
+                type="number"
+                value={milkCharges}
+                onChange={(e) => setMilkCharges(e.target.value)}
+                placeholder="Enter milk charges"
+                className={`w-full px-3 py-2 border rounded-md text-sm ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>Other Costs</label>
+              <input
+                type="number"
+                value={otherCosts}
+                onChange={(e) => setOtherCosts(e.target.value)}
+                placeholder="Enter other costs"
+                className={`w-full px-3 py-2 border rounded-md text-sm ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>Deductions / Income</label>
+              <input
+                type="number"
+                value={deductions}
+                onChange={(e) => setDeductions(e.target.value)}
+                placeholder="Enter deductions"
+                className={`w-full px-3 py-2 border rounded-md text-sm ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>Total Students</label>
+              <input
+                type="number"
+                value={totalStudents}
+                onChange={(e) => setTotalStudents(e.target.value)}
+                placeholder="Enter total students"
+                className={`w-full px-3 py-2 border rounded-md text-sm ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>Total Days in Month</label>
+              <input
+                type="number"
+                value={totalDays}
+                onChange={(e) => setTotalDays(e.target.value)}
+                placeholder="Enter total days"
+                className={`w-full px-3 py-2 border rounded-md text-sm ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>Reduction Days</label>
+              <input
+                type="number"
+                value={reductionDays}
+                onChange={(e) => setReductionDays(e.target.value)}
+                placeholder="Enter reduction days"
+                className={`w-full px-3 py-2 border rounded-md text-sm ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+              />
+            </div>
+          </div>
+          <div className="mt-6">
+            <Button onClick={handleCalculate} variant="primary" isDarkMode={isDarkMode}>
+              Calculate
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Calculation Results */}
+      {calculated && (
         <Card isDarkMode={isDarkMode}>
+          <CardHeader>
+            <h3 className="text-lg font-semibold">Calculation Results</h3>
+          </CardHeader>
           <CardContent>
-            <div className="flex items-center">
-              <div className="p-3 bg-green-100 rounded-full">
-                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+              <div>
+                <p className={`text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Net Expenditure</p>
+                <p className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>₹{netExpenditure.toLocaleString()}</p>
               </div>
-              <div className="ml-4">
-                <p className={`text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Paid Bills</p>
-                <p className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>245</p>
+              <div>
+                <p className={`text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Applicable Student-Days</p>
+                <p className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{applicableStudentDays}</p>
+              </div>
+              <div>
+                <p className={`text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Mess Fee per Day</p>
+                <p className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>₹{messFeePerDay}</p>
+              </div>
+              <div>
+                <p className={`text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Veg Fee per Day</p>
+                <p className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>₹{vegFeePerDay}</p>
+              </div>
+              <div>
+                <p className={`text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Non-Veg Fee per Day</p>
+                <p className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>₹{nonVegFeePerDay}</p>
               </div>
             </div>
           </CardContent>
         </Card>
+      )}
 
-        <Card isDarkMode={isDarkMode}>
-          <CardContent>
-            <div className="flex items-center">
-              <div className="p-3 bg-yellow-100 rounded-full">
-                <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <div className="ml-4">
-                <p className={`text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Pending</p>
-                <p className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>23</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card isDarkMode={isDarkMode}>
-          <CardContent>
-            <div className="flex items-center">
-              <div className="p-3 bg-blue-100 rounded-full">
-                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-                </svg>
-              </div>
-              <div className="ml-4">
-                <p className={`text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Total Revenue</p>
-                <p className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>₹2,45,000</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
+      {/* Student Bill Table */}
       <Card isDarkMode={isDarkMode}>
         <CardHeader>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
             <div>
-              <h3 className="text-lg font-semibold">Bill Records</h3>
+              <h3 className="text-lg font-semibold">Student Bill Table</h3>
               <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                Manage mess bill payments and records
+                Review and send individual bills
               </p>
             </div>
             <div className="flex space-x-2">
-              <input
-                type="month"
-                value={selectedMonth}
-                onChange={(e) => setSelectedMonth(e.target.value)}
-                className={`px-3 py-2 border rounded-md text-sm ${
-                  isDarkMode
-                    ? 'bg-gray-700 border-gray-600 text-white'
-                    : 'bg-white border-gray-300 text-gray-900'
-                }`}
-              />
               <select
-                value={filter}
-                onChange={(e) => setFilter(e.target.value)}
+                value={yearFilter}
+                onChange={(e) => setYearFilter(e.target.value)}
                 className={`px-3 py-2 border rounded-md text-sm ${
                   isDarkMode
                     ? 'bg-gray-700 border-gray-600 text-white'
                     : 'bg-white border-gray-300 text-gray-900'
                 }`}
               >
-                <option value="all">All Bills</option>
-                <option value="paid">Paid</option>
-                <option value="pending">Pending</option>
-                <option value="overdue">Overdue</option>
+                <option value="all">All Years</option>
+                <option value="1st">1st Year</option>
+                <option value="2nd">2nd Year</option>
+                <option value="3rd">3rd Year</option>
+                <option value="Final">Final Year</option>
+              </select>
+              <select
+                value={departmentFilter}
+                onChange={(e) => setDepartmentFilter(e.target.value)}
+                className={`px-3 py-2 border rounded-md text-sm ${
+                  isDarkMode
+                    ? 'bg-gray-700 border-gray-600 text-white'
+                    : 'bg-white border-gray-300 text-gray-900'
+                }`}
+              >
+                <option value="all">All Departments</option>
+                <option value="CSE">CSE</option>
+                <option value="ECE">ECE</option>
+                <option value="MECH">MECH</option>
               </select>
             </div>
           </div>
         </CardHeader>
         <CardContent>
-          <BillTable isDarkMode={isDarkMode} selectedMonth={selectedMonth} filter={filter} />
+          <BillTable 
+            isDarkMode={isDarkMode} 
+            students={filteredStudents} 
+            vegFeePerDay={vegFeePerDay} 
+            nonVegFeePerDay={nonVegFeePerDay}
+          />
         </CardContent>
       </Card>
+
+      {/* Bulk Actions */}
+      {calculated && (
+        <Card isDarkMode={isDarkMode}>
+          <CardHeader>
+            <h3 className="text-lg font-semibold">Bulk Actions</h3>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Button onClick={handleBulkSendYearDept} variant="primary" isDarkMode={isDarkMode}>
+                Send Bill to {yearFilter} Year {departmentFilter} Department
+              </Button>
+              <Button onClick={handleSendAll} variant="primary" isDarkMode={isDarkMode}>
+                Send Bill to All Students
+              </Button>
+              <Button onClick={handleDownloadExcel} variant="outline" isDarkMode={isDarkMode}>
+                Download Excel Report
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };

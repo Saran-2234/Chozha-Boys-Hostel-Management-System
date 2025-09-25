@@ -126,60 +126,7 @@ const Attendance = () => {
     );
   };
 
-  const markAbsent = async () => {
-    setLoading(true);
-    setMessage('');
-    setError('');
 
-    if (!navigator.geolocation) {
-      setError('Geolocation is not supported by this browser.');
-      setLoading(false);
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const lat = position.coords.latitude;
-        const lng = position.coords.longitude;
-        const token = localStorage.getItem('accessToken');
-
-        if (!token) {
-          setError('No token found. Please log in.');
-          setLoading(false);
-          return;
-        }
-
-        try {
-          const response = await axios.post('https://finalbackend-mauve.vercel.app/absent', {
-            lat,
-            lng,
-            token
-          }, {
-            withCredentials: true
-          });
-
-          if (response.data.success) {
-            setMessage('Absent marked successfully!');
-            setAbsentMarked(true);
-          } else {
-            setMessage(response.data.message || 'Absent already marked for today.');
-          }
-        } catch (err) {
-          if (err.response) {
-            setError(err.response.data.error || 'An error occurred.');
-          } else {
-            setError('Network error.');
-          }
-        } finally {
-          setLoading(false);
-        }
-      },
-      (err) => {
-        setError('Unable to retrieve your location.');
-        setLoading(false);
-      }
-    );
-  };
   // sample attendance history data (replace with real data when available)
   const attendanceHistory = [
     { date: 'Dec 20, 2024', self: 'Present', admin: 'Confirmed', time: '09:15 AM', remarks: 'On time' },
@@ -194,7 +141,6 @@ const Attendance = () => {
 
 
         <div className="w-full md:w-auto md:flex-shrink-0 flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-3">
-        <div className="w-full md:w-auto md:flex-shrink-0 flex flex-col md:flex-row gap-2">
           <button
             onClick={markAttendance}
             disabled={loading || attendanceStatus !== null}
@@ -208,13 +154,6 @@ const Attendance = () => {
             className="w-full md:inline-block bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-medium disabled:opacity-50 transition-all duration-200 relative z-20"
           >
             {loading ? 'Marking...' : attendanceStatus === 'absent' ? "Absent Marked" : "❌ Mark Absent"}
-          </button>
-          <button
-            onClick={markAbsent}
-            disabled={loading || absentMarked}
-            className="w-full md:inline-block bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-medium disabled:opacity-50 transition-all duration-200 relative z-20"
-          >
-            {loading ? 'Marking...' : absentMarked ? "Absent Marked" : "❌ Mark Absent"}
           </button>
         </div>
       </div>

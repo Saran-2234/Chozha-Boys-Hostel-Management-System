@@ -1,10 +1,28 @@
 import React, { useState } from 'react';
+import LogoutModal from '../Common/LogoutModal';
 
 const ProfileDropdown = ({ onLogout, isDarkMode }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const toggleDropdown = () => {
     setIsOpen(!isOpen);
+  };
+
+  const handleLogoutClick = () => {
+    setIsOpen(false); // Close dropdown
+    setShowLogoutModal(true);
+  };
+
+  const handleLogoutConfirm = () => {
+    setShowLogoutModal(false);
+    if (onLogout) {
+      onLogout();
+    }
+  };
+
+  const handleLogoutCancel = () => {
+    setShowLogoutModal(false);
   };
 
   return (
@@ -32,9 +50,16 @@ const ProfileDropdown = ({ onLogout, isDarkMode }) => {
           <a href="#" className={`block px-4 py-2 text-sm ${isDarkMode ? 'text-white hover:bg-white hover:bg-opacity-10' : 'text-gray-900 hover:bg-gray-200'}`}>Profile</a>
           <a href="#" className={`block px-4 py-2 text-sm ${isDarkMode ? 'text-white hover:bg-white hover:bg-opacity-10' : 'text-gray-900 hover:bg-gray-200'}`}>Settings</a>
           <hr className={`my-2 ${isDarkMode ? 'border-slate-600' : 'border-gray-300'}`} />
-          <a href="#" onClick={onLogout} className={`block px-4 py-2 text-sm ${isDarkMode ? 'text-red-400 hover:bg-red-500 hover:bg-opacity-10' : 'text-red-600 hover:bg-red-200'}`}>Logout</a>
+          <a href="#" onClick={handleLogoutClick} className={`block px-4 py-2 text-sm ${isDarkMode ? 'text-red-400 hover:bg-red-500 hover:bg-opacity-10' : 'text-red-600 hover:bg-red-200'}`}>Logout</a>
         </div>
       )}
+
+      {/* Logout Modal */}
+      <LogoutModal
+        isOpen={showLogoutModal}
+        onClose={handleLogoutCancel}
+        onConfirm={handleLogoutConfirm}
+      />
     </div>
   );
 };

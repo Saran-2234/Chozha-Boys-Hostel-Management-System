@@ -22,10 +22,10 @@ const AdminDashboard = () => {
 
   const handleLogout = () => {
     // Handle logout logic here
-    localStorage.removeItem('authToken');
+    localStorage.removeItem('accessToken');
     console.log('Logout clicked');
-    // Redirect to login page
-    window.location.href = '/login';
+    // Redirect to landing page
+    window.location.href = '/';
   };
 
   const renderSection = () => {

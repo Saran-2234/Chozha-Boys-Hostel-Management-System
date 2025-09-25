@@ -36,7 +36,7 @@ const styles = `
   }
 `;
 
-const StudentTable = ({ isDarkMode, searchTerm, filter, students, onApprove, onReject, onRefresh }) => {
+const StudentTable = ({ isDarkMode, searchTerm, filter, students, onApprove, onReject, onEdit, onRefresh }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -56,7 +56,9 @@ const StudentTable = ({ isDarkMode, searchTerm, filter, students, onApprove, onR
 
   const handleEdit = (studentId) => {
     console.log('Edit student:', studentId);
-    // TODO: Implement edit functionality
+    if (onEdit) {
+      onEdit(studentId);
+    }
   };
 
   const handleDelete = (studentId) => {
@@ -81,6 +83,14 @@ const StudentTable = ({ isDarkMode, searchTerm, filter, students, onApprove, onR
     console.log('Reject student:', studentId);
     if (onReject) {
       onReject(studentId);
+    }
+  };
+
+  const handleRejectClick = (studentId) => {
+    console.log('Reject click student:', studentId);
+    // This will be passed as a prop from Students component
+    if (window.handleRejectClick) {
+      window.handleRejectClick(studentId);
     }
   };
 

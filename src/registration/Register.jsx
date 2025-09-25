@@ -57,6 +57,8 @@ function Register({ onClose, onOpenLogin, isLight }) {
   const [confirmPasswordSuccess, setConfirmPasswordSuccess] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState('');
   const [notificationType, setNotificationType] = useState(''); // 'success' or 'error'
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [registrationTimeout, setRegistrationTimeout] = useState(null);
   const fileInputRef = useRef(null);
   const currentYear = new Date().getFullYear();
 
@@ -299,6 +301,10 @@ function Register({ onClose, onOpenLogin, isLight }) {
   // Handle form submission
   const handleRegistration = async (e) => {
     e.preventDefault();
+
+    // Prevent multiple submissions
+    if (isRegistering) return;
+
     // Check if passwords match
     if (formData.password !== formData.confirmPassword) {
       setNotificationMessage('Passwords do not match!');
@@ -311,6 +317,20 @@ function Register({ onClose, onOpenLogin, isLight }) {
       setNotificationType('error');
       return;
     }
+
+    // Set loading state
+    setIsRegistering(true);
+    setNotificationMessage(''); // Clear any previous messages
+    setNotificationType('');
+
+    // Set up timeout (15 seconds)
+    const timeoutId = setTimeout(() => {
+      setIsRegistering(false);
+      setNotificationMessage('Registration timed out. Please check your internet connection and try again.');
+      setNotificationType('error');
+    }, 15000);
+
+    setRegistrationTimeout(timeoutId);
 
     // Prepare payload for API
     const payload = {
@@ -335,6 +355,11 @@ function Register({ onClose, onOpenLogin, isLight }) {
 
     try {
       const result = await registerUser(payload);
+
+      // Clear timeout since we got a response
+      clearTimeout(timeoutId);
+      setRegistrationTimeout(null);
+
       if (result.success) {
         const token = result.token;
 
@@ -352,8 +377,14 @@ function Register({ onClose, onOpenLogin, isLight }) {
         setNotificationType('error');
       }
     } catch (error) {
+      // Clear timeout since we got a response
+      clearTimeout(timeoutId);
+      setRegistrationTimeout(null);
+
       setNotificationMessage('Error during registration: ' + error.message);
       setNotificationType('error');
+    } finally {
+      setIsRegistering(false);
     }
   };
 
@@ -510,14 +541,21 @@ function Register({ onClose, onOpenLogin, isLight }) {
                   ) : (
                     <button
                       type="submit"
-                      disabled={!isFormValid(formData) || !otpVerified}
+                      disabled={!isFormValid(formData) || !otpVerified || isRegistering}
                       className={`w-full sm:w-auto px-4 py-3 text-white rounded-lg font-semibold transition-all ${
-                        isFormValid(formData) && otpVerified
+                        isFormValid(formData) && otpVerified && !isRegistering
                           ? 'bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700'
                           : 'bg-gray-500 cursor-not-allowed'
                       }`}
                     >
-                      Complete Registration
+                      {isRegistering ? (
+                        <div className="flex items-center justify-center gap-2">
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          <span>Registering...</span>
+                        </div>
+                      ) : (
+                        'Complete Registration'
+                      )}
                     </button>
                   )}
                 </div>

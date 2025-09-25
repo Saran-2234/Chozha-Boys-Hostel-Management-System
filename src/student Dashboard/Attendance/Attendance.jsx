@@ -3,6 +3,7 @@ import axios from 'axios';
 
 const Attendance = () => {
   const [attendanceMarked, setAttendanceMarked] = useState(false);
+  const [absentMarked, setAbsentMarked] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -30,8 +31,8 @@ const Attendance = () => {
           return;
         }
 
-          console.log("lat",lat)
-          console.log("lng",lng)
+        console.log("lat", lat);
+        console.log("lng", lng);
         try {
           const response = await axios.post('https://finalbackend-mauve.vercel.app/attendance', {
             lat,
@@ -63,6 +64,61 @@ const Attendance = () => {
       }
     );
   };
+
+  const markAbsent = async () => {
+    setLoading(true);
+    setMessage('');
+    setError('');
+
+    if (!navigator.geolocation) {
+      setError('Geolocation is not supported by this browser.');
+      setLoading(false);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        const token = localStorage.getItem('accessToken');
+
+        if (!token) {
+          setError('No token found. Please log in.');
+          setLoading(false);
+          return;
+        }
+
+        try {
+          const response = await axios.post('https://finalbackend-mauve.vercel.app/absent', {
+            lat,
+            lng,
+            token
+          }, {
+            withCredentials: true
+          });
+
+          if (response.data.success) {
+            setMessage('Absent marked successfully!');
+            setAbsentMarked(true);
+          } else {
+            setMessage(response.data.message || 'Absent already marked for today.');
+          }
+        } catch (err) {
+          if (err.response) {
+            setError(err.response.data.error || 'An error occurred.');
+          } else {
+            setError('Network error.');
+          }
+        } finally {
+          setLoading(false);
+        }
+      },
+      (err) => {
+        setError('Unable to retrieve your location.');
+        setLoading(false);
+      }
+    );
+  };
   // sample attendance history data (replace with real data when available)
   const attendanceHistory = [
     { date: 'Dec 20, 2024', self: 'Present', admin: 'Confirmed', time: '09:15 AM', remarks: 'On time' },
@@ -75,13 +131,20 @@ const Attendance = () => {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 max-w-full relative z-10">
         <h2 className="text-2xl font-bold text-white mb-3 md:mb-0">Attendance Management</h2>
 
-        <div className="w-full md:w-auto md:flex-shrink-0">
+        <div className="w-full md:w-auto md:flex-shrink-0 flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-3">
           <button
             onClick={markAttendance}
             disabled={loading || attendanceMarked}
             className="w-full md:inline-block bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium disabled:opacity-50 transition-all duration-200 relative z-20"
           >
             {loading ? 'Marking...' : attendanceMarked ? "Attendance Marked" : "✅ Mark Today's Attendance"}
+          </button>
+          <button
+            onClick={markAbsent}
+            disabled={loading || absentMarked}
+            className="w-full md:inline-block bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-medium disabled:opacity-50 transition-all duration-200 relative z-20"
+          >
+            {loading ? 'Marking...' : absentMarked ? "Absent Marked" : "❌ Mark Absent"}
           </button>
         </div>
       </div>

@@ -377,3 +377,80 @@ export const approveStudent = async (registrationNumber) => {
     throw error;
   }
 };
+
+// API call for rejecting student
+export const rejectStudent = async (registrationNumber, reason) => {
+  try {
+    const authToken = localStorage.getItem('accessToken');
+    if (!authToken) {
+      throw new Error('No authentication token found. Please log in again.');
+    }
+
+    const response = await fetch('https://finalbackend-mauve.vercel.app/adminreject', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
+      body: JSON.stringify({
+        registerno: registrationNumber,
+        reason: reason
+      })
+    });
+
+    const responseData = await response.json();
+
+    if (!response.ok) {
+      throw new Error(responseData.message || `Failed to reject student: ${response.status} ${response.statusText}`);
+    }
+
+    // Update authToken if a new token is provided
+    if (responseData.token) {
+      localStorage.setItem('authToken', responseData.token);
+    }
+
+    return responseData;
+  } catch (error) {
+    console.error('Error rejecting student:', error);
+    throw error;
+  }
+};
+
+// API call for editing student details
+export const editStudentDetails = async (studentId, studentData) => {
+  try {
+    const authToken = localStorage.getItem('accessToken');
+    if (!authToken) {
+      throw new Error('No authentication token found. Please log in again.');
+    }
+
+    const response = await fetch('https://finalbackend-mauve.vercel.app/editstudentsdetails', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
+      body: JSON.stringify({
+        id: studentId,
+        token: authToken,
+        ...studentData
+      })
+    });
+
+    const responseData = await response.json();
+
+    if (!response.ok) {
+      throw new Error(responseData.message || `Failed to edit student: ${response.status} ${response.statusText}`);
+    }
+
+    // Update authToken if a new token is provided
+    if (responseData.token) {
+      localStorage.setItem('authToken', responseData.token);
+    }
+
+    return responseData;
+  } catch (error) {
+    console.error('Error editing student:', error);
+    throw error;
+  }
+};

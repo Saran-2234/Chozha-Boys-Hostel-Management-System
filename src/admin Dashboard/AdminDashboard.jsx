@@ -10,6 +10,7 @@ import Complaints from './Complaints/Complaints';
 import RoomManagement from './RoomManagement/RoomManagement';
 import Visitors from './Visitors/Visitors';
 import Messaging from './Messaging/Messaging';
+import Departments from './Departments/Departments';
 import Reports from './Reports/Reports';
 import Settings from './Settings/Settings';
 import './styles/adminDashboard.css';
@@ -45,6 +46,8 @@ const AdminDashboard = () => {
         return <Visitors isDarkMode={isDarkMode} />;
       case 'messaging':
         return <Messaging isDarkMode={isDarkMode} />;
+      case 'departments':
+        return <Departments isDarkMode={isDarkMode} />;
       case 'reports':
         return <Reports isDarkMode={isDarkMode} />;
       case 'settings':

@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { fetchDepartments } from '../api.js';
 
 const AcademicDetailsStep = ({
   formData,
@@ -8,6 +9,27 @@ const AcademicDetailsStep = ({
   handleBlur,
   isLight
 }) => {
+  const [departments, setDepartments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const loadDepartments = async () => {
+      try {
+        const fetchedDepartments = await fetchDepartments();
+        setDepartments(fetchedDepartments);
+      } catch (err) {
+        setError('Failed to load departments. Please try again.');
+        // Fallback to default departments if API fails
+        setDepartments(['ME', 'Computer science', 'ECE']);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadDepartments();
+  }, []);
+
   return (
     <div className="registration-step">
       <div className="text-center mb-6">
@@ -34,19 +56,22 @@ const AcademicDetailsStep = ({
             value={formData.department}
             onChange={handleInputChange}
             onBlur={handleBlur}
+            disabled={loading}
           >
-            <option value="" style={{ backgroundColor: isLight ? 'white' : '#1e293b', color: isLight ? 'black' : 'white' }}>Select Department</option>
-            <option value="CSE" style={{ backgroundColor: isLight ? 'white' : '#1e293b', color: isLight ? 'black' : 'white' }}>Computer Science & Engineering</option>
-            <option value="ECE" style={{ backgroundColor: isLight ? 'white' : '#1e293b', color: isLight ? 'black' : 'white' }}>Electronics & Communication Engineering</option>
-            <option value="ME" style={{ backgroundColor: isLight ? 'white' : '#1e293b', color: isLight ? 'black' : 'white' }}>Mechanical Engineering</option>
-            <option value="CE" style={{ backgroundColor: isLight ? 'white' : '#1e293b', color: isLight ? 'black' : 'white' }}>Civil Engineering</option>
-            <option value="EE" style={{ backgroundColor: isLight ? 'white' : '#1e293b', color: isLight ? 'black' : 'white' }}>Electrical Engineering</option>
-            <option value="IT" style={{ backgroundColor: isLight ? 'white' : '#1e293b', color: isLight ? 'black' : 'white' }}>Information Technology</option>
-            <option value="CHEM" style={{ backgroundColor: isLight ? 'white' : '#1e293b', color: isLight ? 'black' : 'white' }}>Chemical Engineering</option>
-            <option value="BIO" style={{ backgroundColor: isLight ? 'white' : '#1e293b', color: isLight ? 'black' : 'white' }}>Biotechnology</option>
+            <option value="" style={{ backgroundColor: isLight ? 'white' : '#1e293b', color: isLight ? 'black' : 'white' }}>
+              {loading ? 'Loading...' : 'Select Department'}
+            </option>
+            {departments.map((dept, index) => (
+              <option key={dept.id || index} value={dept.department} style={{ backgroundColor: isLight ? 'white' : '#1e293b', color: isLight ? 'black' : 'white' }}>
+                {dept.department}
+              </option>
+            ))}
           </select>
           {touched.department && errors.department && (
             <p className={`${isLight ? 'text-red-600' : 'text-red-400'} text-xs mt-1`}>{errors.department}</p>
+          )}
+          {error && (
+            <p className={`${isLight ? 'text-red-600' : 'text-red-400'} text-xs mt-1`}>{error}</p>
           )}
         </div>
 

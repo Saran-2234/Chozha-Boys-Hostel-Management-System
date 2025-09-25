@@ -40,6 +40,9 @@ const StudentDashboard = () => {
     sessionStorage.removeItem('studentToken');
     sessionStorage.removeItem('studentData');
 
+    // Clear authentication cookie
+    document.cookie = 'token=; path=/; max-age=0';
+
     // Close modal
     setShowLogoutModal(false);
 

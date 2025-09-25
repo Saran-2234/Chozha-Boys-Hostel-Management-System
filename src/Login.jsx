@@ -85,9 +85,18 @@ function Login({ onClose, onOpenRegister, loginType }) {
         user_id: data.session?.user?.id
       });
 
+      // Determine user role
+      const userRole = data.role || loginType;
+
       // Store authentication data
       if (data.token) {
-        localStorage.setItem("accessToken", data.token);
+        if (userRole === "student") {
+          localStorage.setItem("studentToken", data.token);
+        } else {
+          localStorage.setItem("accessToken", data.token);
+        }
+        // Set cookie for backend authentication
+        document.cookie = `token=${data.token}; path=/; max-age=86400; secure; samesite=lax`;
       }
       if (data.data) {
         localStorage.setItem("userData", JSON.stringify(data.data));
@@ -103,8 +112,6 @@ function Login({ onClose, onOpenRegister, loginType }) {
       }
 
       // Redirect based on user role from API response
-      const userRole = data.role || loginType;
-
       if (userRole === "admin") {
         navigate("/admin-dashboard", { state: { data } });
       } else {

@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import axios from 'axios';
 
 const Attendance = () => {
+
   const [attendanceMarked, setAttendanceMarked] = useState(false);
   const [absentMarked, setAbsentMarked] = useState(false);
+  const [attendanceStatus, setAttendanceStatus] = useState(null); // null, 'present', 'absent'
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -37,14 +39,73 @@ const Attendance = () => {
           const response = await axios.post('https://finalbackend-mauve.vercel.app/attendance', {
             lat,
             lng,
+            status: 'present',
             token
           }, {
             withCredentials: true
           });
 
           if (response.data.success) {
-            setMessage('Attendance marked successfully!');
-            setAttendanceMarked(true);
+            setMessage('Attendance marked as present successfully!');
+            setAttendanceStatus('present');
+          } else {
+            setMessage(response.data.message || 'Attendance already marked for today.');
+          }
+        } catch (err) {
+          if (err.response) {
+            setError(err.response.data.error || 'An error occurred.');
+          } else {
+            setError('Network error.');
+          }
+        } finally {
+          setLoading(false);
+        }
+      },
+      (err) => {
+        setError('Unable to retrieve your location.');
+        setLoading(false);
+      }
+    );
+  };
+
+  const markAbsent = async () => {
+    setLoading(true);
+    setMessage('');
+    setError('');
+
+    if (!navigator.geolocation) {
+      setError('Geolocation is not supported by this browser.');
+      setLoading(false);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        const token = localStorage.getItem('accessToken');
+
+        if (!token) {
+          setError('No token found. Please log in.');
+          setLoading(false);
+          return;
+        }
+
+        console.log("lat", lat);
+        console.log("lng", lng);
+        try {
+          const response = await axios.post('https://finalbackend-mauve.vercel.app/absent', {
+            lat,
+            lng,
+            status: 'absent',
+            token
+          }, {
+            withCredentials: true
+          });
+
+          if (response.data.success) {
+            setMessage('Attendance marked as absent successfully!');
+            setAttendanceStatus('absent');
           } else {
             setMessage(response.data.message || 'Attendance already marked for today.');
           }
@@ -131,13 +192,22 @@ const Attendance = () => {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 max-w-full relative z-10">
         <h2 className="text-2xl font-bold text-white mb-3 md:mb-0">Attendance Management</h2>
 
+
         <div className="w-full md:w-auto md:flex-shrink-0 flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-3">
+        <div className="w-full md:w-auto md:flex-shrink-0 flex flex-col md:flex-row gap-2">
           <button
             onClick={markAttendance}
-            disabled={loading || attendanceMarked}
+            disabled={loading || attendanceStatus !== null}
             className="w-full md:inline-block bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium disabled:opacity-50 transition-all duration-200 relative z-20"
           >
-            {loading ? 'Marking...' : attendanceMarked ? "Attendance Marked" : "✅ Mark Today's Attendance"}
+            {loading ? 'Marking...' : attendanceStatus === 'present' ? "Present Marked" : "✅ Mark Present"}
+          </button>
+          <button
+            onClick={markAbsent}
+            disabled={loading || attendanceStatus !== null}
+            className="w-full md:inline-block bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-medium disabled:opacity-50 transition-all duration-200 relative z-20"
+          >
+            {loading ? 'Marking...' : attendanceStatus === 'absent' ? "Absent Marked" : "❌ Mark Absent"}
           </button>
           <button
             onClick={markAbsent}
@@ -196,12 +266,14 @@ const Attendance = () => {
         <div className="glass-card rounded-xl p-6">
           <h3 className="text-lg font-semibold text-white mb-4">Today's Status</h3>
           <div className="text-center">
-            <div className="w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="text-2xl">✅</span>
+            <div className={`w-16 h-16 ${attendanceStatus === 'present' ? 'bg-emerald-500' : attendanceStatus === 'absent' ? 'bg-red-500' : 'bg-gray-500'} rounded-full flex items-center justify-center mx-auto mb-4`}>
+              <span className="text-2xl">{attendanceStatus === 'present' ? '✅' : attendanceStatus === 'absent' ? '❌' : '⏳'}</span>
             </div>
-            <p className="text-emerald-400 font-semibold mb-2">Present</p>
-            <p className="text-slate-400 text-sm">Marked at 09:15 AM</p>
-            <p className="text-slate-400 text-sm">Status: Confirmed</p>
+            <p className={`${attendanceStatus === 'present' ? 'text-emerald-400' : attendanceStatus === 'absent' ? 'text-red-400' : 'text-gray-400'} font-semibold mb-2`}>
+              {attendanceStatus === 'present' ? 'Present' : attendanceStatus === 'absent' ? 'Absent' : 'Not Marked'}
+            </p>
+            <p className="text-slate-400 text-sm">Marked at {attendanceStatus ? new Date().toLocaleTimeString() : '-'}</p>
+            <p className="text-slate-400 text-sm">Status: {attendanceStatus ? 'Confirmed' : 'Pending'}</p>
           </div>
         </div>
       </div>
@@ -261,5 +333,6 @@ const Attendance = () => {
     </div>
   );
 };
+
 
 export default Attendance;

@@ -90,7 +90,7 @@ const Attendance = () => {
         console.log("lat", lat);
         console.log("lng", lng);
         try {
-          const response = await axios.post('https://finalbackend-mauve.vercel.app/attendance', {
+          const response = await axios.post('https://finalbackend-mauve.vercel.app/absent', {
             lat,
             lng,
             status: 'absent',

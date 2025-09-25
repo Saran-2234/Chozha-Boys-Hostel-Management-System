@@ -134,7 +134,7 @@ export const addDepartment = async (departmentName) => {
     const response = await api.post(
       "/adddepartments",
       { department: departmentName, token }, // ✅ token in body
-      { headers: { authorization: `Bearer ${token}` } } // ✅ token in headers
+      { headers: { Authorization: `Bearer ${token}` } } // ✅ token in headers
     );
 
     return response.data;
@@ -179,114 +179,81 @@ export const editDepartment = async (oldDepartment, newDepartment) => {
   }
 };
 
-// API call for rejecting student
+// Reject Student
 export const rejectStudent = async (registrationNumber, reason) => {
   try {
-    const authToken = localStorage.getItem('accessToken');
+    const authToken = localStorage.getItem("accessToken");
     if (!authToken) {
-      throw new Error('No authentication token found. Please log in again.');
+      throw new Error("No authentication token found. Please log in again.");
     }
 
-    const response = await fetch('https://finalbackend-mauve.vercel.app/adminreject', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${authToken}`
-      },
-      body: JSON.stringify({
-        registerno: registrationNumber,
-        reason: reason
-      })
-    });
+    const response = await api.post(
+      "/adminreject",
+      { registerno: registrationNumber, reason },
+      { headers: { Authorization: `Bearer ${authToken}` }, withCredentials: true }
+    );
 
-    const responseData = await response.json();
-
-    if (!response.ok) {
-      throw new Error(responseData.message || `Failed to reject student: ${response.status} ${response.statusText}`);
+    // Update token if provided
+    if (response.data.token) {
+      localStorage.setItem("accessToken", response.data.token);
     }
 
-    // Update authToken if a new token is provided
-    if (responseData.token) {
-      localStorage.setItem('authToken', responseData.token);
-    }
-
-    return responseData;
+    return response.data;
   } catch (error) {
-    console.error('Error rejecting student:', error);
+    console.error("Error rejecting student:", error);
     throw error;
   }
 };
 
-// API call for editing student details
+// Edit Student Details
 export const editStudentDetails = async (studentId, studentData) => {
   try {
-    const authToken = localStorage.getItem('accessToken');
+    const authToken = localStorage.getItem("accessToken");
     if (!authToken) {
-      throw new Error('No authentication token found. Please log in again.');
+      throw new Error("No authentication token found. Please log in again.");
     }
 
-    const response = await fetch('https://finalbackend-mauve.vercel.app/editstudentsdetails', {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${authToken}`
-      },
-      body: JSON.stringify({
-        id: studentId,
-        token: authToken,
-        ...studentData
-      })
-    });
+    const response = await api.put(
+      "/editstudentsdetails",
+      { id: studentId, token: authToken, ...studentData },
+      { headers: { Authorization: `Bearer ${authToken}` }, withCredentials: true }
+    );
 
-    const responseData = await response.json();
-
-    if (!response.ok) {
-      throw new Error(responseData.message || `Failed to edit student: ${response.status} ${response.statusText}`);
+    // Update token if provided
+    if (response.data.token) {
+      localStorage.setItem("accessToken", response.data.token);
     }
 
-    // Update authToken if a new token is provided
-    if (responseData.token) {
-      localStorage.setItem('authToken', responseData.token);
-    }
-
-    return responseData;
+    return response.data;
   } catch (error) {
-    console.error('Error editing student:', error);
+    console.error("Error editing student:", error);
     throw error;
   }
 };
 
-// API call for showing attendance records
+// Show Attendance Records
 export const showAttends = async (filters = {}) => {
   try {
-    const authToken = localStorage.getItem('accessToken');
+    const authToken = localStorage.getItem("accessToken");
     if (!authToken) {
-      throw new Error('No authentication token found. Please log in again.');
+      throw new Error("No authentication token found. Please log in again.");
     }
 
-    const requestBody = {
-      token: authToken,
-      ...filters
-    };
+    const requestBody = { token: authToken };
 
-    const response = await fetch('https://finalbackend-mauve.vercel.app/showattends', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${authToken}`
-      },
-      body: JSON.stringify(requestBody)
+    const response = await api.post("/showattends", requestBody, {
+      headers: { Authorization: `Bearer ${authToken}` },
+      withCredentials: true, // ✅ ensures cookies are included
     });
+    console.log(response);
 
-    const responseData = await response.json();
-
-    if (!response.ok) {
-      throw new Error(responseData.message || `Failed to fetch attendance: ${response.status} ${response.statusText}`);
+    if (response.status !== 200) {
+      throw new Error(response.data.message || `Failed to fetch attendance: ${response.status}`);
     }
 
-    return responseData;
+    return response.data;
   } catch (error) {
-    console.error('Error fetching attendance:', error);
+    console.error("Error fetching attendance:", error);
     throw error;
   }
 };

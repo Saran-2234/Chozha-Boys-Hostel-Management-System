@@ -36,9 +36,9 @@
 # Fix Full-Page Selection on Attendance Page
 
 ## Tasks
-- [x] Edit Attendance.jsx to add 'select-none' class to main container
+- [x] Edit Attendance.jsx to remove 'select-none' class from main container to allow filter input interaction
 - [x] Verify the edit
-- [ ] Test the fix in the browser
+- [x] Test the fix in the browser
 
 ## Completed
 - [x] Analyze the issue and relevant files (Attendance.jsx, adminDashboard.css)

@@ -1,8 +1,91 @@
-import React from 'react';
+import React, { useState } from 'react';
+import Modal from '../Common/Modal';
 
 const MessBill = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
+  const [reason, setReason] = useState('');
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  const handleApplyClick = () => {
+    console.log('Apply for Reduction button clicked');
+    setError('');
+    setFromDate('');
+    setToDate('');
+    setReason('');
+    setIsModalOpen(true);
+  };
+
+  const validateForm = () => {
+    if (!fromDate || !toDate || !reason.trim()) {
+      setError('All fields are required.');
+      return false;
+    }
+    const from = new Date(fromDate);
+    const to = new Date(toDate);
+    if (to <= from) {
+      setError('To date must be after from date.');
+      return false;
+    }
+    const diffTime = to - from;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+    if (diffDays < 5) {
+      setError('Reduction period must be 5 days or greater.');
+      return false;
+    }
+    setError('');
+    return true;
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!validateForm()) return;
+
+    // Mock student info - in real app, get from auth context or localStorage
+    const studentInfo = {
+      id: 'STU004', // Mock ID
+      name: 'Current Student' // Mock name
+    };
+
+    const application = {
+      id: Date.now(), // Simple unique ID
+      studentId: studentInfo.id,
+      studentName: studentInfo.name,
+      fromDate,
+      toDate,
+      reason,
+      status: 'pending',
+      appliedDate: new Date().toISOString().split('T')[0]
+    };
+
+    // Store in localStorage for admin to access
+    const existingApps = JSON.parse(localStorage.getItem('reductionApplications') || '[]');
+    localStorage.setItem('reductionApplications', JSON.stringify([...existingApps, application]));
+
+    setSuccess('Reduction application submitted successfully!');
+    setIsModalOpen(false);
+    setTimeout(() => setSuccess(''), 3000);
+
+    // Reset form
+    setFromDate('');
+    setToDate('');
+    setReason('');
+  };
+
   return (
     <div className="max-w-4xl mx-auto">
+      {error && (
+        <div className="bg-red-500 bg-opacity-20 border border-red-500 text-red-400 p-3 rounded-lg mb-4">
+          {error}
+        </div>
+      )}
+      {success && (
+        <div className="bg-green-500 bg-opacity-20 border border-green-500 text-green-400 p-3 rounded-lg mb-4">
+          {success}
+        </div>
+      )}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 sm:mb-8 gap-4">
         <h2 className="text-xl sm:text-2xl font-bold text-white">Mess Bill Management</h2>
         <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
@@ -12,8 +95,71 @@ const MessBill = () => {
           <button className="btn-primary text-white px-3 sm:px-4 py-2 rounded-lg font-medium text-sm sm:text-base w-full sm:w-auto">
             💳 Pay Now
           </button>
+          <button 
+            onClick={handleApplyClick}
+            className="btn-secondary text-white px-3 sm:px-4 py-2 rounded-lg font-medium text-sm sm:text-base w-full sm:w-auto cursor-pointer"
+            style={{ pointerEvents: 'auto', zIndex: 10 }}
+          >
+            📉 Apply for Reduction
+          </button>
         </div>
       </div>
+      {isModalOpen && (
+        <Modal onClose={() => setIsModalOpen(false)}>
+          <div className="p-6">
+            <h3 className="text-xl font-bold text-white mb-4">Apply for Mess Bill Reduction</h3>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-slate-300 mb-2">Reduction From Date</label>
+                <input
+                  type="date"
+                  value={fromDate}
+                  onChange={(e) => setFromDate(e.target.value)}
+                  className="w-full p-3 bg-slate-800 border border-slate-600 rounded-lg text-white"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-slate-300 mb-2">Reduction To Date</label>
+                <input
+                  type="date"
+                  value={toDate}
+                  onChange={(e) => setToDate(e.target.value)}
+                  className="w-full p-3 bg-slate-800 border border-slate-600 rounded-lg text-white"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-slate-300 mb-2">Reason for Reduction</label>
+                <textarea
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                  rows={4}
+                  className="w-full p-3 bg-slate-800 border border-slate-600 rounded-lg text-white"
+                  placeholder="Enter reason..."
+                  required
+                />
+              </div>
+              {error && <div className="text-red-400 text-sm">{error}</div>}
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="flex-1 btn-secondary text-white py-2 rounded-lg"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 btn-primary text-white py-2 rounded-lg"
+                >
+                  Submit Application
+                </button>
+              </div>
+            </form>
+          </div>
+        </Modal>
+      )}
 
       <div className="glass-card rounded-xl p-4 sm:p-6 mb-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 gap-2">

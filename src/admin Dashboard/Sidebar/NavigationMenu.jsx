@@ -6,6 +6,7 @@ const NavigationMenu = ({ setActiveSection, activeSection, isDarkMode, setSideba
     { id: 'students', icon: '👥', label: 'Students', badge: '3' },
     { id: 'attendance', icon: '✅', label: 'Attendance' },
     { id: 'messbills', icon: '🍽️', label: 'Mess Bills' },
+    { id: 'reduction', icon: '📉', label: 'Reduction', badge: '2' },
     { id: 'complaints', icon: '📝', label: 'Complaints', badge: '5' },
     { id: 'rooms', icon: '🏠', label: 'Room Management' },
     { id: 'visitors', icon: '👥', label: 'Visitors' },

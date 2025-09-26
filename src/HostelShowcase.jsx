@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
-import boysHostelImage from './assets/boys hostel.jpg';
 import hostelImage from './assets/hostel image.jpg';
 
 function HostelShowcase({isLight}) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const images = [boysHostelImage, hostelImage];
+  const images = [hostelImage, hostelImage];
 
   useEffect(() => {
     const interval = setInterval(() => {

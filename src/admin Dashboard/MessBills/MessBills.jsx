@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardContent } from '../Common/Card';
 import Button from '../Common/Button';
 import BillTable from './BillTable';
@@ -8,15 +8,31 @@ const MessBills = ({ isDarkMode }) => {
   const [groceryCost, setGroceryCost] = useState('');
   const [vegetableCost, setVegetableCost] = useState('');
   const [gasCharges, setGasCharges] = useState('');
-  const [milkCharges, setMilkCharges] = useState('');
+  const [milkLitres, setMilkLitres] = useState('');
+  const [milkCostPerLitre, setMilkCostPerLitre] = useState('');
   const [otherCosts, setOtherCosts] = useState('');
   const [deductions, setDeductions] = useState('');
-  const [totalStudents, setTotalStudents] = useState('');
-  const [totalDays, setTotalDays] = useState('');
+  const [students1st, setStudents1st] = useState('');
+  const [days1st, setDays1st] = useState('');
+  const [students2nd, setStudents2nd] = useState('');
+  const [days2nd, setDays2nd] = useState('');
+  const [students3rd, setStudents3rd] = useState('');
+  const [days3rd, setDays3rd] = useState('');
+  const [students4th, setStudents4th] = useState('');
+  const [days4th, setDays4th] = useState('');
   const [reductionDays, setReductionDays] = useState('');
+  const [vegExtraPerDay, setVegExtraPerDay] = useState('');
+  const [nonVegExtraPerDay, setNonVegExtraPerDay] = useState('');
+
+  // Computed values
+  const [milkCharges, setMilkCharges] = useState(0);
+  const [totalStudents, setTotalStudents] = useState(0);
 
   // Calculation results
+  const [totalExpenditure, setTotalExpenditure] = useState(0);
+  const [totalIncome, setTotalIncome] = useState(0);
   const [netExpenditure, setNetExpenditure] = useState(0);
+  const [totalPossibleStudentDays, setTotalPossibleStudentDays] = useState(0);
   const [applicableStudentDays, setApplicableStudentDays] = useState(0);
   const [messFeePerDay, setMessFeePerDay] = useState(0);
   const [vegFeePerDay, setVegFeePerDay] = useState(0);
@@ -35,22 +51,50 @@ const MessBills = ({ isDarkMode }) => {
     // Add more mock data as needed
   ];
 
-  const handleCalculate = () => {
-    const totalExpenditure = parseFloat(groceryCost) + parseFloat(vegetableCost) + parseFloat(gasCharges) + parseFloat(milkCharges) + parseFloat(otherCosts);
-    const netExp = totalExpenditure - parseFloat(deductions || 0);
-    const totalPossibleDays = parseInt(totalStudents) * parseInt(totalDays);
-    const applicableDays = totalPossibleDays - parseInt(reductionDays || 0);
-    const feePerDay = Math.round(netExp / applicableDays);
-    // Assume veg and non-veg fees based on example; in real, calculate from separate costs
-    const vegFee = Math.round(feePerDay * 0.8); // Placeholder
-    const nonVegFee = Math.round(feePerDay * 1.2); // Placeholder
+  useEffect(() => {
+    const grocery = parseFloat(groceryCost || 0);
+    const vegetable = parseFloat(vegetableCost || 0);
+    const gas = parseFloat(gasCharges || 0);
+    const milk = parseFloat(milkLitres || 0) * parseFloat(milkCostPerLitre || 0);
+    const other = parseFloat(otherCosts || 0);
+    const income = parseFloat(deductions || 0);
+    const students1 = parseInt(students1st || 0);
+    const days1 = parseInt(days1st || 0);
+    const students2 = parseInt(students2nd || 0);
+    const days2 = parseInt(days2nd || 0);
+    const students3 = parseInt(students3rd || 0);
+    const days3 = parseInt(days3rd || 0);
+    const students4 = parseInt(students4th || 0);
+    const days4 = parseInt(days4th || 0);
+    const reduction = parseInt(reductionDays || 0);
+    const vegExtra = parseFloat(vegExtraPerDay || 0);
+    const nonVegExtra = parseFloat(nonVegExtraPerDay || 0);
 
+    setMilkCharges(milk);
+
+    const totalStudentsComputed = students1 + students2 + students3 + students4;
+    setTotalStudents(totalStudentsComputed);
+
+    const totalPossible = (students1 * days1) + (students2 * days2) + (students3 * days3) + (students4 * days4);
+    const totalExp = grocery + vegetable + gas + milk + other;
+    const netExp = totalExp - income;
+    const applicable = totalPossible - reduction;
+    const messFee = applicable > 0 ? Math.round(netExp / applicable) : 0;
+
+    setTotalExpenditure(totalExp);
+    setTotalIncome(income);
     setNetExpenditure(netExp);
-    setApplicableStudentDays(applicableDays);
-    setMessFeePerDay(feePerDay);
-    setVegFeePerDay(vegFee);
-    setNonVegFeePerDay(nonVegFee);
+    setTotalPossibleStudentDays(totalPossible);
+    setApplicableStudentDays(applicable);
+    setMessFeePerDay(messFee);
+    setVegFeePerDay(vegExtra);
+    setNonVegFeePerDay(nonVegExtra);
+  }, [groceryCost, vegetableCost, gasCharges, milkLitres, milkCostPerLitre, otherCosts, deductions, students1st, days1st, students2nd, days2nd, students3rd, days3rd, students4th, days4th, reductionDays, vegExtraPerDay, nonVegExtraPerDay]);
+
+  const handleCalculate = () => {
     setCalculated(true);
+    // Optional: Final confirmation or save logic
+    console.log('Final calculation confirmed');
   };
 
   const handleBulkSendYearDept = () => {
@@ -63,7 +107,10 @@ const MessBills = ({ isDarkMode }) => {
 
   const handleDownloadExcel = () => {
     // Simulate Excel download
-    const dataStr = "data:text/csv;charset=utf-8," + encodeURIComponent(mockStudents.map(s => `${s.id},${s.name},${s.daysPresent},${s.vegDays},${s.nonVegDays},${(s.vegDays * vegFeePerDay + s.nonVegDays * nonVegFeePerDay)}`).join("\n"));
+    const dataStr = "data:text/csv;charset=utf-8," + encodeURIComponent(
+      "Student ID,Student Name,Days Present,Mess Fee per Day,Mess Charges,Veg Days,Non-Veg Days,Total\n" +
+      mockStudents.map(s => `${s.id},${s.name},${s.daysPresent},${messFeePerDay},${(s.daysPresent * messFeePerDay)},${s.vegDays},${s.nonVegDays},${(s.daysPresent * messFeePerDay + s.vegDays * vegFeePerDay + s.nonVegDays * nonVegFeePerDay)}`).join("\n")
+    );
     const downloadAnchor = document.createElement('a');
     downloadAnchor.setAttribute('href', dataStr);
     downloadAnchor.setAttribute('download', 'mess_bills.csv');
@@ -95,7 +142,7 @@ const MessBills = ({ isDarkMode }) => {
                 value={groceryCost}
                 onChange={(e) => setGroceryCost(e.target.value)}
                 placeholder="Enter grocery cost"
-                className={`w-full px-3 py-2 border rounded-md text-sm ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+                className={`w-full px-3 py-2 border rounded-md text-sm cursor-text select-all pointer-events-auto ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
               />
             </div>
             <div className="space-y-2">
@@ -105,7 +152,7 @@ const MessBills = ({ isDarkMode }) => {
                 value={vegetableCost}
                 onChange={(e) => setVegetableCost(e.target.value)}
                 placeholder="Enter vegetable cost"
-                className={`w-full px-3 py-2 border rounded-md text-sm ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+                className={`w-full px-3 py-2 border rounded-md text-sm cursor-text select-all pointer-events-auto ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
               />
             </div>
             <div className="space-y-2">
@@ -115,17 +162,37 @@ const MessBills = ({ isDarkMode }) => {
                 value={gasCharges}
                 onChange={(e) => setGasCharges(e.target.value)}
                 placeholder="Enter gas charges"
-                className={`w-full px-3 py-2 border rounded-md text-sm ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+                className={`w-full px-3 py-2 border rounded-md text-sm cursor-text select-all pointer-events-auto ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
               />
             </div>
             <div className="space-y-2">
-              <label className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>Milk Charges</label>
+              <label className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>Total Milk Litres</label>
+              <input
+                type="number"
+                value={milkLitres}
+                onChange={(e) => setMilkLitres(e.target.value)}
+                placeholder="Enter total litres"
+                className={`w-full px-3 py-2 border rounded-md text-sm cursor-text select-all pointer-events-auto ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>Milk Cost per Litre</label>
+              <input
+                type="number"
+                value={milkCostPerLitre}
+                onChange={(e) => setMilkCostPerLitre(e.target.value)}
+                placeholder="Enter cost per litre"
+                className={`w-full px-3 py-2 border rounded-md text-sm cursor-text select-all pointer-events-auto ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>Milk Charges (Computed)</label>
               <input
                 type="number"
                 value={milkCharges}
-                onChange={(e) => setMilkCharges(e.target.value)}
-                placeholder="Enter milk charges"
-                className={`w-full px-3 py-2 border rounded-md text-sm ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+                readOnly
+                placeholder="Computed: Litres * Cost/Litre"
+                className={`w-full px-3 py-2 border rounded-md text-sm cursor-not-allowed bg-gray-100 ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
               />
             </div>
             <div className="space-y-2">
@@ -135,7 +202,7 @@ const MessBills = ({ isDarkMode }) => {
                 value={otherCosts}
                 onChange={(e) => setOtherCosts(e.target.value)}
                 placeholder="Enter other costs"
-                className={`w-full px-3 py-2 border rounded-md text-sm ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+                className={`w-full px-3 py-2 border rounded-md text-sm cursor-text select-all pointer-events-auto ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
               />
             </div>
             <div className="space-y-2">
@@ -145,80 +212,188 @@ const MessBills = ({ isDarkMode }) => {
                 value={deductions}
                 onChange={(e) => setDeductions(e.target.value)}
                 placeholder="Enter deductions"
-                className={`w-full px-3 py-2 border rounded-md text-sm ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+                className={`w-full px-3 py-2 border rounded-md text-sm cursor-text select-all pointer-events-auto ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
               />
             </div>
             <div className="space-y-2">
-              <label className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>Total Students</label>
+              <label className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>1st Year Students</label>
+              <input
+                type="number"
+                step="1"
+                value={students1st}
+                onChange={(e) => setStudents1st(e.target.value)}
+                placeholder="Enter 1st year students"
+                className={`w-full px-3 py-2 border rounded-md text-sm cursor-text select-all pointer-events-auto ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>1st Year Days</label>
+              <input
+                type="number"
+                step="1"
+                value={days1st}
+                onChange={(e) => setDays1st(e.target.value)}
+                placeholder="Enter 1st year days"
+                className={`w-full px-3 py-2 border rounded-md text-sm cursor-text select-all pointer-events-auto ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>2nd Year Students</label>
+              <input
+                type="number"
+                step="1"
+                value={students2nd}
+                onChange={(e) => setStudents2nd(e.target.value)}
+                placeholder="Enter 2nd year students"
+                className={`w-full px-3 py-2 border rounded-md text-sm cursor-text select-all pointer-events-auto ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>2nd Year Days</label>
+              <input
+                type="number"
+                step="1"
+                value={days2nd}
+                onChange={(e) => setDays2nd(e.target.value)}
+                placeholder="Enter 2nd year days"
+                className={`w-full px-3 py-2 border rounded-md text-sm cursor-text select-all pointer-events-auto ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>3rd Year Students</label>
+              <input
+                type="number"
+                step="1"
+                value={students3rd}
+                onChange={(e) => setStudents3rd(e.target.value)}
+                placeholder="Enter 3rd year students"
+                className={`w-full px-3 py-2 border rounded-md text-sm cursor-text select-all pointer-events-auto ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>3rd Year Days</label>
+              <input
+                type="number"
+                step="1"
+                value={days3rd}
+                onChange={(e) => setDays3rd(e.target.value)}
+                placeholder="Enter 3rd year days"
+                className={`w-full px-3 py-2 border rounded-md text-sm cursor-text select-all pointer-events-auto ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>4th Year Students</label>
+              <input
+                type="number"
+                step="1"
+                value={students4th}
+                onChange={(e) => setStudents4th(e.target.value)}
+                placeholder="Enter 4th year students"
+                className={`w-full px-3 py-2 border rounded-md text-sm cursor-text select-all pointer-events-auto ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>4th Year Days</label>
+              <input
+                type="number"
+                step="1"
+                value={days4th}
+                onChange={(e) => setDays4th(e.target.value)}
+                placeholder="Enter 4th year days"
+                className={`w-full px-3 py-2 border rounded-md text-sm cursor-text select-all pointer-events-auto ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>Total Students (Computed)</label>
               <input
                 type="number"
                 value={totalStudents}
-                onChange={(e) => setTotalStudents(e.target.value)}
-                placeholder="Enter total students"
-                className={`w-full px-3 py-2 border rounded-md text-sm ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
-              />
-            </div>
-            <div className="space-y-2">
-              <label className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>Total Days in Month</label>
-              <input
-                type="number"
-                value={totalDays}
-                onChange={(e) => setTotalDays(e.target.value)}
-                placeholder="Enter total days"
-                className={`w-full px-3 py-2 border rounded-md text-sm ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+                readOnly
+                placeholder="Sum of all year students"
+                className={`w-full px-3 py-2 border rounded-md text-sm cursor-not-allowed bg-gray-100 ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
               />
             </div>
             <div className="space-y-2">
               <label className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>Reduction Days</label>
               <input
                 type="number"
+                step="1"
                 value={reductionDays}
                 onChange={(e) => setReductionDays(e.target.value)}
                 placeholder="Enter reduction days"
-                className={`w-full px-3 py-2 border rounded-md text-sm ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+                className={`w-full px-3 py-2 border rounded-md text-sm cursor-text select-all pointer-events-auto ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>Veg Extra per Day</label>
+              <input
+                type="number"
+                step="1"
+                value={vegExtraPerDay}
+                onChange={(e) => setVegExtraPerDay(e.target.value)}
+                placeholder="Enter veg extra per day"
+                className={`w-full px-3 py-2 border rounded-md text-sm cursor-text select-all pointer-events-auto ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>Non-Veg Extra per Day</label>
+              <input
+                type="number"
+                step="1"
+                value={nonVegExtraPerDay}
+                onChange={(e) => setNonVegExtraPerDay(e.target.value)}
+                placeholder="Enter non-veg extra per day"
+                className={`w-full px-3 py-2 border rounded-md text-sm cursor-text select-all pointer-events-auto ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
               />
             </div>
           </div>
-          <div className="mt-6">
-            <Button onClick={handleCalculate} variant="primary" isDarkMode={isDarkMode}>
-              Calculate
+          <div className="mt-6 pointer-events-auto">
+            <Button onClick={handleCalculate} variant="primary" isDarkMode={isDarkMode} className="pointer-events-auto">
+              Confirm Calculation
             </Button>
           </div>
         </CardContent>
       </Card>
 
-      {/* Calculation Results */}
-      {calculated && (
-        <Card isDarkMode={isDarkMode}>
-          <CardHeader>
-            <h3 className="text-lg font-semibold">Calculation Results</h3>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-              <div>
-                <p className={`text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Net Expenditure</p>
-                <p className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>₹{netExpenditure.toLocaleString()}</p>
-              </div>
-              <div>
-                <p className={`text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Applicable Student-Days</p>
-                <p className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{applicableStudentDays}</p>
-              </div>
-              <div>
-                <p className={`text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Mess Fee per Day</p>
-                <p className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>₹{messFeePerDay}</p>
-              </div>
-              <div>
-                <p className={`text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Veg Fee per Day</p>
-                <p className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>₹{vegFeePerDay}</p>
-              </div>
-              <div>
-                <p className={`text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Non-Veg Fee per Day</p>
-                <p className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>₹{nonVegFeePerDay}</p>
-              </div>
+      {/* Live Calculation Results */}
+      <Card isDarkMode={isDarkMode}>
+        <CardHeader>
+          <h3 className="text-lg font-semibold">Live Calculation Results</h3>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="text-center p-4 rounded-lg bg-opacity-10 bg-blue-500">
+              <p className={`text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Total Expenditure</p>
+              <p className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>₹{totalExpenditure.toLocaleString('en-IN', {maximumFractionDigits: 2})}</p>
             </div>
-          </CardContent>
-        </Card>
-      )}
+            <div className="text-center p-4 rounded-lg bg-opacity-10 bg-green-500">
+              <p className={`text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Total Income</p>
+              <p className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>₹{totalIncome.toLocaleString('en-IN', {maximumFractionDigits: 2})}</p>
+            </div>
+            <div className="text-center p-4 rounded-lg bg-opacity-10 bg-yellow-500">
+              <p className={`text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Net Expenditure</p>
+              <p className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>₹{netExpenditure.toLocaleString('en-IN', {maximumFractionDigits: 2})}</p>
+            </div>
+            <div className="text-center p-4 rounded-lg bg-opacity-10 bg-purple-500">
+              <p className={`text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Applicable Student-Days</p>
+              <p className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{applicableStudentDays.toLocaleString()}</p>
+            </div>
+            <div className="text-center p-4 rounded-lg bg-opacity-10 bg-indigo-500">
+              <p className={`text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Mess Fee per Day</p>
+              <p className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>₹{messFeePerDay.toLocaleString()}</p>
+            </div>
+            <div className="text-center p-4 rounded-lg bg-opacity-10 bg-teal-500">
+              <p className={`text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Veg Extra per Day</p>
+              <p className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>₹{vegFeePerDay.toLocaleString()}</p>
+            </div>
+            <div className="text-center p-4 rounded-lg bg-opacity-10 bg-orange-500">
+              <p className={`text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Non-Veg Extra per Day</p>
+              <p className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>₹{nonVegFeePerDay.toLocaleString()}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
 
       {/* Student Bill Table */}
       <Card isDarkMode={isDarkMode}>
@@ -234,7 +409,7 @@ const MessBills = ({ isDarkMode }) => {
               <select
                 value={yearFilter}
                 onChange={(e) => setYearFilter(e.target.value)}
-                className={`px-3 py-2 border rounded-md text-sm ${
+                className={`px-3 py-2 border rounded-md text-sm cursor-pointer select-all pointer-events-auto ${
                   isDarkMode
                     ? 'bg-gray-700 border-gray-600 text-white'
                     : 'bg-white border-gray-300 text-gray-900'
@@ -249,7 +424,7 @@ const MessBills = ({ isDarkMode }) => {
               <select
                 value={departmentFilter}
                 onChange={(e) => setDepartmentFilter(e.target.value)}
-                className={`px-3 py-2 border rounded-md text-sm ${
+                className={`px-3 py-2 border rounded-md text-sm cursor-pointer select-all pointer-events-auto ${
                   isDarkMode
                     ? 'bg-gray-700 border-gray-600 text-white'
                     : 'bg-white border-gray-300 text-gray-900'
@@ -269,6 +444,7 @@ const MessBills = ({ isDarkMode }) => {
             students={filteredStudents} 
             vegFeePerDay={vegFeePerDay} 
             nonVegFeePerDay={nonVegFeePerDay}
+            messFeePerDay={messFeePerDay}
           />
         </CardContent>
       </Card>

@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import Button from '../Common/Button';
 
-const BillTable = ({ isDarkMode, students, vegFeePerDay, nonVegFeePerDay }) => {
+const BillTable = ({ isDarkMode, students, vegFeePerDay, nonVegFeePerDay, messFeePerDay }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
   // Local state for editable days
   const [studentDays, setStudentDays] = useState(
     students.reduce((acc, student) => {
-      acc[student.id] = { daysPresent: student.daysPresent, vegDays: student.vegDays, nonVegDays: student.nonVegDays };
+      acc[student.id] = { daysPresent: student.daysPresent, vegDays: 0, nonVegDays: 0 };
       return acc;
     }, {})
   );
@@ -20,9 +20,15 @@ const BillTable = ({ isDarkMode, students, vegFeePerDay, nonVegFeePerDay }) => {
     }));
   };
 
-  const calculateAmount = (studentId) => {
-    const { vegDays, nonVegDays } = studentDays[studentId];
-    return (vegDays * vegFeePerDay) + (nonVegDays * nonVegFeePerDay);
+  const calculateMessCharges = (studentId) => {
+    const { daysPresent } = studentDays[studentId];
+    return daysPresent * messFeePerDay;
+  };
+
+  const calculateTotal = (studentId) => {
+    const { daysPresent, vegDays, nonVegDays } = studentDays[studentId];
+    const messCharges = daysPresent * messFeePerDay;
+    return messCharges + (vegDays * vegFeePerDay) + (nonVegDays * nonVegFeePerDay);
   };
 
   const handleSendBill = (studentId) => {
@@ -56,13 +62,19 @@ const BillTable = ({ isDarkMode, students, vegFeePerDay, nonVegFeePerDay }) => {
                 Days Present
               </th>
               <th className={`px-4 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}>
+                Mess Fee per Day
+              </th>
+              <th className={`px-4 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}>
+                Mess Charges
+              </th>
+              <th className={`px-4 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}>
                 Veg Days
               </th>
               <th className={`px-4 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}>
                 Non-Veg Days
               </th>
               <th className={`px-4 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}>
-                Calculated Amount
+                Total
               </th>
               <th className={`px-4 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}>
                 Actions
@@ -72,7 +84,8 @@ const BillTable = ({ isDarkMode, students, vegFeePerDay, nonVegFeePerDay }) => {
           <tbody className={`divide-y ${isDarkMode ? 'divide-gray-700 bg-gray-800' : 'divide-gray-200 bg-white'}`}>
             {paginatedStudents.map((student) => {
               const { daysPresent, vegDays, nonVegDays } = studentDays[student.id];
-              const amount = calculateAmount(student.id);
+              const messCharges = calculateMessCharges(student.id);
+              const total = calculateTotal(student.id);
               return (
                 <tr key={student.id} className={isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}>
                   <td className={`px-4 py-4 whitespace-nowrap text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
@@ -89,6 +102,12 @@ const BillTable = ({ isDarkMode, students, vegFeePerDay, nonVegFeePerDay }) => {
                       className={`w-20 px-2 py-1 border rounded text-sm ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
                       min="0"
                     />
+                  </td>
+                  <td className={`px-4 py-4 whitespace-nowrap text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                    ₹{messFeePerDay.toLocaleString()}
+                  </td>
+                  <td className={`px-4 py-4 whitespace-nowrap text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                    {formatCurrency(messCharges)}
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">
                     <input
@@ -108,8 +127,8 @@ const BillTable = ({ isDarkMode, students, vegFeePerDay, nonVegFeePerDay }) => {
                       min="0"
                     />
                   </td>
-                  <td className={`px-4 py-4 whitespace-nowrap text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                    {formatCurrency(amount)}
+                  <td className={`px-4 py-4 whitespace-nowrap text-sm font-bold ${isDarkMode ? 'text-green-400' : 'text-green-600'}`}>
+                    {formatCurrency(total)}
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
                     <Button

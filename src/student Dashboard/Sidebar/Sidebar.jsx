@@ -1,8 +1,19 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import Logo from './Logo';
 import NavigationMenu from './NavigationMenu';
 
 const Sidebar = ({ setActiveSection, activeSection, sidebarOpen, setSidebarOpen, onLogoutClick }) => {
+  useEffect(() => {
+    if (sidebarOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'auto';
+    }
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, [sidebarOpen]);
+
   return (
     <>
       {/* Mobile overlay */}
@@ -12,7 +23,7 @@ const Sidebar = ({ setActiveSection, activeSection, sidebarOpen, setSidebarOpen,
           onClick={() => setSidebarOpen(false)}
         />
       )}
-      <div className={`fixed left-0 top-0 h-full w-64 glass-effect z-40 p-6 transition-transform duration-300 ease-in-out md:block ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}>
+      <div className={`sidebar fixed left-0 top-0 h-full w-64 glass-effect z-50 p-6 transition-transform duration-300 ease-in-out md:block ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}>
         <div className="flex items-center space-x-3 mb-8">
           <Logo />
           <div>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Sidebar from './Sidebar/Sidebar';
 import Header from './Header/Header';
 import MainContent from './Header/MainContent';
@@ -11,6 +11,7 @@ import Visitors from './Visitors/Visitors';
 import Notifications from './Notifications/Notifications';
 import Settings from './Settings/Settings';
 import LogoutModal from './components/LogoutModal'; // Import the modal
+import RefreshConfirmationModal from './components/RefreshConfirmationModal'; // Import the refresh modal
 
 import './styles/studentDashboard.css';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -24,8 +25,43 @@ const StudentDashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [showLogoutModal, setShowLogoutModal] = useState(false); // Centralized modal state
+  const [showRefreshModal, setShowRefreshModal] = useState(false); // Refresh modal state
   
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      // No returnValue to avoid native alert; custom modal for keyboard only
+      e.preventDefault();
+      e.returnValue = '';
+    };
+
+    const handleKeyDown = (e) => {
+      // Detect F5 or Ctrl+R
+      if (e.key === 'F5' || (e.ctrlKey && e.key === 'r') || (e.ctrlKey && e.key === 'R')) {
+        e.preventDefault();
+        setShowRefreshModal(true);
+      }
+    };
+
+    const handleUnload = () => {
+      localStorage.removeItem('studentToken');
+      localStorage.removeItem('studentData');
+      sessionStorage.removeItem('studentToken');
+      sessionStorage.removeItem('studentData');
+      document.cookie = 'token=; path=/; max-age=0';
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('unload', handleUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('unload', handleUnload);
+    };
+  }, []);
 
   // Handle logout click from both sidebar and header
   const handleLogoutClick = () => {
@@ -48,6 +84,28 @@ const StudentDashboard = () => {
 
     // Redirect to login page
     navigate('/', { replace: true });
+  };
+
+  // Handle refresh confirmation
+  const handleRefreshConfirm = () => {
+    // Clear any stored authentication data
+    localStorage.removeItem('studentToken');
+    localStorage.removeItem('studentData');
+    sessionStorage.removeItem('studentToken');
+    sessionStorage.removeItem('studentData');
+
+    // Clear authentication cookie
+    document.cookie = 'token=; path=/; max-age=0';
+
+    // Close modal
+    setShowRefreshModal(false);
+
+    // Redirect to home page (will trigger loader and auto-open modal)
+    window.location.href = '/';
+  };
+
+  const handleRefreshCancel = () => {
+    setShowRefreshModal(false);
   };
 
   // Handle logout cancellation
@@ -114,6 +172,13 @@ const StudentDashboard = () => {
         isOpen={showLogoutModal}
         onClose={handleLogoutCancel}
         onConfirm={handleLogoutConfirm}
+      />
+
+      {/* Refresh Confirmation Modal */}
+      <RefreshConfirmationModal
+        isOpen={showRefreshModal}
+        onClose={handleRefreshCancel}
+        onConfirm={handleRefreshConfirm}
       />
     </div>
   );

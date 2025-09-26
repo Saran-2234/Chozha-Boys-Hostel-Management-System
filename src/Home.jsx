@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import Notification from "./Notification.jsx";
 import Navigation from "./Navigation.jsx";
 import Herosection from "./Herosection.jsx";
@@ -11,6 +12,7 @@ import Register from "./Register.jsx";
 
 
 function Home() {
+  const location = useLocation();
   const [isLight, setIsLight] = useState(false);
 
   // login modal state
@@ -23,6 +25,25 @@ function Home() {
   useEffect(() => {
     document.body.classList.toggle("light-mode", isLight);
   }, [isLight]);
+
+  useEffect(() => {
+    if (location.state?.fromDashboard) {
+      setLoginType(location.state.loginType || 'student');
+      setLoginOpen(true);
+    }
+    // Check localStorage flag for student reload redirects
+    if (localStorage.getItem('redirectFromDashboard') === 'true') {
+      setLoginType('student');
+      setLoginOpen(true);
+      localStorage.removeItem('redirectFromDashboard');
+    }
+    // Check localStorage flag for admin reload redirects
+    if (localStorage.getItem('redirectFromAdminDashboard') === 'true') {
+      setLoginType('admin');
+      setLoginOpen(true);
+      localStorage.removeItem('redirectFromAdminDashboard');
+    }
+  }, [location.state]);
 
   return (
     <>

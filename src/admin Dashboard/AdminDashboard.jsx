@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Sidebar from './Sidebar/Sidebar';
 import Header from './Header/Header';
 import MainContent from './Header/MainContent';
@@ -13,19 +13,83 @@ import Messaging from './Messaging/Messaging';
 import Departments from './Departments/Departments';
 import Reports from './Reports/Reports';
 import Settings from './Settings/Settings';
+import RefreshConfirmationModal from './components/RefreshConfirmationModal'; // Import the refresh modal
 import './styles/adminDashboard.css';
 
 const AdminDashboard = () => {
   const [activeSection, setActiveSection] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true);
+  const [showRefreshModal, setShowRefreshModal] = useState(false); // Refresh modal state
 
   const handleLogout = () => {
     // Handle logout logic here
     localStorage.removeItem('accessToken');
+    sessionStorage.removeItem('accessToken');
+    document.cookie = 'token=; path=/; max-age=0';
     console.log('Logout clicked');
     // Redirect to landing page
     window.location.href = '/';
+  };
+
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      // Suppress native dialog if confirmed via custom modal
+      if (window.adminRefreshConfirmed) {
+        e.returnValue = '';
+        return;
+      }
+      e.preventDefault();
+      e.returnValue = "You're refreshing or reloading the page. You need to login again.";
+    };
+
+    const handleKeyDown = (e) => {
+      // Detect F5 or Ctrl+R
+      if (e.key === 'F5' || (e.ctrlKey && e.key === 'r') || (e.ctrlKey && e.key === 'R')) {
+        e.preventDefault();
+        setShowRefreshModal(true);
+      }
+    };
+
+    const handleUnload = () => {
+      localStorage.removeItem('accessToken');
+      sessionStorage.removeItem('accessToken');
+      document.cookie = 'token=; path=/; max-age=0';
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('unload', handleUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('unload', handleUnload);
+    };
+  }, []);
+
+  // Handle refresh confirmation
+  const handleRefreshConfirm = () => {
+    // Set flag for auto-open modal
+    localStorage.setItem('redirectFromAdminDashboard', 'true');
+
+    // Clear any stored authentication data
+    localStorage.removeItem('accessToken');
+    sessionStorage.removeItem('accessToken');
+    document.cookie = 'token=; path=/; max-age=0';
+
+    // Set flag to suppress native dialog
+    window.adminRefreshConfirmed = true;
+
+    // Close modal
+    setShowRefreshModal(false);
+
+    // Redirect to home page (will trigger loader and auto-open modal)
+    window.location.href = '/';
+  };
+
+  const handleRefreshCancel = () => {
+    setShowRefreshModal(false);
   };
 
   const renderSection = () => {
@@ -58,7 +122,7 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className={`${isDarkMode ? 'professional-bg' : 'light-mode'} flex h-screen ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+    <div className={`${isDarkMode ? 'professional-bg' : 'light-mode'} flex min-h-screen ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
       <Sidebar 
         setActiveSection={setActiveSection} 
         activeSection={activeSection} 
@@ -68,7 +132,7 @@ const AdminDashboard = () => {
         setSidebarOpen={setSidebarOpen}
       />
       {/* Backdrop overlay for mobile sidebar - removed to fix overlay issue */}
-  <div className={`flex-1 min-w-0 flex flex-col ml-0 md:ml-64 transition-all duration-300 ${sidebarOpen ? 'md:ml-64' : 'md:ml-0'}`}>
+      <div className={`flex-1 min-w-0 flex flex-col transition-transform duration-300 pointer-events-auto md:ml-64 ${sidebarOpen ? 'translate-x-64 md:translate-x-0' : 'translate-x-0'}`}>
         <Header 
           isDarkMode={isDarkMode} 
           setIsDarkMode={setIsDarkMode} 
@@ -80,6 +144,13 @@ const AdminDashboard = () => {
           {renderSection()}
         </MainContent>
       </div>
+
+      {/* Refresh Confirmation Modal */}
+      <RefreshConfirmationModal
+        isOpen={showRefreshModal}
+        onClose={handleRefreshCancel}
+        onConfirm={handleRefreshConfirm}
+      />
     </div>
   );
 };

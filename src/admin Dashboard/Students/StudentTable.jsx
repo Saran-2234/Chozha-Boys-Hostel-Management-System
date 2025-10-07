@@ -46,7 +46,7 @@ const StudentTable = ({ isDarkMode, searchTerm, filter, students, onApprove, onR
     const matchesSearch = student.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          student.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          student.registration_number?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter = filter === 'all' || student.status?.toLowerCase() === filter;
+    const matchesFilter = filter === 'all' || (student.status ? student.status.toString().toLowerCase() === filter : false);
     return matchesSearch && matchesFilter;
   });
 
@@ -102,7 +102,9 @@ const StudentTable = ({ isDarkMode, searchTerm, filter, students, onApprove, onR
   const getStatusColor = (status) => {
     if (!status) return 'status-inactive';
 
-    switch (status.toLowerCase()) {
+    const statusStr = status.toString().toLowerCase();
+
+    switch (statusStr) {
       case 'active':
         return 'status-active';
       case 'pending':

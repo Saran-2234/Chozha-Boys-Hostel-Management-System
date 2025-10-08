@@ -16,13 +16,25 @@ const ComplaintModal = ({ onClose }) => {
     setError('');
     setSuccess('');
 
-    const token = localStorage.getItem('accessToken');
+    // Try multiple keys for token
+    const token = localStorage.getItem('authToken') || localStorage.getItem('studentToken') || localStorage.getItem('accessToken');
     console.log("token", token);
-    const studentId = localStorage.getItem('studentId');
-    console.log("student id ", studentId);
 
-    if (!token || !studentId) {
+    if (!token) {
       setError('Authentication required. Please log in again.');
+      setLoading(false);
+      return;
+    }
+
+    // Decode JWT token to get student ID
+    let studentId = null;
+    try {
+      const payload = token.split('.')[1];
+      const decoded = JSON.parse(atob(payload));
+      studentId = decoded.id;
+      console.log("decoded student id", studentId);
+    } catch (error) {
+      setError('Invalid token. Please log in again.');
       setLoading(false);
       return;
     }

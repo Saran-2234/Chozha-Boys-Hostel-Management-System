@@ -15,12 +15,11 @@ const Profile = ({ studentData }) => {
         // Check if we have studentData from props first
         if (studentData && studentData.email) {
           console.log("Using studentData from props:", studentData);
-          
-          // Try to fetch complete student data from backend
+
           try {
             // Option 1: Try the profile endpoint (if it exists)
             const profileResponse = await axios.get(`https://finalbackend-mauve.vercel.app/students/${studentData.email}`);
-            
+
             if (profileResponse.status === 200) {
               setProfileData(profileResponse.data);
               setLoading(false);
@@ -28,29 +27,32 @@ const Profile = ({ studentData }) => {
             }
           } catch (apiError) {
             console.log('Profile endpoint not available, trying alternative endpoints...');
-            
-            // Option 2: Try to get student by email from general students endpoint
+
             try {
               const studentsResponse = await axios.get(`https://finalbackend-mauve.vercel.app/students`);
-              
+
               if (studentsResponse.status === 200) {
                 const studentsData = studentsResponse.data;
-                // Assuming the response is an array, find the matching student
-                const student = Array.isArray(studentsData) 
-                  ? studentsData.find(s => s.email === studentData.email) 
-                  : studentsData;
-                
+                const student = Array.isArray(studentsData)
+                  ? studentsData.find(s => s.email === studentData.email)
+                  : null;
+
                 if (student) {
                   setProfileData(student);
                   setLoading(false);
                   return;
+                } else {
+                  setError('Student not found in the database');
                 }
+              } else {
+                setError('Failed to fetch students data');
               }
             } catch (studentsError) {
               console.log('Students endpoint also failed, using props data only');
+              setError('Failed to fetch profile data from all endpoints');
             }
           }
-          
+
           // If API calls fail, use the studentData from props
           setProfileData(studentData);
         } else {
@@ -59,7 +61,6 @@ const Profile = ({ studentData }) => {
       } catch (err) {
         console.error('Error fetching profile:', err);
         setError('Failed to load profile data');
-        // Fallback to props data if available
         if (studentData) {
           setProfileData(studentData);
         }

@@ -25,7 +25,7 @@ const Attendance = () => {
       async (position) => {
         const lat = position.coords.latitude;
         const lng = position.coords.longitude;
-        const token = localStorage.getItem('accessToken');
+        let token = localStorage.getItem('accessToken') || localStorage.getItem('studentToken');
 
         if (!token) {
           setError('No token found. Please log in.');
@@ -33,17 +33,22 @@ const Attendance = () => {
           return;
         }
 
-        console.log("lat", lat);
-        console.log("lng", lng);
         try {
-          const response = await axios.post('https://finalbackend-mauve.vercel.app/attendance', {
-            lat,
-            lng,
-            status: 'present',
-            token
-          }, {
-            withCredentials: true
-          });
+          const response = await axios.post(
+            'https://finalbackend-mauve.vercel.app/attendance',
+            {
+              lat,
+              lng,
+              token,
+            },
+            {
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+              },
+              withCredentials: true,
+            }
+          );
 
           if (response.data.success) {
             setMessage('Attendance marked as present successfully!');
@@ -83,7 +88,7 @@ const Attendance = () => {
       async (position) => {
         const lat = position.coords.latitude;
         const lng = position.coords.longitude;
-        const token = localStorage.getItem('accessToken');
+        let token = localStorage.getItem('accessToken') || localStorage.getItem('studentToken');
 
         if (!token) {
           setError('No token found. Please log in.');
@@ -91,17 +96,22 @@ const Attendance = () => {
           return;
         }
 
-        console.log("lat", lat);
-        console.log("lng", lng);
         try {
-          const response = await axios.post('https://finalbackend-mauve.vercel.app/absent', {
-            lat,
-            lng,
-            status: 'absent',
-            token
-          }, {
-            withCredentials: true
-          });
+          const response = await axios.post(
+            'https://finalbackend-mauve.vercel.app/absent',
+            {
+              lat,
+              lng,
+              token,
+            },
+            {
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+              },
+              withCredentials: true,
+            }
+          );
 
           if (response.data.success) {
             setMessage('Attendance marked as absent successfully!');

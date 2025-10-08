@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import axios from 'axios';
+import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardContent } from '../Common/Card';
 import Button from '../Common/Button';
 import ComplaintList from './ComplaintList';
@@ -6,6 +7,26 @@ import ComplaintList from './ComplaintList';
 const Complaints = ({ isDarkMode }) => {
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [complaints, setComplaints] = useState([]);
+  const [error, setError] = useState(null);
+
+  const fetchComplaints = async (token, filters) => {
+    try {
+      const response = await axios.post(
+        'https://finalbackend-mauve.vercel.app/fetchcomplaintforadmins',
+        { token, ...filters },
+        { withCredentials: true }
+      );
+      setComplaints(response.data.data);
+    } catch (err) {
+      setError(err.response?.data || 'Error fetching complaints');
+    }
+  };
+
+  useEffect(() => {
+    const token = 'jwt_access_token_here'; // Replace with actual token retrieval logic
+    fetchComplaints(token, { status: filter });
+  }, [filter]);
 
   const handleNewComplaint = () => {
     console.log('New complaint clicked');
@@ -128,7 +149,16 @@ const Complaints = ({ isDarkMode }) => {
           </div>
         </CardHeader>
         <CardContent>
-          <ComplaintList isDarkMode={isDarkMode} searchTerm={searchTerm} filter={filter} />
+          {error ? (
+            <p className="text-red-500">{error}</p>
+          ) : (
+            <ComplaintList
+              isDarkMode={isDarkMode}
+              searchTerm={searchTerm}
+              filter={filter}
+              complaints={complaints}
+            />
+          )}
         </CardContent>
       </Card>
     </div>

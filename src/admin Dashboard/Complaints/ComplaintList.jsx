@@ -7,7 +7,11 @@ const ComplaintList = ({ isDarkMode, searchTerm, filter }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  const [complaints, setComplaints] = useState([]);
+  const [complaints, setComplaints] = useState(() => {
+    // Load complaints from localStorage on initial render
+    const storedComplaints = localStorage.getItem('complaints');
+    return storedComplaints ? JSON.parse(storedComplaints) : [];
+  });
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -17,7 +21,7 @@ const ComplaintList = ({ isDarkMode, searchTerm, filter }) => {
       setLoading(true);
       setError(null);
       try {
-        const token = localStorage.getItem('accessToken');
+        const token = localStorage.getItem('accessToken') || localStorage.getItem('studentToken');
         if (!token) {
           throw new Error('No access token found. Please login again.');
         }
@@ -38,9 +42,7 @@ const ComplaintList = ({ isDarkMode, searchTerm, filter }) => {
         const studentsData = await fetchStudents();
 
         if (complaintsResponse.data.success) {
-          // Map API data to component's expected structure
-          const mappedComplaints = complaintsResponse.data.data.map((item) => {
-            // Find student info by student_id
+          const mappedComplaints = complaintsResponse.data.data.map((item, index) => {
             const student = studentsData.find(s => s.id === item.student_id);
             return {
               id: item.id,
@@ -53,10 +55,10 @@ const ComplaintList = ({ isDarkMode, searchTerm, filter }) => {
               status: item.status,
               dateSubmitted: item.created_at,
               lastUpdated: item.created_at,
+              key: index, // Added key prop
             };
           });
           setComplaints(mappedComplaints);
-          setStudents(studentsData);
         } else {
           setComplaints([]);
           setError(complaintsResponse.data.message || 'Failed to fetch complaints');
@@ -71,12 +73,23 @@ const ComplaintList = ({ isDarkMode, searchTerm, filter }) => {
     fetchData();
   }, []);
 
+  const handleRegisterComplaint = (newComplaint) => {
+    // Update local state
+    setComplaints((prevComplaints) => {
+      const updatedComplaints = [newComplaint, ...prevComplaints];
+
+      // Update localStorage
+      localStorage.setItem('complaints', JSON.stringify(updatedComplaints));
+
+      return updatedComplaints;
+    });
+  };
+
   const handleViewDetails = (complaintId) => {
     console.log('View complaint details:', complaintId);
   };
 
   const handleUpdateStatus = (complaintId, newStatus) => {
-    // Call admin complaint status change API
     (async () => {
       try {
         const accessToken = localStorage.getItem('accessToken');
@@ -85,7 +98,6 @@ const ComplaintList = ({ isDarkMode, searchTerm, filter }) => {
           status: newStatus,
         };
 
-        // If accessToken is available, prefer Authorization header
         const headers = {
           'Content-Type': 'application/json',
         };
@@ -98,8 +110,16 @@ const ComplaintList = ({ isDarkMode, searchTerm, filter }) => {
         );
 
         if (resp && resp.data && resp.data.success) {
-          // Update local state
-          setComplaints(prev => prev.map(c => c.id === complaintId ? { ...c, status: resp.data.status || newStatus } : c));
+          setComplaints((prev) => {
+            const updatedComplaints = prev.map((c) =>
+              c.id === complaintId ? { ...c, status: resp.data.status || newStatus } : c
+            );
+
+            // Update localStorage
+            localStorage.setItem('complaints', JSON.stringify(updatedComplaints));
+
+            return updatedComplaints;
+          });
           alert(resp.data.message || 'Updated successfully');
         } else {
           const message = resp?.data?.message || resp?.data?.error || 'Failed to update status';
@@ -139,13 +159,15 @@ const ComplaintList = ({ isDarkMode, searchTerm, filter }) => {
     }
   };
 
-  const filteredComplaints = complaints.filter(complaint => {
-    const matchesSearch = complaint.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         complaint.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         complaint.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter = filter === 'all' ||
-                         complaint.status.toLowerCase().replace(' ', '-') === filter ||
-                         complaint.priority.toLowerCase() === filter;
+  const filteredComplaints = complaints.filter((complaint) => {
+    const matchesSearch =
+      complaint.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      complaint.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      complaint.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesFilter =
+      filter === 'all' ||
+      complaint.status.toLowerCase().replace(' ', '-') === filter ||
+      complaint.priority.toLowerCase() === filter;
     return matchesSearch && matchesFilter;
   });
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Button from '../Common/Button';
+import Modal from '../Common/Modal';
 import { fetchStudents } from '../../registration/api';
 
 const ComplaintList = ({ isDarkMode, searchTerm, filter }) => {
@@ -15,6 +16,8 @@ const ComplaintList = ({ isDarkMode, searchTerm, filter }) => {
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [selectedComplaint, setSelectedComplaint] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -85,8 +88,44 @@ const ComplaintList = ({ isDarkMode, searchTerm, filter }) => {
     });
   };
 
-  const handleViewDetails = (complaintId) => {
-    console.log('View complaint details:', complaintId);
+  const handleViewComplaint = (complaint) => {
+    setSelectedComplaint(complaint);
+    setIsViewModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsViewModalOpen(false);
+    setSelectedComplaint(null);
+  };
+
+  const handleResolve = async (complaintId) => {
+    try {
+      const accessToken = localStorage.getItem('accessToken');
+      const payload = {
+        complaint_id: complaintId,
+        token: accessToken || '',
+      };
+      const response = await axios.post(
+        'https://finalbackend-mauve.vercel.app/resolvecomplaints',
+        payload,
+        { withCredentials: true }
+      );
+      if (response.data.success) {
+        setComplaints((prev) => {
+          const updatedComplaints = prev.map((c) =>
+            c.id === complaintId ? { ...c, status: 'resolved' } : c
+          );
+          localStorage.setItem('complaints', JSON.stringify(updatedComplaints));
+          return updatedComplaints;
+        });
+        alert('Complaint resolved!');
+      } else {
+        alert(response.data.message || 'Failed to resolve complaint');
+      }
+    } catch (error) {
+      console.error('Error resolving complaint:', error);
+      alert(error.response?.data?.message || error.message || 'Internal Server Error');
+    }
   };
 
   const handleUpdateStatus = (complaintId, newStatus) => {
@@ -224,14 +263,42 @@ const ComplaintList = ({ isDarkMode, searchTerm, filter }) => {
                   </div>
                   <div className="ml-3 flex-shrink-0">
                     <div className="flex flex-col space-y-2">
-                      <Button onClick={() => handleViewDetails(complaint.id)} variant="outline" size="small" isDarkMode={isDarkMode}>View</Button>
+                      <Button onClick={() => handleViewComplaint(complaint)} variant="outline" size="small" isDarkMode={isDarkMode}>
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                        View
+                      </Button>
                       {complaint.status !== 'resolved' && (
-                        <select onChange={(e) => handleUpdateStatus(complaint.id, e.target.value)} className={isDarkMode ? 'px-2 py-1 text-sm border rounded bg-gray-700 border-gray-600 text-white' : 'px-2 py-1 text-sm border rounded bg-white border-gray-300 text-gray-900'} defaultValue="">
-                          <option value="" disabled>Update</option>
-                          <option value="pending">Pending</option>
-                          <option value="in progress">In Progress</option>
-                          <option value="resolved">Resolved</option>
-                        </select>
+                        <div className="flex space-x-1">
+                          <Button
+                            onClick={() => handleUpdateStatus(complaint.id, 'pending')}
+                            variant={complaint.status === 'pending' ? 'primary' : 'outline'}
+                            size="small"
+                            isDarkMode={isDarkMode}
+                            disabled={complaint.status === 'pending'}
+                          >
+                            Pending
+                          </Button>
+                          <Button
+                            onClick={() => handleUpdateStatus(complaint.id, 'in progress')}
+                            variant={complaint.status === 'in progress' ? 'primary' : 'outline'}
+                            size="small"
+                            isDarkMode={isDarkMode}
+                            disabled={complaint.status === 'in progress'}
+                          >
+                            In Progress
+                          </Button>
+                          <Button
+                            onClick={() => handleResolve(complaint.id)}
+                            variant="outline"
+                            size="small"
+                            isDarkMode={isDarkMode}
+                          >
+                            Resolve
+                          </Button>
+                        </div>
                       )}
                     </div>
                   </div>
@@ -314,24 +381,46 @@ const ComplaintList = ({ isDarkMode, searchTerm, filter }) => {
                   </td>
                   <td className="px-6 py-4 text-sm font-medium space-x-2">
                     <Button
-                      onClick={() => handleViewDetails(complaint.id)}
+                      onClick={() => handleViewComplaint(complaint)}
                       variant="outline"
                       size="small"
                       isDarkMode={isDarkMode}
                     >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
                       View
                     </Button>
                     {complaint.status !== 'resolved' && (
-                      <select
-                        onChange={(e) => handleUpdateStatus(complaint.id, e.target.value)}
-                        className={`px-3 py-2 text-sm border rounded relative z-10 ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
-                        defaultValue=""
-                      >
-                        <option value="" disabled>Update</option>
-                        <option value="pending">Pending</option>
-                        <option value="in progress">In Progress</option>
-                        <option value="resolved">Resolved</option>
-                      </select>
+                      <div className="inline-flex space-x-1">
+                        <Button
+                          onClick={() => handleUpdateStatus(complaint.id, 'pending')}
+                          variant={complaint.status === 'pending' ? 'primary' : 'outline'}
+                          size="small"
+                          isDarkMode={isDarkMode}
+                          disabled={complaint.status === 'pending'}
+                        >
+                          Pending
+                        </Button>
+                        <Button
+                          onClick={() => handleUpdateStatus(complaint.id, 'in progress')}
+                          variant={complaint.status === 'in progress' ? 'primary' : 'outline'}
+                          size="small"
+                          isDarkMode={isDarkMode}
+                          disabled={complaint.status === 'in progress'}
+                        >
+                          In Progress
+                        </Button>
+                        <Button
+                          onClick={() => handleResolve(complaint.id)}
+                          variant="outline"
+                          size="small"
+                          isDarkMode={isDarkMode}
+                        >
+                          Resolve
+                        </Button>
+                      </div>
                     )}
                   </td>
                 </tr>
@@ -367,6 +456,24 @@ const ComplaintList = ({ isDarkMode, searchTerm, filter }) => {
           </div>
         </div>
       </div>
+
+      {/* Modal for viewing complaint details */}
+      <Modal isOpen={isViewModalOpen} onClose={handleCloseModal} title="Complaint Details" size="medium" isDarkMode={isDarkMode}>
+        {selectedComplaint ? (
+          <div className="space-y-2 text-sm">
+            <div><strong>Title:</strong> {selectedComplaint.title}</div>
+            <div><strong>Description:</strong> {selectedComplaint.description}</div>
+            <div><strong>Student:</strong> {selectedComplaint.studentName}</div>
+            <div><strong>Room:</strong> {selectedComplaint.room}</div>
+            <div><strong>Category:</strong> {selectedComplaint.category}</div>
+            <div><strong>Priority:</strong> {selectedComplaint.priority}</div>
+            <div><strong>Status:</strong> {selectedComplaint.status}</div>
+            <div><strong>Date Submitted:</strong> {new Date(selectedComplaint.dateSubmitted).toLocaleString()}</div>
+          </div>
+        ) : (
+          <div>No complaint selected.</div>
+        )}
+      </Modal>
     </div>
   );
 };

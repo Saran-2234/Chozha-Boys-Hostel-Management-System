@@ -32,14 +32,14 @@ const Sidebar = ({ setActiveSection, activeSection, sidebarOpen, setSidebarOpen,
           </div>
         </div>
         <NavigationMenu setActiveSection={setActiveSection} activeSection={activeSection} />
-        
-        {/* Simple Logout button in sidebar */}
+
+        {/* Logout button */}
         <div className="absolute bottom-6 left-6 right-6">
           <button
             onClick={onLogoutClick}
             className="w-full px-4 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-all flex items-center justify-center space-x-2"
           >
-            <span>🚪</span>
+            <span>🔒</span>
             <span>Logout</span>
           </button>
         </div>

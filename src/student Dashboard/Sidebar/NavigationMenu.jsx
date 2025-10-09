@@ -6,9 +6,8 @@ const NavigationMenu = ({ setActiveSection, activeSection }) => {
     { id: 'profile', label: 'Profile', icon: '👤' },
     { id: 'attendance', label: 'Attendance', icon: '✅' },
     { id: 'messbill', label: 'Mess Bill', icon: '🍽️' },
-    { id: 'complaints', label: 'Complaints', icon: '📝', badge: '2' },
-    { id: 'visitors', label: 'Visitors', icon: '👥' },
-    { id: 'notifications', label: 'Notifications', icon: '🔔', badge: '5' },
+    { id: 'complaints', label: 'Complaints', icon: '📝' },
+    { id: 'notifications', label: 'Notifications', icon: '🔔'},
     { id: 'settings', label: 'Settings', icon: '⚙️' },
   ];
 

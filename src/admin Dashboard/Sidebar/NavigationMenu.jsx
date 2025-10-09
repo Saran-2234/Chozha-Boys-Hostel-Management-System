@@ -3,16 +3,14 @@ import React from 'react';
 const NavigationMenu = ({ setActiveSection, activeSection, isDarkMode, setSidebarOpen }) => {
   const menuItems = [
     { id: 'dashboard', icon: '📊', label: 'Dashboard' },
-    { id: 'students', icon: '👥', label: 'Students', badge: '3' },
+    { id: 'students', icon: '👥', label: 'Students' },
     { id: 'attendance', icon: '✅', label: 'Attendance' },
     { id: 'messbills', icon: '🍽️', label: 'Mess Bills' },
-    { id: 'reduction', icon: '📉', label: 'Reduction', badge: '2' },
-    { id: 'complaints', icon: '📝', label: 'Complaints', badge: '5' },
-    { id: 'rooms', icon: '🏠', label: 'Room Management' },
-    { id: 'visitors', icon: '👥', label: 'Visitors' },
+    { id: 'reduction', icon: '📉', label: 'Reduction' },
+    { id: 'complaints', icon: '📝', label: 'Complaints' },
+    { id: 'rooms', icon: '🏠', label: 'Rooms' },
     { id: 'messaging', icon: '📢', label: 'Messaging' },
     { id: 'departments', icon: '🏢', label: 'Departments' },
-    { id: 'reports', icon: '📈', label: 'Reports' },
     { id: 'settings', icon: '⚙️', label: 'Settings' }
   ];
 

@@ -27,10 +27,10 @@ const QuickActions = ({ setActiveSection }) => {
       color: 'from-blue-500 to-indigo-600'
     },
     {
-      icon: '👥',
-      label: 'Request Visitor',
-      section: 'visitors',
-      color: 'from-purple-500 to-pink-500'
+      icon: '📉',
+      label: 'Apply Reduction',
+      section: 'reduction',
+      color: 'from-green-500 to-lime-600'
     },
   ];
 

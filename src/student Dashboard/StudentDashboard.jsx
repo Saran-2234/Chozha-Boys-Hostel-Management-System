@@ -7,11 +7,11 @@ import Profile from './Profile/Profile';
 import Attendance from './Attendance/Attendance';
 import MessBill from './MessBill/MessBill';
 import Complaints from './Complaints/Complaints';
-import Visitors from './Visitors/Visitors';
 import Notifications from './Notifications/Notifications';
 import Settings from './Settings/Settings';
 import LogoutModal from './components/LogoutModal'; // Import the modal
 import RefreshConfirmationModal from './components/RefreshConfirmationModal'; // Import the refresh modal
+import Reduction from './Reduction/Reduction';
 
 import './styles/studentDashboard.css';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -125,12 +125,12 @@ const StudentDashboard = () => {
         return <MessBill />;
       case 'complaints':
         return <Complaints />;
-      case 'visitors':
-        return <Visitors />;
       case 'notifications':
         return <Notifications />;
       case 'settings':
         return <Settings />;
+      case 'reduction':
+        return <Reduction />;
       default:
         return <Dashboard studentData={studentData} setActiveSection={setActiveSection} />;
     }

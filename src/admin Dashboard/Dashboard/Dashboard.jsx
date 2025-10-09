@@ -1,7 +1,6 @@
 import React from 'react';
 import QuickStats from './QuickStats';
 import QuickActions from './QuickActions';
-import RoomOccupancy from './RoomOccupancy';
 import RecentActivities from './RecentActivities';
 
 const Dashboard = ({ setActiveSection, isDarkMode }) => {
@@ -15,10 +14,6 @@ const Dashboard = ({ setActiveSection, isDarkMode }) => {
       <QuickStats isDarkMode={isDarkMode} />
 
       <QuickActions setActiveSection={setActiveSection} isDarkMode={isDarkMode} />
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <RoomOccupancy isDarkMode={isDarkMode} />
-      </div>
 
       <RecentActivities isDarkMode={isDarkMode} />
     </section>

@@ -8,10 +8,8 @@ import Attendance from './Attendance/Attendance';
 import MessBills from './MessBills/MessBills';
 import Complaints from './Complaints/Complaints';
 import RoomManagement from './RoomManagement/RoomManagement';
-import Visitors from './Visitors/Visitors';
 import Messaging from './Messaging/Messaging';
 import Departments from './Departments/Departments';
-import Reports from './Reports/Reports';
 import Settings from './Settings/Settings';
 import Reduction from './Reduction/Reduction';
 import RefreshConfirmationModal from './components/RefreshConfirmationModal'; // Import the refresh modal

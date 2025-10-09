@@ -95,13 +95,6 @@ const MessBill = () => {
           <button className="btn-primary text-white px-3 sm:px-4 py-2 rounded-lg font-medium text-sm sm:text-base w-full sm:w-auto">
             💳 Pay Now
           </button>
-          <button 
-            onClick={handleApplyClick}
-            className="btn-secondary text-white px-3 sm:px-4 py-2 rounded-lg font-medium text-sm sm:text-base w-full sm:w-auto cursor-pointer"
-            style={{ pointerEvents: 'auto', zIndex: 10 }}
-          >
-            📉 Apply for Reduction
-          </button>
         </div>
       </div>
       {isModalOpen && (

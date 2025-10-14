@@ -1,27 +1,50 @@
 import React, { useState, useEffect } from 'react';
 import Button from '../Common/Button';
-import { showAttends } from '../../registration/api';
+import { showAttends, fetchDepartments } from '../../registration/api';
 import { changeAttendance } from './attendanceUtils';
 import Modal from '../Common/Modal'; // Assuming a Modal component exists for popup messages
 
 const Attendance = ({ isDarkMode }) => {
   const [filters, setFilters] = useState({
-    student_id: '',
     department: '',
     academic_year: '',
     date: '',
     status: ''
   });
   const [attendanceRecords, setAttendanceRecords] = useState([]);
+  const [filteredRecords, setFilteredRecords] = useState([]);
+  const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [popupMessage, setPopupMessage] = useState(null);
   const [popupData, setPopupData] = useState(null);
   const [infoMessage, setInfoMessage] = useState(null);
+  
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   useEffect(() => {
     fetchAttendanceRecords();
+    loadDepartments();
   }, []);
+
+  useEffect(() => {
+    applyFilters();
+  }, [filters, attendanceRecords]);
+
+  useEffect(() => {
+    setCurrentPage(1); // Reset to first page when filters change
+  }, [filteredRecords]);
+
+  const loadDepartments = async () => {
+    try {
+      const depts = await fetchDepartments();
+      setDepartments(depts || []);
+    } catch (err) {
+      console.error('Error loading departments:', err);
+    }
+  };
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
@@ -36,14 +59,7 @@ const Attendance = ({ isDarkMode }) => {
     setError(null);
 
     try {
-      const activeFilters = {};
-      Object.keys(filters).forEach(key => {
-        if (filters[key].trim()) {
-          activeFilters[key] = filters[key].trim();
-        }
-      });
-
-      const response = await showAttends(activeFilters);
+      const response = await showAttends();
 
       if (response.success) {
         setAttendanceRecords(response.data || []);
@@ -58,38 +74,81 @@ const Attendance = ({ isDarkMode }) => {
     }
   };
 
-  const handleSearch = () => {
-    fetchAttendanceRecords();
+  const applyFilters = () => {
+    // Check if any filter is applied
+    const hasActiveFilters = filters.department || filters.academic_year || filters.date || filters.status;
+    
+    // If no filters are applied, show empty results
+    if (!hasActiveFilters) {
+      setFilteredRecords([]);
+      return;
+    }
+
+    let filtered = [...attendanceRecords];
+
+    // Filter by department
+    if (filters.department) {
+      filtered = filtered.filter(record => 
+        record.department?.toLowerCase() === filters.department.toLowerCase()
+      );
+    }
+
+    // Filter by academic year
+    if (filters.academic_year) {
+      filtered = filtered.filter(record => 
+        record.academic_year?.toString() === filters.academic_year
+      );
+    }
+
+    // Filter by date
+    if (filters.date) {
+      filtered = filtered.filter(record => {
+        const recordDate = new Date(record.date).toISOString().split('T')[0];
+        return recordDate === filters.date;
+      });
+    }
+
+    // Filter by status
+    if (filters.status) {
+      if (filters.status === 'Not Marked') {
+        filtered = filtered.filter(record => !record.status);
+      } else {
+        filtered = filtered.filter(record => 
+          record.status?.toLowerCase() === filters.status.toLowerCase()
+        );
+      }
+    }
+
+    setFilteredRecords(filtered);
   };
 
   const handleClearFilters = () => {
     setFilters({
-      student_id: '',
       department: '',
       academic_year: '',
       date: '',
       status: ''
     });
-    fetchAttendanceRecords();
+    setCurrentPage(1);
   };
 
   const handleExport = () => {
-    if (attendanceRecords.length === 0) {
+    const recordsToExport = filteredRecords.length > 0 ? filteredRecords : attendanceRecords;
+    
+    if (recordsToExport.length === 0) {
       alert('No records to export');
       return;
     }
 
-    const headers = ['Attendance ID', 'Date', 'Status', 'Student ID', 'Name', 'Department', 'Academic Year'];
+    const headers = ['Name', 'Department', 'Year', 'Date', 'Status'];
     const csvContent = [
       headers.join(','),
-      ...attendanceRecords.map(record => [
-        record.attendance_id,
-        record.date,
-        record.status,
-        record.student_id,
+      ...recordsToExport.map(record => [
         record.name,
         record.department,
-        record.academic_year
+        record.academic_year,
+        record.date,
+        record.status || 'Not Marked'
       ].join(','))
     ].join('\n');
 
@@ -102,6 +161,21 @@ const Attendance = ({ isDarkMode }) => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  // Pagination logic
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentRecords = filteredRecords.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredRecords.length / itemsPerPage);
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  const handleItemsPerPageChange = (e) => {
+    setItemsPerPage(Number(e.target.value));
+    setCurrentPage(1);
   };
 
   const handleAttendanceUpdate = async (attendanceId, newStatus) => {
@@ -148,13 +222,16 @@ const Attendance = ({ isDarkMode }) => {
   };
 
   const getStatusColor = (status) => {
-    switch (status?.toLowerCase()) {
+    if (!status) {
+      return 'bg-yellow-100 text-yellow-800';
+    }
+    switch (status.toLowerCase()) {
       case 'present':
         return 'bg-green-100 text-green-800';
       case 'absent':
         return 'bg-red-100 text-red-800';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-yellow-100 text-yellow-800';
     }
   };
 
@@ -208,45 +285,28 @@ const Attendance = ({ isDarkMode }) => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-            {/* Student ID */}
-            <div>
-              <label htmlFor="student_id" className={`block text-sm font-medium mb-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                Student ID
-              </label>
-              <input
-                id="student_id"
-                type="text"
-                name="student_id"
-                value={filters.student_id}
-                onChange={handleFilterChange}
-                placeholder="Enter student ID"
-                className={`w-full px-3 py-2 border rounded-md text-sm select-text ${
-                  isDarkMode
-                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
-                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-                }`}
-              />
-            </div>
-
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             {/* Department */}
             <div>
               <label htmlFor="department" className={`block text-sm font-medium mb-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                 Department
               </label>
-              <input
+              <select
                 id="department"
-                type="text"
                 name="department"
                 value={filters.department}
                 onChange={handleFilterChange}
-                placeholder="Enter department"
                 className={`w-full px-3 py-2 border rounded-md text-sm select-text ${
-                  isDarkMode
-                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
-                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                  isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'
                 }`}
-              />
+              >
+                <option value="">All Departments</option>
+                {departments.map((dept) => (
+                  <option key={dept.department_id} value={dept.department}>
+                    {dept.department}
+                  </option>
+                ))}
+              </select>
             </div>
 
             {/* Academic Year */}
@@ -254,19 +314,21 @@ const Attendance = ({ isDarkMode }) => {
               <label htmlFor="academic_year" className={`block text-sm font-medium mb-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                 Academic Year
               </label>
-              <input
+              <select
                 id="academic_year"
-                type="text"
                 name="academic_year"
                 value={filters.academic_year}
                 onChange={handleFilterChange}
-                placeholder="e.g., 2025"
                 className={`w-full px-3 py-2 border rounded-md text-sm select-text ${
-                  isDarkMode
-                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
-                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                  isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'
                 }`}
-              />
+              >
+                <option value="">All Years</option>
+                <option value="1">1st Year</option>
+                <option value="2">2nd Year</option>
+                <option value="3">3rd Year</option>
+                <option value="4">4th Year</option>
+              </select>
             </div>
 
             {/* Date */}
@@ -303,18 +365,16 @@ const Attendance = ({ isDarkMode }) => {
                 <option value="">All Status</option>
                 <option value="Present">Present</option>
                 <option value="Absent">Absent</option>
+                <option value="Not Marked">Not Marked</option>
               </select>
             </div>
+          </div>
 
-            {/* Buttons */}
-            <div className="flex items-end space-x-2">
-              <Button onClick={handleSearch} variant="primary" isDarkMode={isDarkMode} disabled={loading}>
-                {loading ? 'Searching...' : 'Search'}
-              </Button>
-              <Button onClick={handleClearFilters} variant="outline" isDarkMode={isDarkMode}>
-                Clear
-              </Button>
-            </div>
+          {/* Clear Filter Button */}
+          <div className="mb-6 flex justify-end">
+            <Button onClick={handleClearFilters} variant="outline" isDarkMode={isDarkMode}>
+              Clear Filters
+            </Button>
           </div>
 
           {error && (
@@ -327,7 +387,7 @@ const Attendance = ({ isDarkMode }) => {
             <table className={`min-w-full divide-y ${isDarkMode ? 'divide-gray-700' : 'divide-gray-200'}`}>
               <thead className={isDarkMode ? 'bg-gray-700' : 'bg-gray-50'}>
                 <tr>
-                  {['Attendance ID','Date','Status','Student ID','Name','Department','Academic Year', 'Change Attendance'].map((title) => (
+                  {['Name','Department','Year','Date','Status', 'Change Attendance'].map((title) => (
                     <th
                       key={title}
                       className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}
@@ -338,26 +398,55 @@ const Attendance = ({ isDarkMode }) => {
                 </tr>
               </thead>
               <tbody className={`divide-y ${isDarkMode ? 'divide-gray-700 bg-gray-800' : 'divide-gray-200 bg-white'}`}>
-                {attendanceRecords.length === 0 ? (
+                {loading ? (
                   <tr>
-                    <td colSpan="8" className={`px-6 py-4 text-center text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                      {loading ? 'Loading records...' : 'No attendance records found'}
+                    <td colSpan="6" className={`px-6 py-4 text-center text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                      Loading records...
+                    </td>
+                  </tr>
+                ) : currentRecords.length === 0 ? (
+                  <tr>
+                    <td colSpan="6" className={`px-6 py-4 text-center text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                      {attendanceRecords.length === 0 
+                        ? 'No attendance records found' 
+                        : filteredRecords.length === 0 && (filters.department || filters.academic_year || filters.date || filters.status)
+                        ? 'No records match the selected filters'
+                        : 'Please select at least one filter to view attendance records'}
                     </td>
                   </tr>
                 ) : (
-                  attendanceRecords.map((record) => (
+                  currentRecords.map((record) => (
                     <tr key={record.attendance_id} className={isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}>
-                      <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{record.attendance_id}</td>
-                      <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>{new Date(record.date).toLocaleDateString()}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(record.status)}`}>{record.status}</span>
-                      </td>
-                      <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>{record.student_id}</td>
-                      <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>{record.name}</td>
+                      <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{record.name}</td>
                       <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>{record.department}</td>
                       <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>{record.academic_year}</td>
+                      <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>{new Date(record.date).toLocaleDateString()}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(record.status)}`}>
+                          {record.status || 'Not Marked'}
+                        </span>
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
-                        {record.status?.toLowerCase() === 'present' ? (
+                        {!record.status ? (
+                          <div className="flex space-x-2 justify-center">
+                            <Button
+                              onClick={() => confirmAttendanceChange(record.attendance_id, record.name, 'Present')}
+                              variant="outline"
+                              isDarkMode={isDarkMode}
+                              className="bg-green-500 text-white hover:bg-green-600"
+                            >
+                              Mark Present
+                            </Button>
+                            <Button
+                              onClick={() => confirmAttendanceChange(record.attendance_id, record.name, 'Absent')}
+                              variant="outline"
+                              isDarkMode={isDarkMode}
+                              className="bg-red-500 text-white hover:bg-red-600"
+                            >
+                              Mark Absent
+                            </Button>
+                          </div>
+                        ) : record.status.toLowerCase() === 'present' ? (
                           <Button
                             onClick={() => confirmAttendanceChange(record.attendance_id, record.name, 'Absent')}
                             variant="outline"
@@ -384,14 +473,101 @@ const Attendance = ({ isDarkMode }) => {
             </table>
           </div>
 
-          {attendanceRecords.length > 0 && (
-            <div className="flex justify-between items-center text-sm mt-4 select-none">
-              <div className={`flex space-x-4 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                <span>Present: {attendanceRecords.filter(r => r.status?.toLowerCase() === 'present').length}</span>
-                <span>Absent: {attendanceRecords.filter(r => r.status?.toLowerCase() === 'absent').length}</span>
+          {/* Pagination and Stats */}
+          {filteredRecords.length > 0 && (
+            <div className="mt-6 space-y-4">
+              {/* Statistics */}
+              <div className="flex justify-between items-center text-sm select-none">
+                <div className={`flex space-x-4 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  <span>Present: {filteredRecords.filter(r => r.status?.toLowerCase() === 'present').length}</span>
+                  <span>Absent: {filteredRecords.filter(r => r.status?.toLowerCase() === 'absent').length}</span>
+                  <span>Not Marked: {filteredRecords.filter(r => !r.status).length}</span>
+                </div>
+                <div className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>
+                  Total Records: {filteredRecords.length}
+                </div>
               </div>
-              <div className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>
-                Total Records: {attendanceRecords.length}
+
+              {/* Pagination Controls */}
+              <div className="flex flex-col sm:flex-row justify-between items-center gap-4 select-none">
+                {/* Items per page selector */}
+                <div className="flex items-center space-x-2">
+                  <label className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                    Show per page:
+                  </label>
+                  <select
+                    value={itemsPerPage}
+                    onChange={handleItemsPerPageChange}
+                    className={`px-3 py-1 border rounded-md text-sm ${
+                      isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'
+                    }`}
+                  >
+                    <option value={10}>10</option>
+                    <option value={20}>20</option>
+                    <option value={50}>50</option>
+                    <option value={100}>100</option>
+                  </select>
+                  <span className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                    Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredRecords.length)} of {filteredRecords.length}
+                  </span>
+                </div>
+
+                {/* Page navigation */}
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className={`px-3 py-1 rounded-md text-sm ${
+                      currentPage === 1
+                        ? isDarkMode ? 'bg-gray-700 text-gray-500 cursor-not-allowed' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                        : isDarkMode ? 'bg-gray-700 text-white hover:bg-gray-600' : 'bg-white text-gray-900 hover:bg-gray-100 border border-gray-300'
+                    }`}
+                  >
+                    Previous
+                  </button>
+
+                  {/* Page numbers */}
+                  <div className="flex space-x-1">
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      let pageNum;
+                      if (totalPages <= 5) {
+                        pageNum = i + 1;
+                      } else if (currentPage <= 3) {
+                        pageNum = i + 1;
+                      } else if (currentPage >= totalPages - 2) {
+                        pageNum = totalPages - 4 + i;
+                      } else {
+                        pageNum = currentPage - 2 + i;
+                      }
+
+                      return (
+                        <button
+                          key={pageNum}
+                          onClick={() => handlePageChange(pageNum)}
+                          className={`px-3 py-1 rounded-md text-sm ${
+                            currentPage === pageNum
+                              ? isDarkMode ? 'bg-blue-600 text-white' : 'bg-blue-500 text-white'
+                              : isDarkMode ? 'bg-gray-700 text-white hover:bg-gray-600' : 'bg-white text-gray-900 hover:bg-gray-100 border border-gray-300'
+                          }`}
+                        >
+                          {pageNum}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <button
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className={`px-3 py-1 rounded-md text-sm ${
+                      currentPage === totalPages
+                        ? isDarkMode ? 'bg-gray-700 text-gray-500 cursor-not-allowed' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                        : isDarkMode ? 'bg-gray-700 text-white hover:bg-gray-600' : 'bg-white text-gray-900 hover:bg-gray-100 border border-gray-300'
+                    }`}
+                  >
+                    Next
+                  </button>
+                </div>
               </div>
             </div>
           )}

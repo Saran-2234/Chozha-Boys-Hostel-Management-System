@@ -481,3 +481,40 @@
                 padding-right: 0;
             }
         }
+
+
+
+        /* Add this to your existing CSS - Hide browser's default password toggle */
+input[type="password"]::-webkit-credentials-auto-fill-button,
+input[type="password"]::-webkit-caps-lock-indicator,
+input[type="password"]::-webkit-credentials-auto-fill-button,
+input[type="password"]::-webkit-contacts-auto-fill-button {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  opacity: 0 !important;
+}
+
+/* Hide browser's default password reveal eye icon */
+input[type="password"]::-webkit-credentials-auto-fill-button,
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none !important;
+}
+
+/* For modern browsers */
+input[type="password"]::-webkit-textfield-decoration-container {
+  display: none !important;
+}
+
+/* For Firefox */
+input[type="password"]::-moz-text-control-presentation {
+  /* Firefox specific fixes if needed */
+}
+
+/* Also add for text type when toggled */
+input[type="text"][id="password"]::-webkit-credentials-auto-fill-button,
+input[type="text"][id="password"]::-ms-reveal,
+input[type="text"][id="password"]::-ms-clear {
+  display: none !important;
+}

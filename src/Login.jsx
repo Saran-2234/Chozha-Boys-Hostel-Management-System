@@ -12,6 +12,11 @@ function Login({ onClose, onOpenRegister, loginType }) {
   const [error, setError] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(false);
   const [showForgotPassword, setShowForgotPassword] = React.useState(false);
+  const [showPassword, setShowPassword] = React.useState(false);
+  const [fieldErrors, setFieldErrors] = React.useState({
+    email: "",
+    password: ""
+  });
 
   const handleInputChange = (e) => {
     const { id, value } = e.target;
@@ -19,12 +24,53 @@ function Login({ onClose, onOpenRegister, loginType }) {
       ...prevData,
       [id]: value,
     }));
-    // Clear error when user starts typing
+    // Clear errors when user starts typing
     if (error) setError("");
+    if (fieldErrors[id]) {
+      setFieldErrors(prev => ({
+        ...prev,
+        [id]: ""
+      }));
+    }
+  };
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
+  const validateForm = () => {
+    const errors = {
+      email: "",
+      password: ""
+    };
+
+    let isValid = true;
+
+    if (!formData.email.trim()) {
+      errors.email = "Email cannot be empty";
+      isValid = false;
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      errors.email = "Please enter a valid email address";
+      isValid = false;
+    }
+
+    if (!formData.password) {
+      errors.password = "Password cannot be empty";
+      isValid = false;
+    }
+
+    setFieldErrors(errors);
+    return isValid;
   };
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    
+    // Custom validation instead of HTML5 validation
+    if (!validateForm()) {
+      return;
+    }
+
     setError("");
     setIsLoading(true);
 
@@ -185,7 +231,7 @@ function Login({ onClose, onOpenRegister, loginType }) {
             </p>
           </div>
 
-          <form onSubmit={handleLogin}>
+          <form onSubmit={handleLogin} noValidate>
             <div className="space-y-4 sm:space-y-6">
               <div>
                 <label className="block text-sm font-semibold text-slate-300 mb-2 sm:mb-3">
@@ -199,24 +245,47 @@ function Login({ onClose, onOpenRegister, loginType }) {
                   value={formData.email}
                   onChange={handleInputChange}
                   disabled={isLoading}
-                  required
                 />
+                {fieldErrors.email && (
+                  <p className="text-red-400 text-xs mt-1 font-medium">{fieldErrors.email}</p>
+                )}
               </div>
 
-              <div>
+              <div className="relative">
                 <label className="block text-sm font-semibold text-slate-300 mb-2 sm:mb-3">
                   Password
                 </label>
-                <input
-                  type="password"
-                  id="password"
-                  className="w-full px-3 sm:px-4 py-2.5 sm:py-3 glass-effect rounded-lg text-white placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent border-0 text-sm sm:text-base"
-                  placeholder="Enter your password"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  disabled={isLoading}
-                  required
-                />
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    id="password"
+                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 glass-effect rounded-lg text-white placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent border-0 text-sm sm:text-base pr-12"
+                    placeholder="Enter your password"
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    disabled={isLoading}
+                  />
+                  <button
+                    type="button"
+                    onClick={togglePasswordVisibility}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-300 transition-colors focus:outline-none p-1 bg-transparent border-none"
+                    disabled={isLoading}
+                  >
+                    {showPassword ? (
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                    ) : (
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                      </svg>
+                    )}
+                  </button>
+                </div>
+                {fieldErrors.password && (
+                  <p className="text-red-400 text-xs mt-1 font-medium">{fieldErrors.password}</p>
+                )}
               </div>
 
               {error && (
@@ -245,11 +314,10 @@ function Login({ onClose, onOpenRegister, loginType }) {
               <button
                 type="submit"
                 disabled={isLoading}
-                className={`w-full text-white py-2.5 sm:py-3 rounded-lg font-semibold text-sm sm:text-base transition-all ${
-                  isLoading
+                className={`w-full text-white py-2.5 sm:py-3 rounded-lg font-semibold text-sm sm:text-base transition-all ${isLoading
                     ? 'bg-blue-600 cursor-not-allowed opacity-75'
                     : 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700'
-                }`}
+                  }`}
               >
                 {isLoading ? (
                   <div className="flex items-center justify-center">
@@ -310,7 +378,6 @@ function Login({ onClose, onOpenRegister, loginType }) {
         onClose={() => setShowForgotPassword(false)}
         onLogin={() => {
           setShowForgotPassword(false);
-          // Optionally refresh the login form or redirect
         }}
       />
     </div>

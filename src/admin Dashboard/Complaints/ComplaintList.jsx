@@ -31,7 +31,7 @@ const ComplaintList = ({ isDarkMode, searchTerm, filter }) => {
 
         // Fetch complaints
         const complaintsResponse = await axios.post(
-          'https://finalbackend-mauve.vercel.app/fetchcomplaintforadmins',
+          'https://finalbackend1.vercel.app/fetchcomplaintforadmins',
           { token },
           {
             headers: {
@@ -106,7 +106,7 @@ const ComplaintList = ({ isDarkMode, searchTerm, filter }) => {
         token: accessToken || '',
       };
       const response = await axios.post(
-        'https://finalbackend-mauve.vercel.app/resolvecomplaints',
+        'https://finalbackend1.vercel.app/resolvecomplaints',
         payload,
         { withCredentials: true }
       );
@@ -143,7 +143,7 @@ const ComplaintList = ({ isDarkMode, searchTerm, filter }) => {
         if (accessToken) headers['Authorization'] = `Bearer ${accessToken}`;
 
         const resp = await axios.post(
-          'https://finalbackend-mauve.vercel.app/complaintstatuschangeforadmin',
+          'https://finalbackend1.vercel.app/complaintstatuschangeforadmin',
           accessToken ? payload : { ...payload, token: '' },
           { headers }
         );

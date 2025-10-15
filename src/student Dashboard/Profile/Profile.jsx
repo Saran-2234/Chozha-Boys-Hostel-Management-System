@@ -18,7 +18,7 @@ const Profile = ({ studentData }) => {
 
           try {
             // Option 1: Try the profile endpoint (if it exists)
-            const profileResponse = await axios.get(`https://finalbackend-mauve.vercel.app/students/${studentData.email}`);
+            const profileResponse = await axios.get(`https://finalbackend1.vercel.app/students/${studentData.email}`);
 
             if (profileResponse.status === 200) {
               setProfileData(profileResponse.data);
@@ -29,7 +29,7 @@ const Profile = ({ studentData }) => {
             console.log('Profile endpoint not available, trying alternative endpoints...');
 
             try {
-              const studentsResponse = await axios.get(`https://finalbackend-mauve.vercel.app/students`);
+              const studentsResponse = await axios.get(`https://finalbackend1.vercel.app/students`);
 
               if (studentsResponse.status === 200) {
                 const studentsData = studentsResponse.data;

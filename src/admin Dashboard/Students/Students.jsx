@@ -219,7 +219,7 @@ const Students = ({ isDarkMode }) => {
     try {
       const authToken = localStorage.getItem('authToken');
 
-      const response = await fetch(`https://finalbackend-mauve.vercel.app/admin/students/${studentId}/reject`, {
+      const response = await fetch(`https://finalbackend1.vercel.app/admin/students/${studentId}/reject`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

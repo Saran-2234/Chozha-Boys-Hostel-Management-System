@@ -63,12 +63,15 @@ const Attendance = ({ isDarkMode }) => {
 
       if (response.success) {
         setAttendanceRecords(response.data || []);
+        setError(null);
       } else {
-        setError(response.message || 'Failed to fetch attendance records');
+        setAttendanceRecords([]);
+        setError(response.message || "No attendance data found for the current filters.");
       }
     } catch (err) {
-      console.error('Error fetching attendance records:', err);
-      setError(err.message || 'Failed to fetch attendance records');
+      console.error("Error fetching attendance records:", err);
+      setAttendanceRecords([]);
+      setError(err.message || "Failed to fetch attendance records");
     } finally {
       setLoading(false);
     }
@@ -103,7 +106,7 @@ const Attendance = ({ isDarkMode }) => {
     // Filter by date
     if (filters.date) {
       filtered = filtered.filter(record => {
-        const recordDate = new Date(record.date).toISOString().split('T')[0];
+        const recordDate = record.date ? new Date(record.date).toISOString().split('T')[0] : null;
         return recordDate === filters.date;
       });
     }

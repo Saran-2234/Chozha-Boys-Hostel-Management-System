@@ -84,7 +84,7 @@ function Login({ onClose, onOpenRegister, loginType }) {
       const endpoint = loginType === "admin" ? "adminslogin" : "studentslogin";
 
       const response = await axios.post(
-        `https://finalbackend-mauve.vercel.app/${endpoint}`,
+        `https://finalbackend1.vercel.app/${endpoint}`,
         requestData,
         {
           headers: { "Content-Type": "application/json" },

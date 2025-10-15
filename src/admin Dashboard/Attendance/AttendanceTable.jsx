@@ -21,7 +21,7 @@ const AttendanceTable = ({ isDarkMode, selectedDate, selectedClass }) => {
       }
 
       try {
-        const response = await axios.get('https://finalbackend-mauve.vercel.app/getattendanceforadmin', {
+        const response = await axios.get('https://finalbackend1.vercel.app/getattendanceforadmin', {
           params: {
             date: selectedDate,
             class: selectedClass
@@ -96,7 +96,7 @@ const AttendanceTable = ({ isDarkMode, selectedDate, selectedClass }) => {
     try {
       // Update each attendance record
       for (const record of attendanceData) {
-        await axios.post('https://finalbackend-mauve.vercel.app/changeattendanceforadmin', {
+        await axios.post('https://finalbackend1.vercel.app/changeattendanceforadmin', {
           attendance_id: record.id,
           update: record.status,
           token

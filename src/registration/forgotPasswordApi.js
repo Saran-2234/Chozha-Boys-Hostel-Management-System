@@ -10,7 +10,7 @@ export const forgotPasswordMailPush = async (email) => {
   }
 
   try {
-    const response = await fetch('https://finalbackend-mauve.vercel.app/forgotpasswordemailpush', {
+    const response = await fetch('https://finalbackend1.vercel.app/forgotpasswordemailpush', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -62,7 +62,7 @@ export const forgotPasswordSendCode = async (email, token) => {
   }
 
   try {
-    const response = await fetch('https://finalbackend-mauve.vercel.app/forgotpasswordsendcode', {
+    const response = await fetch('https://finalbackend1.vercel.app/forgotpasswordsendcode', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -117,7 +117,7 @@ export const verifyForgotPasswordCode = async (email, code, token) => {
   }
 
   try {
-    const response = await fetch('https://finalbackend-mauve.vercel.app/veriycodeforgot', {
+    const response = await fetch('https://finalbackend1.vercel.app/veriycodeforgot', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -171,7 +171,7 @@ export const changePassword = async (email, password, token) => {
   }
 
   try {
-    const response = await fetch('https://finalbackend-mauve.vercel.app/changepassword', {
+    const response = await fetch('https://finalbackend1.vercel.app/changepassword', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

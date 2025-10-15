@@ -10,7 +10,7 @@ import axios from "axios";
 export async function changeAttendance(attendanceId, newStatus, token) {
   try {
     const response = await axios.post(
-      "https://finalbackend-mauve.vercel.app/changeattendanceforadmin",
+      "https://finalbackend1.vercel.app/changeattendanceforadmin",
       {
         attendance_id: attendanceId,
         update: newStatus,

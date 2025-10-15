@@ -35,7 +35,7 @@ const Attendance = () => {
 
         try {
           const response = await axios.post(
-            'https://finalbackend-mauve.vercel.app/attendance',
+            'https://finalbackend1.vercel.app/attendance',
             {
               lat,
               lng,
@@ -98,7 +98,7 @@ const Attendance = () => {
 
         try {
           const response = await axios.post(
-            'https://finalbackend-mauve.vercel.app/absent',
+            'https://finalbackend1.vercel.app/absent',
             {
               lat,
               lng,

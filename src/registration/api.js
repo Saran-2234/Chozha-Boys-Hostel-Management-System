@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_BASE = "https://finalbackend-mauve.vercel.app";
+const API_BASE = "https://finalbackend1.vercel.app/";
 
 // Axios instance
 const api = axios.create({
@@ -234,24 +234,71 @@ export const editStudentDetails = async (studentId, studentData) => {
 // Show Attendance Records
 export const showAttends = async (filters = {}) => {
   try {
-    const authToken = localStorage.getItem("accessToken");
-    if (!authToken) {
+    const accessToken = localStorage.getItem("accessToken");
+    if (!accessToken) {
       throw new Error("No authentication token found. Please log in again.");
     }
 
-    const requestBody = { token: authToken };
+    const response = await api.post(
+      "/showattends",
+      {
+        accessToken, // required
+        registration_number: filters.registration_number,
+        department: filters.department,
+        academic_year: filters.academic_year,
+        date: filters.date,
+        status: filters.status,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        withCredentials: true,
+      }
+    );
 
-    const response = await api.post("/showattends", requestBody, {
-      headers: { Authorization: `Bearer ${authToken}` },
-      withCredentials: true, // ✅ ensures cookies are included
-    });
-    console.log(response);
-
-    if (response.status !== 200) {
-      throw new Error(response.data.message || `Failed to fetch attendance: ${response.status}`);
+    if (!response.data.success) {
+      return {
+        success: false,
+        message:
+          response.data.message || "No attendance data found for the current filters.",
+        data: [],
+      };
     }
 
-    return response.data;
+    // If backend returns a refreshed token, store it for subsequent calls
+    if (response.data.accessToken) {
+      localStorage.setItem("accessToken", response.data.accessToken);
+    }
+
+    const rawData = Array.isArray(response.data.data) ? response.data.data : [];
+    const normalizedData = rawData.map((entry) => {
+      const status =
+        entry.status ??
+        entry.attendance_status ??
+        entry.attendanceStatus ??
+        entry.AttendanceStatus ??
+        null;
+
+      const date =
+        entry.date ??
+        entry.attendance_date ??
+        entry.attendanceDate ??
+        entry.AttendanceDate ??
+        null;
+
+      return {
+        ...entry,
+        status,
+        date,
+      };
+    });
+
+    return {
+      success: true,
+      data: normalizedData,
+    };
   } catch (error) {
     console.error("Error fetching attendance:", error);
     throw error;

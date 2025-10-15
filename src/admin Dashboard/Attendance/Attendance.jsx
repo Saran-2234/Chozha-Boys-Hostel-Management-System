@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Button from '../Common/Button';
-import { showAttends, fetchDepartments } from '../../registration/api';
+import { showAttends, fetchDepartments, fetchStudents as fetchStudentsApi } from '../../registration/api';
 import { changeAttendance } from './attendanceUtils';
 import Modal from '../Common/Modal'; // Assuming a Modal component exists for popup messages
 
@@ -14,24 +14,40 @@ const Attendance = ({ isDarkMode }) => {
   const [attendanceRecords, setAttendanceRecords] = useState([]);
   const [filteredRecords, setFilteredRecords] = useState([]);
   const [departments, setDepartments] = useState([]);
+  const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [popupMessage, setPopupMessage] = useState(null);
   const [popupData, setPopupData] = useState(null);
   const [infoMessage, setInfoMessage] = useState(null);
+  const [studentLoadError, setStudentLoadError] = useState(null);
   
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
+  const memoizedStudents = useMemo(() => {
+    return students.map((student) => ({
+      id: student.id,
+      name: [student.name, student.fullname, student.first_name, student.firstname, student.last_name]
+        .filter(Boolean)
+        .join(' ') || 'Unknown Student',
+      department: student.department || student.department_name || '',
+      academic_year: student.academic_year || student.academicYear || student.year || '',
+      student_id: student.id ?? student.student_id ?? student.studentId ?? null,
+      registration_number: student.registration_number || student.registrationNumber || '',
+    }));
+  }, [students]);
+
   useEffect(() => {
     fetchAttendanceRecords();
     loadDepartments();
+    loadStudents();
   }, []);
 
   useEffect(() => {
     applyFilters();
-  }, [filters, attendanceRecords]);
+  }, [filters, attendanceRecords, memoizedStudents]);
 
   useEffect(() => {
     setCurrentPage(1); // Reset to first page when filters change
@@ -43,6 +59,18 @@ const Attendance = ({ isDarkMode }) => {
       setDepartments(depts || []);
     } catch (err) {
       console.error('Error loading departments:', err);
+    }
+  };
+
+  const loadStudents = async () => {
+    try {
+      setStudentLoadError(null);
+      const list = await fetchStudentsApi();
+      setStudents(Array.isArray(list) ? list : []);
+    } catch (err) {
+      console.error('Error loading students:', err);
+      setStudentLoadError(err.message || 'Unable to load students');
+      setStudents([]);
     }
   };
 
@@ -89,6 +117,12 @@ const Attendance = ({ isDarkMode }) => {
 
     let filtered = [...attendanceRecords];
 
+    const selectedDate = filters.date ? new Date(filters.date) : null;
+    const today = new Date();
+    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const selectedDateStart = selectedDate ? new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate()) : null;
+    const isFutureDate = selectedDateStart ? selectedDateStart.getTime() > todayStart.getTime() : false;
+
     // Filter by department
     if (filters.department) {
       filtered = filtered.filter(record => 
@@ -120,6 +154,27 @@ const Attendance = ({ isDarkMode }) => {
           record.status?.toLowerCase() === filters.status.toLowerCase()
         );
       }
+    }
+
+    if ((!filtered.length || isFutureDate) && selectedDateStart && memoizedStudents.length) {
+      const studentRows = memoizedStudents
+        .filter((student) => {
+          const matchesDepartment = filters.department ? (student.department?.toLowerCase() === filters.department.toLowerCase()) : true;
+          const matchesYear = filters.academic_year ? (String(student.academic_year) === String(filters.academic_year)) : true;
+          return matchesDepartment && matchesYear;
+        })
+        .map((student) => ({
+          attendance_id: `placeholder-${student.student_id ?? student.registration_number ?? Math.random()}`,
+          student_id: student.student_id,
+          name: student.name,
+          department: student.department,
+          academic_year: student.academic_year,
+          date: filters.date ? new Date(filters.date).toISOString() : selectedDateStart.toISOString(),
+          status: null,
+          isPlaceholder: true,
+        }));
+
+      filtered = selectedDateStart ? studentRows : filtered;
     }
 
     setFilteredRecords(filtered);
@@ -385,6 +440,16 @@ const Attendance = ({ isDarkMode }) => {
               <p>Error: {error}</p>
             </div>
           )}
+          {studentLoadError && (
+            <div className={`p-3 mb-4 rounded-md text-sm ${isDarkMode ? 'bg-yellow-900 text-yellow-200' : 'bg-yellow-100 text-yellow-700'}`}>
+              <strong>Student list unavailable.</strong> {studentLoadError}
+            </div>
+          )}
+          {filters.date && new Date(filters.date) > new Date() && (
+            <div className={`p-3 mb-4 rounded-md text-sm ${isDarkMode ? 'bg-blue-900 text-blue-100' : 'bg-blue-100 text-blue-700'}`}>
+              Attendance for future dates is displayed as <strong>Not Marked</strong> and cannot be edited.
+            </div>
+          )}
 
           <div className="overflow-x-auto select-none">
             <table className={`min-w-full divide-y ${isDarkMode ? 'divide-gray-700' : 'divide-gray-200'}`}>
@@ -419,7 +484,7 @@ const Attendance = ({ isDarkMode }) => {
                   </tr>
                 ) : (
                   currentRecords.map((record) => (
-                    <tr key={record.attendance_id} className={isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}>
+                    <tr key={record.attendance_id || `placeholder-row-${record.student_id}`} className={isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}>
                       <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{record.name}</td>
                       <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>{record.department}</td>
                       <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>{record.academic_year}</td>
@@ -430,7 +495,11 @@ const Attendance = ({ isDarkMode }) => {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
-                        {!record.status ? (
+                        {record.isPlaceholder || (filters.date && new Date(filters.date) > new Date()) ? (
+                          <span className={`text-xs font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                            Changes disabled for future dates
+                          </span>
+                        ) : !record.status ? (
                           <div className="flex space-x-2 justify-center">
                             <Button
                               onClick={() => confirmAttendanceChange(record.attendance_id, record.name, 'Present', record.student_id)}

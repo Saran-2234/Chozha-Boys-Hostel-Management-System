@@ -2,20 +2,27 @@ import axios from "axios";
 
 /**
  * Change attendance status for a student by Admin.
- * @param {string} attendanceId - ID of the attendance record.
+ * @param {string | number | null} attendanceId - Existing record ID (use null/empty for insert).
  * @param {string} newStatus - New status (e.g., Present, Absent, Leave).
  * @param {string} token - Access token for authorization.
+ * @param {number | null} studentId - Student ID; required when creating a new record.
  * @returns {Promise<Object>} - API response data.
  */
-export async function changeAttendance(attendanceId, newStatus, token) {
+export async function changeAttendance(attendanceId, newStatus, token, studentId = null) {
   try {
+    const payload = {
+      attendance_id: attendanceId ?? "",
+      update: newStatus,
+      token,
+    };
+
+    if (!attendanceId && studentId) {
+      payload.student_id = studentId;
+    }
+
     const response = await axios.post(
       "https://finalbackend1.vercel.app/changeattendanceforadmin",
-      {
-        attendance_id: attendanceId,
-        update: newStatus,
-        token: token, // Optional if Authorization header is used
-      },
+      payload,
       {
         headers: {
           "Content-Type": "application/json",

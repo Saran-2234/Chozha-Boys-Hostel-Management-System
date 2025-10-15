@@ -21,35 +21,56 @@ const AttendanceTable = ({ isDarkMode, selectedDate, selectedClass }) => {
       }
 
       try {
-        const response = await axios.get('https://finalbackend1.vercel.app/getattendanceforadmin', {
-          params: {
+        const response = await axios.post(
+          'https://finalbackend1.vercel.app/showattends',
+          {
+            accessToken: token,
             date: selectedDate,
-            class: selectedClass
+            class: selectedClass,
           },
-          headers: {
-            Authorization: `Bearer ${token}`
-          },
-          withCredentials: true
-        });
+          {
+            headers:
+              {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json',
+              },
+            withCredentials: true,
+          }
+        );
 
         if (response.data.success) {
-          // Assume response has attendance array with joined student data
-          // Adjust field names to match DB: roll_number -> rollNo, room_number -> room
-          const formattedData = (response.data.attendance || []).map(record => ({
-            ...record,
-            student: {
-              ...record.student,
-              rollNo: record.student.roll_number,
-              room: record.student.room_number
-            }
-          }));
-          setAttendanceData(formattedData);
+          const formattedData = (response.data.data || []).map((record) => {
+            const student = record.student || {};
+            const normalizedStudentId =
+              student.id ?? student.student_id ?? record.student_id ?? null;
+            const normalizedDate =
+              record.date ?? record.attendance_date ?? selectedDate ?? null;
+            return {
+              ...record,
+              id: record.id ?? record.attendance_id ?? null,
+              date: normalizedDate,
+              student: {
+                ...student,
+                id: normalizedStudentId,
+                rollNo: student.roll_number ?? student.rollNo,
+                room: student.room_number ?? student.room,
+              },
+            };
+          });
+          setAttendanceData(
+            formattedData.map((item) => ({
+              ...item,
+              displayDate: item.date ?? selectedDate ?? null,
+            }))
+          );
         } else {
           setMessage('Failed to fetch attendance data.');
         }
       } catch (err) {
         if (err.response) {
-          setMessage(err.response.data.message || 'An error occurred while fetching data.');
+          setMessage(
+            err.response.data.message || 'An error occurred while fetching data.'
+          );
         } else {
           setMessage('Network error.');
         }
@@ -97,7 +118,8 @@ const AttendanceTable = ({ isDarkMode, selectedDate, selectedClass }) => {
       // Update each attendance record
       for (const record of attendanceData) {
         await axios.post('https://finalbackend1.vercel.app/changeattendanceforadmin', {
-          attendance_id: record.id,
+          attendance_id: record.id ?? '',
+          student_id: record.student?.id ?? record.student_id ?? null,
           update: record.status,
           token
         }, {
@@ -161,6 +183,9 @@ const AttendanceTable = ({ isDarkMode, selectedDate, selectedClass }) => {
                 </td>
                 <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>
                   {record.student.room}
+                </td>
+                <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>
+                  {record.displayDate ? new Date(record.displayDate).toLocaleDateString() : new Date(selectedDate).toLocaleDateString()}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <select

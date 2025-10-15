@@ -181,7 +181,7 @@ const Attendance = ({ isDarkMode }) => {
     setCurrentPage(1);
   };
 
-  const handleAttendanceUpdate = async (attendanceId, newStatus) => {
+  const handleAttendanceUpdate = async (attendanceId, newStatus, studentId) => {
     try {
       const token = localStorage.getItem("accessToken"); // Get token from localStorage
       if (!token) {
@@ -190,7 +190,7 @@ const Attendance = ({ isDarkMode }) => {
         return;
       }
 
-      const response = await changeAttendance(attendanceId, newStatus, token);
+      const response = await changeAttendance(attendanceId, newStatus, token, studentId);
 
       if (response.success) {
         setInfoMessage("Attendance updated successfully");
@@ -212,14 +212,14 @@ const Attendance = ({ isDarkMode }) => {
     }
   };
 
-  const confirmAttendanceChange = (attendanceId, studentName, newStatus) => {
-    setPopupData({ attendanceId, studentName, newStatus });
+  const confirmAttendanceChange = (attendanceId, studentName, newStatus, studentId) => {
+    setPopupData({ attendanceId, studentName, newStatus, studentId });
   };
 
   const handlePopupAction = (confirm) => {
     if (confirm && popupData) {
       setInfoMessage('Okay, changing attendance...');
-      handleAttendanceUpdate(popupData.attendanceId, popupData.newStatus);
+      handleAttendanceUpdate(popupData.attendanceId, popupData.newStatus, popupData.studentId);
     }
     setPopupData(null);
   };
@@ -433,7 +433,7 @@ const Attendance = ({ isDarkMode }) => {
                         {!record.status ? (
                           <div className="flex space-x-2 justify-center">
                             <Button
-                              onClick={() => confirmAttendanceChange(record.attendance_id, record.name, 'Present')}
+                              onClick={() => confirmAttendanceChange(record.attendance_id, record.name, 'Present', record.student_id)}
                               variant="outline"
                               isDarkMode={isDarkMode}
                               className="bg-green-500 text-white hover:bg-green-600"
@@ -441,7 +441,7 @@ const Attendance = ({ isDarkMode }) => {
                               Mark Present
                             </Button>
                             <Button
-                              onClick={() => confirmAttendanceChange(record.attendance_id, record.name, 'Absent')}
+                              onClick={() => confirmAttendanceChange(record.attendance_id, record.name, 'Absent', record.student_id)}
                               variant="outline"
                               isDarkMode={isDarkMode}
                               className="bg-red-500 text-white hover:bg-red-600"
@@ -451,7 +451,7 @@ const Attendance = ({ isDarkMode }) => {
                           </div>
                         ) : record.status.toLowerCase() === 'present' ? (
                           <Button
-                            onClick={() => confirmAttendanceChange(record.attendance_id, record.name, 'Absent')}
+                            onClick={() => confirmAttendanceChange(record.attendance_id, record.name, 'Absent', record.student_id)}
                             variant="outline"
                             isDarkMode={isDarkMode}
                             className="bg-red-500 text-white hover:bg-red-600"
@@ -460,7 +460,7 @@ const Attendance = ({ isDarkMode }) => {
                           </Button>
                         ) : (
                           <Button
-                            onClick={() => confirmAttendanceChange(record.attendance_id, record.name, 'Present')}
+                            onClick={() => confirmAttendanceChange(record.attendance_id, record.name, 'Present', record.student_id)}
                             variant="outline"
                             isDarkMode={isDarkMode}
                             className="bg-green-500 text-white hover:bg-green-600"

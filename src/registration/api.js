@@ -288,10 +288,26 @@ export const showAttends = async (filters = {}) => {
         entry.AttendanceDate ??
         null;
 
+      const attendanceId =
+        entry.attendance_id ??
+        entry.attendanceId ??
+        entry.AttendanceID ??
+        entry.AttendanceId ??
+        null;
+
+      const studentId =
+        entry.student_id ??
+        entry.studentId ??
+        entry.StudentID ??
+        entry.StudentId ??
+        null;
+
       return {
         ...entry,
         status,
         date,
+        attendance_id: attendanceId,
+        student_id: studentId,
       };
     });
 

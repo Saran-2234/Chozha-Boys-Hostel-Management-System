@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import Button from '../Common/Button';
-import Modal from '../Common/Modal';
 
-const DepartmentTable = ({ isDarkMode, departments, onRefresh, onEdit }) => {
+const DepartmentTable = ({ isDarkMode, departments, onRefresh, onEdit, onDelete, deletingId }) => {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -33,14 +32,25 @@ const DepartmentTable = ({ isDarkMode, departments, onRefresh, onEdit }) => {
                     ID: {department.id}
                   </div>
                 </div>
-                <Button
-                  onClick={() => onEdit(department)}
-                  variant="outline"
-                  size="small"
-                  isDarkMode={isDarkMode}
-                >
-                  Edit
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => onEdit(department)}
+                    variant="outline"
+                    size="small"
+                    isDarkMode={isDarkMode}
+                  >
+                    Edit
+                  </Button>
+                  <Button
+                    onClick={() => onDelete(department)}
+                    variant="danger"
+                    size="small"
+                    isDarkMode={isDarkMode}
+                    disabled={deletingId === department.id}
+                  >
+                    {deletingId === department.id ? 'Deleting...' : 'Delete'}
+                  </Button>
+                </div>
               </div>
             </div>
           ))
@@ -78,14 +88,25 @@ const DepartmentTable = ({ isDarkMode, departments, onRefresh, onEdit }) => {
                     {department.department}
                   </td>
                   <td className="py-3 px-4 text-sm">
-                    <Button
-                      onClick={() => onEdit(department)}
-                      variant="outline"
-                      size="small"
-                      isDarkMode={isDarkMode}
-                    >
-                      Edit
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => onEdit(department)}
+                        variant="outline"
+                        size="small"
+                        isDarkMode={isDarkMode}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        onClick={() => onDelete(department)}
+                        variant="danger"
+                        size="small"
+                        isDarkMode={isDarkMode}
+                        disabled={deletingId === department.id}
+                      >
+                        {deletingId === department.id ? 'Deleting...' : 'Delete'}
+                      </Button>
+                    </div>
                   </td>
                 </tr>
               ))

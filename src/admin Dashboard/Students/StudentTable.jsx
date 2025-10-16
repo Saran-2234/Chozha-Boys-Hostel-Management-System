@@ -7,6 +7,7 @@ const styles = `
   .status-active { color: #10b981; }
   .status-pending { color: #f59e0b; }
   .status-rejected { color: #ef4444; }
+  .status-not-approved { color: #ef4444; }
   .status-inactive { color: #6b7280; }
   .action-btn {
     padding: 0.5rem;

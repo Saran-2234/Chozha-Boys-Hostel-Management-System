@@ -3,7 +3,7 @@ import { Card, CardHeader, CardContent } from '../Common/Card';
 import Button from '../Common/Button';
 import Modal from '../Common/Modal';
 import DepartmentTable from './DepartmentTable';
-import { addDepartment, fetchDepartments, editDepartment } from '../../registration/api';
+import { addDepartment, fetchDepartments, editDepartment, deleteDepartment } from '../../registration/api';
 
 const Departments = ({ isDarkMode }) => {
   const [departments, setDepartments] = useState([]);
@@ -17,6 +17,7 @@ const Departments = ({ isDarkMode }) => {
   const [newDepartmentName, setNewDepartmentName] = useState('');
   const [showEditModal, setShowEditModal] = useState(false);
   const [editSubmitting, setEditSubmitting] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
 
   useEffect(() => {
     fetchDepartmentsData();
@@ -94,6 +95,32 @@ const Departments = ({ isDarkMode }) => {
       alert(`Failed to edit department: ${err.message}`);
     } finally {
       setEditSubmitting(false);
+    }
+  };
+
+  const handleDeleteDepartment = async (department) => {
+    if (!department?.id) {
+      return;
+    }
+    const confirmDelete = window.confirm(`Delete department "${department.department}"?`);
+    if (!confirmDelete) {
+      return;
+    }
+    setDeletingId(department.id);
+    try {
+      const response = await deleteDepartment(department.id);
+      if (response?.success) {
+        setDepartments((prev) => prev.filter((item) => item.id !== department.id));
+        setSuccessMessage(response.message || 'Department deleted successfully!');
+        setShowSuccessModal(true);
+      } else {
+        alert(response?.message || 'Failed to delete department');
+      }
+    } catch (err) {
+      console.error('Error deleting department:', err);
+      alert(`Failed to delete department: ${err.response?.data?.message || err.message}`);
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -191,6 +218,8 @@ const Departments = ({ isDarkMode }) => {
             departments={departments}
             onRefresh={fetchDepartmentsData}
             onEdit={openEditModal}
+            onDelete={handleDeleteDepartment}
+            deletingId={deletingId}
           />
         </CardContent>
       </Card>

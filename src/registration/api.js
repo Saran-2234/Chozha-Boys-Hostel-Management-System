@@ -176,13 +176,38 @@ export const editDepartment = async (oldDepartment, newDepartment) => {
     const token = localStorage.getItem("accessToken");
     const response = await api.put(
       "/editdepartment",
-      { oldDepartment, newDepartment, token }, // ✅ token in body
-      { headers: { Authorization: `Bearer ${token}` } } // ✅ token in headers
+      { oldDepartment, newDepartment, token },
+      { headers: { Authorization: `Bearer ${token}` } }
     );
 
     return response.data;
   } catch (error) {
     console.error("Error editing department:", error);
+    throw error;
+  }
+};
+
+// Delete Department
+export const deleteDepartment = async (departmentId) => {
+  try {
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      throw new Error("No authentication token found. Please log in again.");
+    }
+
+    const response = await api.post(
+      "deletedepartment",
+      { department_id: departmentId, token },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+
+    if (response.data?.token) {
+      localStorage.setItem("accessToken", response.data.token);
+    }
+
+    return response.data;
+  } catch (error) {
+    console.error("Error deleting department:", error);
     throw error;
   }
 };

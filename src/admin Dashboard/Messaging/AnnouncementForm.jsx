@@ -23,26 +23,7 @@ const AnnouncementForm = () => {
     studentsDashboard: null
   });
 
-  const [announcements, setAnnouncements] = useState([
-    {
-      id: 1,
-      title: 'Hostel Maintenance Notice',
-      message: 'Water supply will be interrupted from 10 AM to 2 PM tomorrow.',
-      priority: 'High',
-      targetAudience: 'All Students',
-      status: 'Sent',
-      sentDate: '2024-01-14'
-    },
-    {
-      id: 2,
-      title: 'New Semester Fee Payment',
-      message: 'Semester fees are due by January 20th. Please make payments on time.',
-      priority: 'Normal',
-      targetAudience: 'All Students',
-      status: 'Scheduled',
-      scheduledDate: '2024-01-16'
-    }
-  ]);
+  const [announcements, setAnnouncements] = useState([]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -346,21 +327,25 @@ const AnnouncementForm = () => {
         <div className="glass-card rounded-xl p-6">
           <h4 className="text-lg font-semibold text-white mb-4">Recent Announcements</h4>
           <div className="space-y-4 max-h-96 overflow-y-auto">
-            {announcements.map((ann) => (
-              <div key={ann.id} className="border border-slate-600 rounded-lg p-4">
-                <div className="flex justify-between items-start mb-2">
-                  <h5 className="font-medium text-white">{ann.title}</h5>
-                  <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(ann.status)}`}>
-                    {ann.status}
-                  </span>
+            {announcements.length === 0 ? (
+              <p className="text-slate-400 text-sm">No announcements yet.</p>
+            ) : (
+              announcements.map((ann) => (
+                <div key={ann.id} className="border border-slate-600 rounded-lg p-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <h5 className="font-medium text-white">{ann.title}</h5>
+                    <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(ann.status)}`}>
+                      {ann.status}
+                    </span>
+                  </div>
+                  <p className="text-slate-300 text-sm mb-2">{ann.message}</p>
+                  <div className="flex justify-between items-center text-xs text-slate-400">
+                    <span className={getPriorityColor(ann.priority)}>{ann.priority} Priority</span>
+                    <span>{ann.sentDate || ann.scheduledDate}</span>
+                  </div>
                 </div>
-                <p className="text-slate-300 text-sm mb-2">{ann.message}</p>
-                <div className="flex justify-between items-center text-xs text-slate-400">
-                  <span className={getPriorityColor(ann.priority)}>{ann.priority} Priority</span>
-                  <span>{ann.sentDate || ann.scheduledDate}</span>
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
       </div>

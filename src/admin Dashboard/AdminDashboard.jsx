@@ -12,6 +12,7 @@ import Messaging from './Messaging/Messaging';
 import Departments from './Departments/Departments';
 import Settings from './Settings/Settings';
 import Reduction from './Reduction/Reduction';
+import Promotion from './Promotion/Promotion';
 import RefreshConfirmationModal from './components/RefreshConfirmationModal'; // Import the refresh modal
 import './styles/adminDashboard.css';
 
@@ -101,6 +102,8 @@ const AdminDashboard = () => {
         return <Attendance isDarkMode={isDarkMode} />;
       case 'messbills':
         return <MessBills isDarkMode={isDarkMode} />;
+      case 'promotion':
+        return <Promotion isDarkMode={isDarkMode} />;
       case 'complaints':
         return <Complaints isDarkMode={isDarkMode} />;
       case 'rooms':

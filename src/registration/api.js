@@ -15,75 +15,83 @@ const api = axios.create({
 
 // Send OTP
 export const sendOTP = async (email) => {
-  if (!email) return { success: false, error: "Email is required", status: 400 };
+  if (!email) return { success: false, message: "Email is required" };
 
   try {
-    const emailPushResponse = await api.post("/emailpush", { email });
-    const emailPushData = emailPushResponse.data;
+    const { data: emailPushData } = await api.post("emailpush", { email });
 
-    let result;
-    switch (emailPushResponse.status) {
-      case 200:
-        result = {
-          success: true,
-          message: emailPushData.message || "Email already exists, pending verification",
-          data: emailPushData.data || { email },
-        };
-        break;
-      case 201:
-        result = {
-          success: true,
-          message: emailPushData.message || "Email record initialized, waiting for verification code",
-          data: emailPushData.data || { email },
-        };
-        break;
-      default:
-        result = { success: false, error: emailPushData.error || "Unexpected error" };
+    if (!emailPushData?.success) {
+      return { success: false, message: emailPushData?.message || "Unable to start verification" };
     }
 
-    if (!result.success) return result;
+    const emailToken = emailPushData.token;
 
-    const sendCodeResponse = await api.post("/sendcode", { email });
-    const sendCodeData = sendCodeResponse.data;
-
-    if (sendCodeResponse.status === 200) {
-      return {
-        ...result,
-        sendCodeMessage: sendCodeData.message || "Verification code sent to email",
-        expiringtime: sendCodeData.expiringtime || null,
-      };
+    if (!emailToken) {
+      return { success: false, message: "Verification token missing" };
     }
 
-    return { success: false, message: sendCodeData.message || "Unexpected error sending verification code" };
+    const { data: sendCodeData } = await api.post("sendcode", { email, token: emailToken });
+
+    if (!sendCodeData?.success) {
+      return { success: false, message: sendCodeData?.message || "Unable to send verification code" };
+    }
+
+    return {
+      success: true,
+      message: emailPushData.message || "Registration verification process started.",
+      sendCodeMessage: sendCodeData.message || "Verification code sent to email",
+      token: sendCodeData.token || "",
+      emailToken,
+      code: sendCodeData.code,
+      expiringtime: sendCodeData.expiringtime || null,
+    };
   } catch (error) {
-    return { success: false, error: "Error sending OTP: " + (error.response?.data?.message || error.message) };
+    return { success: false, message: error.response?.data?.message || error.message || "Error sending OTP" };
   }
 };
 
 // Verify OTP
-export const verifyOTP = async (email, code) => {
-  if (!email || !code) return { success: false, message: "Email and code are required" };
+export const verifyOTP = async (email, code, token) => {
+  if (!email || !code || !token) return { success: false, message: "Email, code, and token are required" };
 
   try {
-    const response = await api.post("/emailverify", { email, code });
-    return { success: true, message: response.data.message || "Email verified successfully" };
+    const { data } = await api.post("emailverify", { email, code, token });
+
+    if (!data?.success) {
+      return { success: false, message: data?.message || "OTP verification failed" };
+    }
+
+    return {
+      success: true,
+      message: data.message || "Email verified successfully",
+      token: data.token || token,
+    };
   } catch (error) {
-    return { success: false, message: error.response?.data?.message || "Error verifying OTP" };
+    return { success: false, message: error.response?.data?.message || error.message || "Error verifying OTP" };
   }
 };
 
 // Register User
 export const registerUser = async (payload) => {
+  if (!payload?.token) {
+    return { success: false, message: "Verification token is required" };
+  }
+
   try {
-    const response = await api.post("/register", payload);
+    const { data } = await api.post("register", payload);
+
+    if (!data?.success) {
+      return { success: false, message: data?.message || "Registration failed" };
+    }
+
     return {
       success: true,
-      message: response.data.message || "User registered successfully",
-      user: response.data.user || {},
-      token: response.data.token,
+      message: data.message || "User registered successfully",
+      user: data.user || {},
+      token: data.token,
     };
   } catch (error) {
-    return { success: false, message: error.response?.data?.message || "Error during registration" };
+    return { success: false, message: error.response?.data?.message || error.message || "Error during registration" };
   }
 };
 
@@ -318,5 +326,35 @@ export const showAttends = async (filters = {}) => {
   } catch (error) {
     console.error("Error fetching attendance:", error);
     throw error;
+  }
+};
+
+export const promoteStudents = async (email, isdeletefinalyear) => {
+  try {
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      throw new Error("No authentication token found. Please log in again.");
+    }
+
+    const response = await axios.post(
+      "https://finalbackend1.vercel.app/promotion",
+      {
+        email,
+        isdeletefinalyear,
+        token,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        withCredentials: true,
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Error calling promotion API:", error.response?.data || error.message);
+    return error.response?.data || { success: false, error: "Unknown error" };
   }
 };

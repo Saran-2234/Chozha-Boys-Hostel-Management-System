@@ -49,6 +49,7 @@ function Register({ onClose, onOpenLogin, isLight }) {
   const [otpSent, setOtpSent] = useState(false);
   const [otpVerified, setOtpVerified] = useState(false);
   const [emailSendMessage, setEmailSendMessage] = useState('');
+  const [verificationToken, setVerificationToken] = useState('');
   const [sendingOtp, setSendingOtp] = useState(false);
   const [verifyingOtp, setVerifyingOtp] = useState(false);
   const [resendCountdown, setResendCountdown] = useState(0);
@@ -92,6 +93,9 @@ function Register({ onClose, onOpenLogin, isLight }) {
       const result = await sendOTP(formData.emailId);
       if (result.success) {
         setOtpSent(true);
+        setOtpVerified(false);
+        setVerificationToken(result.token || '');
+        setFormData(prev => ({ ...prev, otpCode: '' }));
         // Calculate remaining time from expiringtime if available, otherwise default to 60 seconds
         let countdown = 60;
         if (result.expiringtime) {
@@ -103,7 +107,7 @@ function Register({ onClose, onOpenLogin, isLight }) {
         // Show a small inline message under the email input instead of the global notification
         setEmailSendMessage(result.sendCodeMessage || result.message || 'OTP sent to your email address');
       } else {
-        setNotificationMessage(result.error || result.message || 'Failed to send OTP');
+        setNotificationMessage(result.message || 'Failed to send OTP');
         setNotificationType('error');
       }
     } catch (error) {
@@ -131,6 +135,7 @@ function Register({ onClose, onOpenLogin, isLight }) {
       setOtpVerified(false);
       setResendCountdown(0);
       setEmailSendMessage('');
+      setVerificationToken('');
     }
 
     // Validate field and update errors
@@ -276,11 +281,17 @@ function Register({ onClose, onOpenLogin, isLight }) {
       setNotificationType('error');
       return;
     }
+    if (!verificationToken) {
+      setNotificationMessage('Verification token missing. Please resend OTP.');
+      setNotificationType('error');
+      return;
+    }
     setVerifyingOtp(true);
     try {
-      const result = await verifyOTP(formData.emailId, formData.otpCode);
+      const result = await verifyOTP(formData.emailId, formData.otpCode, verificationToken);
       if (result.success) {
         setOtpVerified(true);
+        setVerificationToken(result.token || verificationToken);
         // clear the inline OTP-sent message after successful verification
         setEmailSendMessage('');
         // Clear any previous global notification (like 'Invalid verification code')
@@ -317,6 +328,11 @@ function Register({ onClose, onOpenLogin, isLight }) {
       setNotificationType('error');
       return;
     }
+    if (!verificationToken) {
+      setNotificationMessage('Verification token missing. Please resend OTP.');
+      setNotificationType('error');
+      return;
+    }
 
     // Set loading state
     setIsRegistering(true);
@@ -348,9 +364,10 @@ function Register({ onClose, onOpenLogin, isLight }) {
       room_number: parseInt(formData.roomNumber, 10),
       email: formData.emailId,
       password: formData.password,
-      profile_photo: formData.photo, // base64 string
+      profile_photo: formData.photo,
       status: 'pending',
-      approved_by: 'Admin'
+      approved_by: 'Admin',
+      token: verificationToken
     };
 
     try {
@@ -367,6 +384,8 @@ function Register({ onClose, onOpenLogin, isLight }) {
           localStorage.setItem("authToken", token);
           localStorage.setItem("token", token);
         }
+
+        setVerificationToken('');
 
         setNotificationMessage(result.message || 'You have registered successfully! Please wait until warden approval.');
         setNotificationType('success');
@@ -574,42 +593,40 @@ function Register({ onClose, onOpenLogin, isLight }) {
         </div>
 
         
-
-        {/* Cancel confirmation dialog */}
-        {showCancelConfirm && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-60">
-            <div className="bg-white dark:bg-slate-900 rounded-lg p-6 w-[90%] max-w-md">
-              <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-3">Cancel registration?</h3>
-              <p className="text-sm text-slate-700 dark:text-slate-300 mb-4">Your registration is not complete. Are you sure you want to cancel?</p>
-              <div className="flex justify-end gap-3">
-                <button className="px-4 py-2 rounded-md bg-gray-200 text-gray-800" onClick={() => setShowCancelConfirm(false)}>Continue registration</button>
-                <button className="px-4 py-2 rounded-md bg-red-600 text-white" onClick={() => { setShowCancelConfirm(false); onClose(); }}>Yes, cancel</button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Success popup shown after registration */}
-        {showSuccessModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-60">
-            <div className="bg-white dark:bg-slate-900 rounded-lg p-6 w-[90%] max-w-md">
-              <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-3">Registration submitted</h3>
-              <p className="text-sm text-slate-700 dark:text-slate-300 mb-4">You have registered successfully. Please wait until the warden confirms your registration. Once approved you will be able to login.</p>
-              <div className="flex justify-end gap-3">
-                <button
-                  className="px-4 py-2 rounded-md bg-emerald-600 text-white"
-                  onClick={() => {
-                    setShowSuccessModal(false);
-                    onClose();
-                  }}
-                >
-                  OK
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
+
+      {/* Cancel confirmation dialog */}
+      {showCancelConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[70]">
+          <div className="bg-white dark:bg-slate-900 rounded-lg p-6 w-[90%] max-w-md">
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-3">Cancel registration?</h3>
+            <p className="text-sm text-slate-700 dark:text-slate-300 mb-4">Your registration is not complete. Are you sure you want to cancel?</p>
+            <div className="flex justify-end gap-3">
+              <button className="px-4 py-2 rounded-md bg-gray-200 text-gray-800" onClick={() => setShowCancelConfirm(false)}>Continue registration</button>
+              <button className="px-4 py-2 rounded-md bg-red-600 text-white" onClick={() => { setShowCancelConfirm(false); onClose(); }}>Yes, cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Success popup shown after registration */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[80]">
+          <div className="bg-white dark:bg-slate-900 rounded-lg p-6 w-[90%] max-w-md text-center">
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-3">Registration submitted</h3>
+            <p className="text-sm text-slate-700 dark:text-slate-300 mb-6">You have registered successfully. Please wait until the warden confirms your registration. Once approved you will be able to login.</p>
+            <button
+              className="px-5 py-2 rounded-md bg-emerald-600 text-white"
+              onClick={() => {
+                setShowSuccessModal(false);
+                onClose();
+              }}
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

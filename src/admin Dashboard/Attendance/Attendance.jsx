@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import Button from '../Common/Button';
-import { showAttends, fetchDepartments, fetchStudents as fetchStudentsApi } from '../../registration/api';
+import { showAttends, fetchDepartments } from '../../registration/api';
 import { changeAttendance } from './attendanceUtils';
 import Modal from '../Common/Modal'; // Assuming a Modal component exists for popup messages
 
@@ -12,46 +12,29 @@ const Attendance = ({ isDarkMode }) => {
     status: ''
   });
   const [attendanceRecords, setAttendanceRecords] = useState([]);
-  const [filteredRecords, setFilteredRecords] = useState([]);
   const [departments, setDepartments] = useState([]);
-  const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [popupMessage, setPopupMessage] = useState(null);
   const [popupData, setPopupData] = useState(null);
   const [infoMessage, setInfoMessage] = useState(null);
-  const [studentLoadError, setStudentLoadError] = useState(null);
-  
-  // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-
-  const memoizedStudents = useMemo(() => {
-    return students.map((student) => ({
-      id: student.id,
-      name: [student.name, student.fullname, student.first_name, student.firstname, student.last_name]
-        .filter(Boolean)
-        .join(' ') || 'Unknown Student',
-      department: student.department || student.department_name || '',
-      academic_year: student.academic_year || student.academicYear || student.year || '',
-      student_id: student.id ?? student.student_id ?? student.studentId ?? null,
-      registration_number: student.registration_number || student.registrationNumber || '',
-    }));
-  }, [students]);
+  const [bulkAction, setBulkAction] = useState(null);
+  const [isBulkProcessing, setIsBulkProcessing] = useState(false);
 
   useEffect(() => {
-    fetchAttendanceRecords();
     loadDepartments();
-    loadStudents();
   }, []);
 
   useEffect(() => {
-    applyFilters();
-  }, [filters, attendanceRecords, memoizedStudents]);
+    const hasActiveFilters = Object.values(filters).some(Boolean);
+    if (!hasActiveFilters) {
+      setAttendanceRecords([]);
+      return;
+    }
 
-  useEffect(() => {
-    setCurrentPage(1); // Reset to first page when filters change
-  }, [filteredRecords]);
+    fetchAttendanceRecords(filters);
+  }, [filters]);
 
   const loadDepartments = async () => {
     try {
@@ -62,17 +45,6 @@ const Attendance = ({ isDarkMode }) => {
     }
   };
 
-  const loadStudents = async () => {
-    try {
-      setStudentLoadError(null);
-      const list = await fetchStudentsApi();
-      setStudents(Array.isArray(list) ? list : []);
-    } catch (err) {
-      console.error('Error loading students:', err);
-      setStudentLoadError(err.message || 'Unable to load students');
-      setStudents([]);
-    }
-  };
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
@@ -82,12 +54,12 @@ const Attendance = ({ isDarkMode }) => {
     }));
   };
 
-  const fetchAttendanceRecords = async () => {
+  const fetchAttendanceRecords = async (selectedFilters) => {
     setLoading(true);
     setError(null);
 
     try {
-      const response = await showAttends();
+      const response = await showAttends(selectedFilters);
 
       if (response.success) {
         setAttendanceRecords(response.data || []);
@@ -105,81 +77,6 @@ const Attendance = ({ isDarkMode }) => {
     }
   };
 
-  const applyFilters = () => {
-    // Check if any filter is applied
-    const hasActiveFilters = filters.department || filters.academic_year || filters.date || filters.status;
-    
-    // If no filters are applied, show empty results
-    if (!hasActiveFilters) {
-      setFilteredRecords([]);
-      return;
-    }
-
-    let filtered = [...attendanceRecords];
-
-    const selectedDate = filters.date ? new Date(filters.date) : null;
-    const today = new Date();
-    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    const selectedDateStart = selectedDate ? new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate()) : null;
-    const isFutureDate = selectedDateStart ? selectedDateStart.getTime() > todayStart.getTime() : false;
-
-    // Filter by department
-    if (filters.department) {
-      filtered = filtered.filter(record => 
-        record.department?.toLowerCase() === filters.department.toLowerCase()
-      );
-    }
-
-    // Filter by academic year
-    if (filters.academic_year) {
-      filtered = filtered.filter(record => 
-        record.academic_year?.toString() === filters.academic_year
-      );
-    }
-
-    // Filter by date
-    if (filters.date) {
-      filtered = filtered.filter(record => {
-        const recordDate = record.date ? new Date(record.date).toISOString().split('T')[0] : null;
-        return recordDate === filters.date;
-      });
-    }
-
-    // Filter by status
-    if (filters.status) {
-      if (filters.status === 'Not Marked') {
-        filtered = filtered.filter(record => !record.status);
-      } else {
-        filtered = filtered.filter(record => 
-          record.status?.toLowerCase() === filters.status.toLowerCase()
-        );
-      }
-    }
-
-    if ((!filtered.length || isFutureDate) && selectedDateStart && memoizedStudents.length) {
-      const studentRows = memoizedStudents
-        .filter((student) => {
-          const matchesDepartment = filters.department ? (student.department?.toLowerCase() === filters.department.toLowerCase()) : true;
-          const matchesYear = filters.academic_year ? (String(student.academic_year) === String(filters.academic_year)) : true;
-          return matchesDepartment && matchesYear;
-        })
-        .map((student) => ({
-          attendance_id: `placeholder-${student.student_id ?? student.registration_number ?? Math.random()}`,
-          student_id: student.student_id,
-          name: student.name,
-          department: student.department,
-          academic_year: student.academic_year,
-          date: filters.date ? new Date(filters.date).toISOString() : selectedDateStart.toISOString(),
-          status: null,
-          isPlaceholder: true,
-        }));
-
-      filtered = selectedDateStart ? studentRows : filtered;
-    }
-
-    setFilteredRecords(filtered);
-  };
-
   const handleClearFilters = () => {
     setFilters({
       department: '',
@@ -187,12 +84,13 @@ const Attendance = ({ isDarkMode }) => {
       date: '',
       status: ''
     });
+    setAttendanceRecords([]);
     setCurrentPage(1);
   };
 
   const handleExport = () => {
-    const recordsToExport = filteredRecords.length > 0 ? filteredRecords : attendanceRecords;
-    
+    const recordsToExport = attendanceRecords;
+
     if (recordsToExport.length === 0) {
       alert('No records to export');
       return;
@@ -201,13 +99,13 @@ const Attendance = ({ isDarkMode }) => {
     const headers = ['Name', 'Department', 'Year', 'Date', 'Status'];
     const csvContent = [
       headers.join(','),
-      ...recordsToExport.map(record => [
+      ...recordsToExport.map((record) => [
         record.name,
         record.department,
         record.academic_year,
         record.date,
-        record.status || 'Not Marked'
-      ].join(','))
+        record.status || 'Not Marked',
+      ].join(',')),
     ].join('\n');
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -221,11 +119,10 @@ const Attendance = ({ isDarkMode }) => {
     document.body.removeChild(link);
   };
 
-  // Pagination logic
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentRecords = filteredRecords.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(filteredRecords.length / itemsPerPage);
+  const currentRecords = attendanceRecords.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(attendanceRecords.length / itemsPerPage);
 
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
@@ -236,12 +133,35 @@ const Attendance = ({ isDarkMode }) => {
     setCurrentPage(1);
   };
 
+  const handleBulkMarkRequest = (status) => {
+    if (!filters.department || !filters.academic_year || !filters.date) {
+      setInfoMessage('Please select department, academic year, and date before applying bulk attendance.');
+      setTimeout(() => setInfoMessage(null), 2000);
+      return;
+    }
+
+    if (filters.date && new Date(filters.date) > new Date()) {
+      setInfoMessage('Bulk updates are disabled for future dates. Please pick a past or current date.');
+      setTimeout(() => setInfoMessage(null), 2000);
+      return;
+    }
+
+    if (attendanceRecords.length === 0) {
+      setInfoMessage('No students match the current filters. Please adjust the filters and try again.');
+      setTimeout(() => setInfoMessage(null), 2000);
+      return;
+    }
+
+    setBulkAction(status);
+    setPopupData({ isBulk: true, status });
+  };
+
   const handleAttendanceUpdate = async (attendanceId, newStatus, studentId) => {
     try {
-      const token = localStorage.getItem("accessToken"); // Get token from localStorage
+      const token = localStorage.getItem("accessToken");
       if (!token) {
         setInfoMessage("No access token found. Please log in again.");
-        setPopupData(null); // Close popup on error
+        setPopupData(null);
         return;
       }
 
@@ -249,21 +169,20 @@ const Attendance = ({ isDarkMode }) => {
 
       if (response.success) {
         setInfoMessage("Attendance updated successfully");
-        fetchAttendanceRecords(); // Refresh the records after update
+        fetchAttendanceRecords(filters);
 
-        // Ensure popup closes automatically after success
         setTimeout(() => {
-          setInfoMessage(null); // Clear success message
-          setPopupData(null); // Close popup
+          setInfoMessage(null);
+          setPopupData(null);
         }, 1500);
       } else {
         setInfoMessage(response.message || "Failed to update attendance");
-        setTimeout(() => setInfoMessage(null), 1500); // Clear error message after delay
+        setTimeout(() => setInfoMessage(null), 1500);
       }
     } catch (error) {
       console.error("Error updating attendance:", error);
       setInfoMessage("An error occurred while updating attendance");
-      setTimeout(() => setInfoMessage(null), 1500); // Clear error message after delay
+      setTimeout(() => setInfoMessage(null), 1500);
     }
   };
 
@@ -273,10 +192,51 @@ const Attendance = ({ isDarkMode }) => {
 
   const handlePopupAction = (confirm) => {
     if (confirm && popupData) {
-      setInfoMessage('Okay, changing attendance...');
-      handleAttendanceUpdate(popupData.attendanceId, popupData.newStatus, popupData.studentId);
+      if (popupData.isBulk) {
+        handleBulkApply(popupData.status);
+      } else {
+        setInfoMessage('Okay, changing attendance...');
+        handleAttendanceUpdate(popupData.attendanceId, popupData.newStatus, popupData.studentId);
+      }
     }
     setPopupData(null);
+  };
+
+  const handleBulkApply = async (status) => {
+    try {
+      const token = localStorage.getItem("accessToken");
+      if (!token) {
+        setInfoMessage("No access token found. Please log in again.");
+        setTimeout(() => setInfoMessage(null), 2000);
+        return;
+      }
+
+      setIsBulkProcessing(true);
+      setInfoMessage('Applying bulk attendance...');
+
+      const updatePromises = attendanceRecords.map((record) =>
+        changeAttendance(record.attendance_id ?? null, status, token, record.student_id ?? record.studentId ?? null)
+      );
+
+      const responses = await Promise.allSettled(updatePromises);
+
+      const failedUpdates = responses.filter(result => result.status === 'rejected');
+
+      if (failedUpdates.length > 0) {
+        setInfoMessage(`${failedUpdates.length} records failed to update. Please try again.`);
+      } else {
+        setInfoMessage('Bulk attendance applied successfully.');
+      }
+
+      await fetchAttendanceRecords(filters);
+    } catch (error) {
+      console.error('Bulk attendance error:', error);
+      setInfoMessage('An error occurred while applying bulk attendance.');
+    } finally {
+      setIsBulkProcessing(false);
+      setTimeout(() => setInfoMessage(null), 2000);
+      setBulkAction(null);
+    }
   };
 
   const getStatusColor = (status) => {
@@ -293,11 +253,62 @@ const Attendance = ({ isDarkMode }) => {
     }
   };
 
+  const formatRecordDate = (dateValue) => {
+    if (!dateValue) {
+      if (filters.date) {
+        const selectedDate = new Date(filters.date);
+        if (!Number.isNaN(selectedDate.getTime())) {
+          return selectedDate.toLocaleDateString();
+        }
+      }
+      return 'N/A';
+    }
+
+    const parsedDirect = new Date(dateValue);
+    if (!Number.isNaN(parsedDirect.getTime())) {
+      return parsedDirect.toLocaleDateString();
+    }
+
+    if (typeof dateValue === 'string') {
+      const separator = dateValue.includes('/') ? '/' : '-';
+      const parts = dateValue.split(separator).map((part) => part.trim());
+
+      if (parts.length === 3) {
+        const [first, second, third] = parts;
+
+        if (third.length === 4) {
+          const normalizedDMY = `${third}-${second.padStart(2, '0')}-${first.padStart(2, '0')}`;
+          const parsedDMY = new Date(normalizedDMY);
+          if (!Number.isNaN(parsedDMY.getTime())) {
+            return parsedDMY.toLocaleDateString();
+          }
+
+          const normalizedMDY = `${third}-${first.padStart(2, '0')}-${second.padStart(2, '0')}`;
+          const parsedMDY = new Date(normalizedMDY);
+          if (!Number.isNaN(parsedMDY.getTime())) {
+            return parsedMDY.toLocaleDateString();
+          }
+        }
+      }
+    }
+
+    if (filters.date) {
+      const selectedDate = new Date(filters.date);
+      if (!Number.isNaN(selectedDate.getTime())) {
+        return selectedDate.toLocaleDateString();
+      }
+    }
+
+    return dateValue;
+  };
+
   return (
     <div className="space-y-6">
       <Modal isOpen={!!popupData} onClose={() => setPopupData(null)} isDarkMode={isDarkMode}>
         <p>
-          Would you like to change the attendance of {popupData?.studentName} to {popupData?.newStatus}?
+          {popupData?.isBulk
+            ? `Apply status "${popupData?.status}" to all ${attendanceRecords.length} filtered students on ${filters.date || 'the selected date'}?`
+            : `Would you like to change the attendance of ${popupData?.studentName} to ${popupData?.newStatus}?`}
         </p>
         <div className="flex justify-end space-x-4 mt-4">
           <button
@@ -329,6 +340,15 @@ const Attendance = ({ isDarkMode }) => {
             Attendance Records
           </h2>
           <div className="flex space-x-3">
+            <Button onClick={() => handleBulkMarkRequest('Present')} variant="success" isDarkMode={isDarkMode} disabled={isBulkProcessing}>
+              {isBulkProcessing && bulkAction === 'Present' ? 'Applying...' : 'Mark All Present'}
+            </Button>
+            <Button onClick={() => handleBulkMarkRequest('Absent')} variant="danger" isDarkMode={isDarkMode} disabled={isBulkProcessing}>
+              {isBulkProcessing && bulkAction === 'Absent' ? 'Applying...' : 'Mark All Absent'}
+            </Button>
+            <Button onClick={() => handleBulkMarkRequest('Not Marked')} variant="outline" isDarkMode={isDarkMode} disabled={isBulkProcessing}>
+              {isBulkProcessing && bulkAction === 'Not Marked' ? 'Applying...' : 'Reset All'}
+            </Button>
             <Button onClick={handleExport} variant="outline" isDarkMode={isDarkMode}>
               Export CSV
             </Button>
@@ -440,11 +460,6 @@ const Attendance = ({ isDarkMode }) => {
               <p>Error: {error}</p>
             </div>
           )}
-          {studentLoadError && (
-            <div className={`p-3 mb-4 rounded-md text-sm ${isDarkMode ? 'bg-yellow-900 text-yellow-200' : 'bg-yellow-100 text-yellow-700'}`}>
-              <strong>Student list unavailable.</strong> {studentLoadError}
-            </div>
-          )}
           {filters.date && new Date(filters.date) > new Date() && (
             <div className={`p-3 mb-4 rounded-md text-sm ${isDarkMode ? 'bg-blue-900 text-blue-100' : 'bg-blue-100 text-blue-700'}`}>
               Attendance for future dates is displayed as <strong>Not Marked</strong> and cannot be edited.
@@ -475,11 +490,7 @@ const Attendance = ({ isDarkMode }) => {
                 ) : currentRecords.length === 0 ? (
                   <tr>
                     <td colSpan="6" className={`px-6 py-4 text-center text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                      {attendanceRecords.length === 0 
-                        ? 'No attendance records found' 
-                        : filteredRecords.length === 0 && (filters.department || filters.academic_year || filters.date || filters.status)
-                        ? 'No records match the selected filters'
-                        : 'Please select at least one filter to view attendance records'}
+                      No attendance records found for the selected filters
                     </td>
                   </tr>
                 ) : (
@@ -488,7 +499,7 @@ const Attendance = ({ isDarkMode }) => {
                       <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{record.name}</td>
                       <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>{record.department}</td>
                       <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>{record.academic_year}</td>
-                      <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>{new Date(record.date).toLocaleDateString()}</td>
+                      <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>{formatRecordDate(record.date)}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(record.status)}`}>
                           {record.status || 'Not Marked'}
@@ -546,17 +557,17 @@ const Attendance = ({ isDarkMode }) => {
           </div>
 
           {/* Pagination and Stats */}
-          {filteredRecords.length > 0 && (
+          {attendanceRecords.length > 0 && (
             <div className="mt-6 space-y-4">
               {/* Statistics */}
               <div className="flex justify-between items-center text-sm select-none">
                 <div className={`flex space-x-4 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                  <span>Present: {filteredRecords.filter(r => r.status?.toLowerCase() === 'present').length}</span>
-                  <span>Absent: {filteredRecords.filter(r => r.status?.toLowerCase() === 'absent').length}</span>
-                  <span>Not Marked: {filteredRecords.filter(r => !r.status).length}</span>
+                  <span>Present: {attendanceRecords.filter(r => r.status?.toLowerCase() === 'present').length}</span>
+                  <span>Absent: {attendanceRecords.filter(r => r.status?.toLowerCase() === 'absent').length}</span>
+                  <span>Not Marked: {attendanceRecords.filter(r => !r.status).length}</span>
                 </div>
                 <div className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>
-                  Total Records: {filteredRecords.length}
+                  Total Records: {attendanceRecords.length}
                 </div>
               </div>
 
@@ -580,7 +591,7 @@ const Attendance = ({ isDarkMode }) => {
                     <option value={100}>100</option>
                   </select>
                   <span className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                    Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredRecords.length)} of {filteredRecords.length}
+                    Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, attendanceRecords.length)} of {attendanceRecords.length}
                   </span>
                 </div>
 

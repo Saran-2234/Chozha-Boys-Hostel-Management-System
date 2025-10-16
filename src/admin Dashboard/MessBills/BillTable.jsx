@@ -48,7 +48,98 @@ const BillTable = ({ isDarkMode, students, vegFeePerDay, nonVegFeePerDay, messFe
 
   return (
     <div className="space-y-4">
-      <div className="overflow-x-auto">
+      {/* Mobile card layout */}
+      <div className="sm:hidden space-y-4">
+        {paginatedStudents.map((student) => {
+          const { daysPresent, vegDays, nonVegDays } = studentDays[student.id];
+          const messCharges = calculateMessCharges(student.id);
+          const total = calculateTotal(student.id);
+
+          return (
+            <div
+              key={student.id}
+              className={`rounded-xl border p-4 shadow-sm ${isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="space-y-1">
+                  <p className={`text-xs font-medium uppercase ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Student</p>
+                  <div>
+                    <p className="text-sm font-semibold">{student.name}</p>
+                    <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>{student.id}</p>
+                  </div>
+                </div>
+                <div className={`rounded-full px-3 py-1 text-xs font-semibold ${isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-gray-100 text-gray-600'}`}>
+                  ₹{messFeePerDay.toLocaleString()}/day
+                </div>
+              </div>
+
+              <div className="mt-4 space-y-4">
+                <div className="space-y-3">
+                  <div className="space-y-1">
+                    <label className={`text-xs font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Days Present</label>
+                    <input
+                      type="number"
+                      value={daysPresent}
+                      onChange={(event) => handleDaysChange(student.id, 'daysPresent', event.target.value)}
+                      className={`w-full px-3 py-2 border rounded text-sm ${isDarkMode ? 'bg-gray-900 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+                      min="0"
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 gap-3">
+                    <div className="space-y-1">
+                      <label className={`text-xs font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Veg Days</label>
+                      <input
+                        type="number"
+                        value={vegDays}
+                        onChange={(event) => handleDaysChange(student.id, 'vegDays', event.target.value)}
+                        className={`w-full px-3 py-2 border rounded text-sm ${isDarkMode ? 'bg-gray-900 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+                        min="0"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className={`text-xs font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Non-Veg Days</label>
+                      <input
+                        type="number"
+                        value={nonVegDays}
+                        onChange={(event) => handleDaysChange(student.id, 'nonVegDays', event.target.value)}
+                        className={`w-full px-3 py-2 border rounded text-sm ${isDarkMode ? 'bg-gray-900 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+                        min="0"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className={isDarkMode ? 'text-gray-300' : 'text-gray-600'}>Mess Charges</span>
+                    <span className="font-medium">{formatCurrency(messCharges)}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className={isDarkMode ? 'text-gray-300' : 'text-gray-600'}>Total</span>
+                    <span className={`text-base font-bold ${isDarkMode ? 'text-green-400' : 'text-green-600'}`}>
+                      {formatCurrency(total)}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="pt-2">
+                  <Button
+                    onClick={() => handleSendBill(student.id)}
+                    variant="primary"
+                    size="small"
+                    isDarkMode={isDarkMode}
+                  >
+                    Send Bill
+                  </Button>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Desktop table */}
+      <div className="hidden sm:block overflow-x-auto">
         <table className={`min-w-full divide-y ${isDarkMode ? 'divide-gray-700' : 'divide-gray-200'}`}>
           <thead className={isDarkMode ? 'bg-gray-700' : 'bg-gray-50'}>
             <tr>

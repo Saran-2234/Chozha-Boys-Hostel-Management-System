@@ -3,6 +3,47 @@ import { Card, CardHeader, CardContent } from '../Common/Card';
 import Button from '../Common/Button';
 import BillTable from './BillTable';
 
+const REQUIRED_FIELD_LABELS = {
+  groceryCost: 'Grocery cost',
+  vegetableCost: 'Vegetable cost',
+  gasCharges: 'Gas charge',
+  milkLitres: 'Total milk litres',
+  milkCostPerLitre: 'Milk cost per litre',
+  otherCosts: 'Other costs',
+  deductions: 'Income',
+  students1st: '1st year students',
+  days1st: '1st year days',
+  students2nd: '2nd year students',
+  days2nd: '2nd year days',
+  students3rd: '3rd year students',
+  days3rd: '3rd year days',
+  students4th: '4th year students',
+  days4th: '4th year days',
+  reductionDays: 'Reduction days',
+  vegExtraPerDay: 'Veg extra per day',
+  nonVegExtraPerDay: 'Non-veg extra per day',
+};
+
+const sanitizeNumericInput = (value, allowDecimal = true) => {
+  // Ensures only digits and a single decimal separator are retained.
+  let sanitized = value.replace(/[^\d.]/g, '');
+
+  if (!allowDecimal) {
+    return sanitized.replace(/\./g, '');
+  }
+
+  const parts = sanitized.split('.');
+  if (parts.length > 1) {
+    sanitized = `${parts[0]}.${parts.slice(1).join('')}`;
+  }
+
+  if (sanitized.startsWith('.')) {
+    sanitized = `0${sanitized}`;
+  }
+
+  return sanitized;
+};
+
 const MessBills = ({ isDarkMode }) => {
   // Input states
   const [groceryCost, setGroceryCost] = useState('');
@@ -24,6 +65,11 @@ const MessBills = ({ isDarkMode }) => {
   const [vegExtraPerDay, setVegExtraPerDay] = useState('');
   const [nonVegExtraPerDay, setNonVegExtraPerDay] = useState('');
 
+  // Form validation state
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [formTouched, setFormTouched] = useState(false);
+  const [touchedFields, setTouchedFields] = useState({});
+
   // Computed values
   const [milkCharges, setMilkCharges] = useState(0);
   const [totalStudents, setTotalStudents] = useState(0);
@@ -42,6 +88,64 @@ const MessBills = ({ isDarkMode }) => {
   // Filters
   const [yearFilter, setYearFilter] = useState('all');
   const [departmentFilter, setDepartmentFilter] = useState('all');
+
+  const getFieldValues = () => ({
+    groceryCost,
+    vegetableCost,
+    gasCharges,
+    milkLitres,
+    milkCostPerLitre,
+    otherCosts,
+    deductions,
+    students1st,
+    days1st,
+    students2nd,
+    days2nd,
+    students3rd,
+    days3rd,
+    students4th,
+    days4th,
+    reductionDays,
+    vegExtraPerDay,
+    nonVegExtraPerDay,
+  });
+
+  const handleFieldBlur = (fieldKey) => {
+    setTouchedFields((previous) => ({
+      ...previous,
+      [fieldKey]: true,
+    }));
+
+    setFieldErrors((previous) => {
+      const updatedErrors = { ...previous };
+      const currentValue = getFieldValues()[fieldKey];
+
+      if (currentValue === '') {
+        updatedErrors[fieldKey] = `${REQUIRED_FIELD_LABELS[fieldKey]} cannot be empty`;
+      } else {
+        delete updatedErrors[fieldKey];
+      }
+
+      return updatedErrors;
+    });
+  };
+
+  const handleNumericChange = (fieldKey, setter, allowDecimal = true) => (event) => {
+    const sanitizedValue = sanitizeNumericInput(event.target.value, allowDecimal);
+    setter(sanitizedValue);
+
+    setFieldErrors((previous) => {
+      const updatedErrors = { ...previous };
+
+      if (sanitizedValue === '') {
+        updatedErrors[fieldKey] = `${REQUIRED_FIELD_LABELS[fieldKey]} cannot be empty`;
+      } else {
+        delete updatedErrors[fieldKey];
+      }
+
+      return updatedErrors;
+    });
+  };
 
   // Mock students data
   const mockStudents = [
@@ -91,7 +195,48 @@ const MessBills = ({ isDarkMode }) => {
     setNonVegFeePerDay(nonVegExtra);
   }, [groceryCost, vegetableCost, gasCharges, milkLitres, milkCostPerLitre, otherCosts, deductions, students1st, days1st, students2nd, days2nd, students3rd, days3rd, students4th, days4th, reductionDays, vegExtraPerDay, nonVegExtraPerDay]);
 
+  const validateForm = () => {
+    const errors = {};
+
+    Object.entries(REQUIRED_FIELD_LABELS).forEach(([key, label]) => {
+      const inputValue = {
+        groceryCost,
+        vegetableCost,
+        gasCharges,
+        milkLitres,
+        milkCostPerLitre,
+        otherCosts,
+        deductions,
+        students1st,
+        days1st,
+        students2nd,
+        days2nd,
+        students3rd,
+        days3rd,
+        students4th,
+        days4th,
+        reductionDays,
+        vegExtraPerDay,
+        nonVegExtraPerDay,
+      }[key];
+
+      if (inputValue === '') {
+        errors[key] = `${label} cannot be empty`;
+      }
+    });
+
+    setFieldErrors(errors);
+    return errors;
+  };
+
   const handleCalculate = () => {
+    const errors = validateForm();
+    setFormTouched(true);
+
+    if (Object.keys(errors).length > 0) {
+      return;
+    }
+
     setCalculated(true);
     // Optional: Final confirmation or save logic
     console.log('Final calculation confirmed');
@@ -138,52 +283,67 @@ const MessBills = ({ isDarkMode }) => {
             <div className="space-y-2">
               <label className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>Grocery Cost</label>
               <input
-                type="number"
                 value={groceryCost}
-                onChange={(e) => setGroceryCost(e.target.value)}
+                onChange={handleNumericChange('groceryCost', setGroceryCost)}
+                onBlur={() => handleFieldBlur('groceryCost')}
                 placeholder="Enter grocery cost"
                 className={`w-full px-3 py-2 border rounded-md text-sm cursor-text select-all pointer-events-auto ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
               />
+              {fieldErrors.groceryCost && (formTouched || touchedFields.groceryCost) && (
+                <p className="text-xs text-red-500">{fieldErrors.groceryCost}</p>
+              )}
             </div>
             <div className="space-y-2">
               <label className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>Vegetable Cost</label>
               <input
-                type="number"
                 value={vegetableCost}
-                onChange={(e) => setVegetableCost(e.target.value)}
+                onChange={handleNumericChange('vegetableCost', setVegetableCost)}
+                onBlur={() => handleFieldBlur('vegetableCost')}
                 placeholder="Enter vegetable cost"
                 className={`w-full px-3 py-2 border rounded-md text-sm cursor-text select-all pointer-events-auto ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
               />
+              {fieldErrors.vegetableCost && (formTouched || touchedFields.vegetableCost) && (
+                <p className="text-xs text-red-500">{fieldErrors.vegetableCost}</p>
+              )}
             </div>
             <div className="space-y-2">
               <label className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>Gas Charges</label>
               <input
-                type="number"
                 value={gasCharges}
-                onChange={(e) => setGasCharges(e.target.value)}
+                onChange={handleNumericChange('gasCharges', setGasCharges)}
+                onBlur={() => handleFieldBlur('gasCharges')}
                 placeholder="Enter gas charges"
                 className={`w-full px-3 py-2 border rounded-md text-sm cursor-text select-all pointer-events-auto ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
               />
+              {fieldErrors.gasCharges && (formTouched || touchedFields.gasCharges) && (
+                <p className="text-xs text-red-500">{fieldErrors.gasCharges}</p>
+              )}
             </div>
             <div className="space-y-2">
               <label className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>Total Milk Litres</label>
               <input
-                type="number"
                 value={milkLitres}
-                onChange={(e) => setMilkLitres(e.target.value)}
+                onChange={handleNumericChange('milkLitres', setMilkLitres)}
+                onBlur={() => handleFieldBlur('milkLitres')}
                 placeholder="Enter total litres"
                 className={`w-full px-3 py-2 border rounded-md text-sm cursor-text select-all pointer-events-auto ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
               />
+              {fieldErrors.milkLitres && (formTouched || touchedFields.milkLitres) && (
+                <p className="text-xs text-red-500">{fieldErrors.milkLitres}</p>
+              )}
             </div>
             <div className="space-y-2">
               <label className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>Milk Cost per Litre</label>
               <input
-                type="number"
                 value={milkCostPerLitre}
-                onChange={(e) => setMilkCostPerLitre(e.target.value)}
+                onChange={handleNumericChange('milkCostPerLitre', setMilkCostPerLitre)}
+                onBlur={() => handleFieldBlur('milkCostPerLitre')}
                 placeholder="Enter cost per litre"
                 className={`w-full px-3 py-2 border rounded-md text-sm cursor-text select-all pointer-events-auto ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
               />
+              {fieldErrors.milkCostPerLitre && (formTouched || touchedFields.milkCostPerLitre) && (
+                <p className="text-xs text-red-500">{fieldErrors.milkCostPerLitre}</p>
+              )}
             </div>
             <div className="space-y-2">
               <label className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>Milk Charges (Computed)</label>
@@ -198,110 +358,132 @@ const MessBills = ({ isDarkMode }) => {
             <div className="space-y-2">
               <label className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>Other Costs</label>
               <input
-                type="number"
                 value={otherCosts}
-                onChange={(e) => setOtherCosts(e.target.value)}
+                onChange={handleNumericChange('otherCosts', setOtherCosts)}
+                onBlur={() => handleFieldBlur('otherCosts')}
                 placeholder="Enter other costs"
                 className={`w-full px-3 py-2 border rounded-md text-sm cursor-text select-all pointer-events-auto ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
               />
+              {fieldErrors.otherCosts && (formTouched || touchedFields.otherCosts) && (
+                <p className="text-xs text-red-500">{fieldErrors.otherCosts}</p>
+              )}
             </div>
             <div className="space-y-2">
               <label className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>Deductions / Income</label>
               <input
-                type="number"
                 value={deductions}
-                onChange={(e) => setDeductions(e.target.value)}
+                onChange={handleNumericChange('deductions', setDeductions)}
+                onBlur={() => handleFieldBlur('deductions')}
                 placeholder="Enter deductions"
                 className={`w-full px-3 py-2 border rounded-md text-sm cursor-text select-all pointer-events-auto ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
               />
+              {fieldErrors.deductions && (formTouched || touchedFields.deductions) && (
+                <p className="text-xs text-red-500">{fieldErrors.deductions}</p>
+              )}
             </div>
             <div className="space-y-2">
               <label className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>1st Year Students</label>
               <input
-                type="number"
-                step="1"
                 value={students1st}
-                onChange={(e) => setStudents1st(e.target.value)}
+                onChange={handleNumericChange('students1st', setStudents1st, false)}
+                onBlur={() => handleFieldBlur('students1st')}
                 placeholder="Enter 1st year students"
                 className={`w-full px-3 py-2 border rounded-md text-sm cursor-text select-all pointer-events-auto ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
               />
+              {fieldErrors.students1st && (formTouched || touchedFields.students1st) && (
+                <p className="text-xs text-red-500">{fieldErrors.students1st}</p>
+              )}
             </div>
             <div className="space-y-2">
               <label className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>1st Year Days</label>
               <input
-                type="number"
-                step="1"
                 value={days1st}
-                onChange={(e) => setDays1st(e.target.value)}
+                onChange={handleNumericChange('days1st', setDays1st, false)}
+                onBlur={() => handleFieldBlur('days1st')}
                 placeholder="Enter 1st year days"
                 className={`w-full px-3 py-2 border rounded-md text-sm cursor-text select-all pointer-events-auto ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
               />
+              {fieldErrors.days1st && (formTouched || touchedFields.days1st) && (
+                <p className="text-xs text-red-500">{fieldErrors.days1st}</p>
+              )}
             </div>
             <div className="space-y-2">
               <label className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>2nd Year Students</label>
               <input
-                type="number"
-                step="1"
                 value={students2nd}
-                onChange={(e) => setStudents2nd(e.target.value)}
+                onChange={handleNumericChange('students2nd', setStudents2nd, false)}
+                onBlur={() => handleFieldBlur('students2nd')}
                 placeholder="Enter 2nd year students"
                 className={`w-full px-3 py-2 border rounded-md text-sm cursor-text select-all pointer-events-auto ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
               />
+              {fieldErrors.students2nd && (formTouched || touchedFields.students2nd) && (
+                <p className="text-xs text-red-500">{fieldErrors.students2nd}</p>
+              )}
             </div>
             <div className="space-y-2">
               <label className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>2nd Year Days</label>
               <input
-                type="number"
-                step="1"
                 value={days2nd}
-                onChange={(e) => setDays2nd(e.target.value)}
+                onChange={handleNumericChange('days2nd', setDays2nd, false)}
+                onBlur={() => handleFieldBlur('days2nd')}
                 placeholder="Enter 2nd year days"
                 className={`w-full px-3 py-2 border rounded-md text-sm cursor-text select-all pointer-events-auto ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
               />
+              {fieldErrors.days2nd && (formTouched || touchedFields.days2nd) && (
+                <p className="text-xs text-red-500">{fieldErrors.days2nd}</p>
+              )}
             </div>
             <div className="space-y-2">
               <label className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>3rd Year Students</label>
               <input
-                type="number"
-                step="1"
                 value={students3rd}
-                onChange={(e) => setStudents3rd(e.target.value)}
+                onChange={handleNumericChange('students3rd', setStudents3rd, false)}
+                onBlur={() => handleFieldBlur('students3rd')}
                 placeholder="Enter 3rd year students"
                 className={`w-full px-3 py-2 border rounded-md text-sm cursor-text select-all pointer-events-auto ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
               />
+              {fieldErrors.students3rd && (formTouched || touchedFields.students3rd) && (
+                <p className="text-xs text-red-500">{fieldErrors.students3rd}</p>
+              )}
             </div>
             <div className="space-y-2">
               <label className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>3rd Year Days</label>
               <input
-                type="number"
-                step="1"
                 value={days3rd}
-                onChange={(e) => setDays3rd(e.target.value)}
+                onChange={handleNumericChange('days3rd', setDays3rd, false)}
+                onBlur={() => handleFieldBlur('days3rd')}
                 placeholder="Enter 3rd year days"
                 className={`w-full px-3 py-2 border rounded-md text-sm cursor-text select-all pointer-events-auto ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
               />
+              {fieldErrors.days3rd && (formTouched || touchedFields.days3rd) && (
+                <p className="text-xs text-red-500">{fieldErrors.days3rd}</p>
+              )}
             </div>
             <div className="space-y-2">
               <label className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>4th Year Students</label>
               <input
-                type="number"
-                step="1"
                 value={students4th}
-                onChange={(e) => setStudents4th(e.target.value)}
+                onChange={handleNumericChange('students4th', setStudents4th, false)}
+                onBlur={() => handleFieldBlur('students4th')}
                 placeholder="Enter 4th year students"
                 className={`w-full px-3 py-2 border rounded-md text-sm cursor-text select-all pointer-events-auto ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
               />
+              {fieldErrors.students4th && (formTouched || touchedFields.students4th) && (
+                <p className="text-xs text-red-500">{fieldErrors.students4th}</p>
+              )}
             </div>
             <div className="space-y-2">
               <label className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>4th Year Days</label>
               <input
-                type="number"
-                step="1"
                 value={days4th}
-                onChange={(e) => setDays4th(e.target.value)}
+                onChange={handleNumericChange('days4th', setDays4th, false)}
+                onBlur={() => handleFieldBlur('days4th')}
                 placeholder="Enter 4th year days"
                 className={`w-full px-3 py-2 border rounded-md text-sm cursor-text select-all pointer-events-auto ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
               />
+              {fieldErrors.days4th && (formTouched || touchedFields.days4th) && (
+                <p className="text-xs text-red-500">{fieldErrors.days4th}</p>
+              )}
             </div>
             <div className="space-y-2">
               <label className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>Total Students (Computed)</label>
@@ -316,35 +498,41 @@ const MessBills = ({ isDarkMode }) => {
             <div className="space-y-2">
               <label className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>Reduction Days</label>
               <input
-                type="number"
-                step="1"
                 value={reductionDays}
-                onChange={(e) => setReductionDays(e.target.value)}
+                onChange={handleNumericChange('reductionDays', setReductionDays, false)}
+                onBlur={() => handleFieldBlur('reductionDays')}
                 placeholder="Enter reduction days"
                 className={`w-full px-3 py-2 border rounded-md text-sm cursor-text select-all pointer-events-auto ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
               />
+              {fieldErrors.reductionDays && (formTouched || touchedFields.reductionDays) && (
+                <p className="text-xs text-red-500">{fieldErrors.reductionDays}</p>
+              )}
             </div>
             <div className="space-y-2">
               <label className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>Veg Extra per Day</label>
               <input
-                type="number"
-                step="1"
                 value={vegExtraPerDay}
-                onChange={(e) => setVegExtraPerDay(e.target.value)}
+                onChange={handleNumericChange('vegExtraPerDay', setVegExtraPerDay)}
+                onBlur={() => handleFieldBlur('vegExtraPerDay')}
                 placeholder="Enter veg extra per day"
                 className={`w-full px-3 py-2 border rounded-md text-sm cursor-text select-all pointer-events-auto ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
               />
+              {fieldErrors.vegExtraPerDay && (formTouched || touchedFields.vegExtraPerDay) && (
+                <p className="text-xs text-red-500">{fieldErrors.vegExtraPerDay}</p>
+              )}
             </div>
             <div className="space-y-2">
               <label className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>Non-Veg Extra per Day</label>
               <input
-                type="number"
-                step="1"
                 value={nonVegExtraPerDay}
-                onChange={(e) => setNonVegExtraPerDay(e.target.value)}
+                onChange={handleNumericChange('nonVegExtraPerDay', setNonVegExtraPerDay)}
+                onBlur={() => handleFieldBlur('nonVegExtraPerDay')}
                 placeholder="Enter non-veg extra per day"
                 className={`w-full px-3 py-2 border rounded-md text-sm cursor-text select-all pointer-events-auto ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
               />
+              {fieldErrors.nonVegExtraPerDay && (formTouched || touchedFields.nonVegExtraPerDay) && (
+                <p className="text-xs text-red-500">{fieldErrors.nonVegExtraPerDay}</p>
+              )}
             </div>
           </div>
           <div className="mt-6 pointer-events-auto">

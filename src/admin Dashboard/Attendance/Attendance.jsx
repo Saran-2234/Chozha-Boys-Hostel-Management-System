@@ -156,7 +156,7 @@ const Attendance = ({ isDarkMode }) => {
     setPopupData({ isBulk: true, status });
   };
 
-  const handleAttendanceUpdate = async (attendanceId, newStatus, studentId) => {
+  const handleAttendanceUpdate = async (attendanceId, newStatus, studentId, dateOverride = null) => {
     try {
       const token = localStorage.getItem("accessToken");
       if (!token) {
@@ -165,7 +165,7 @@ const Attendance = ({ isDarkMode }) => {
         return;
       }
 
-      const response = await changeAttendance(attendanceId, newStatus, token, studentId);
+      const response = await changeAttendance(attendanceId, newStatus, token, studentId, dateOverride ?? filters.date);
 
       if (response.success) {
         setInfoMessage("Attendance updated successfully");
@@ -186,8 +186,8 @@ const Attendance = ({ isDarkMode }) => {
     }
   };
 
-  const confirmAttendanceChange = (attendanceId, studentName, newStatus, studentId) => {
-    setPopupData({ attendanceId, studentName, newStatus, studentId });
+  const confirmAttendanceChange = (attendanceId, studentName, newStatus, studentId, date) => {
+    setPopupData({ attendanceId, studentName, newStatus, studentId, date });
   };
 
   const handlePopupAction = (confirm) => {
@@ -196,7 +196,7 @@ const Attendance = ({ isDarkMode }) => {
         handleBulkApply(popupData.status);
       } else {
         setInfoMessage('Okay, changing attendance...');
-        handleAttendanceUpdate(popupData.attendanceId, popupData.newStatus, popupData.studentId);
+        handleAttendanceUpdate(popupData.attendanceId, popupData.newStatus, popupData.studentId, popupData.date);
       }
     }
     setPopupData(null);
@@ -466,7 +466,106 @@ const Attendance = ({ isDarkMode }) => {
             </div>
           )}
 
-          <div className="overflow-x-auto select-none">
+          <div className="mt-4 space-y-3 sm:hidden">
+            {loading ? (
+              <div className={`p-4 rounded-lg text-center text-sm ${isDarkMode ? 'bg-gray-800 text-gray-300 border border-gray-700' : 'bg-gray-50 text-gray-600 border border-gray-200'}`}>
+                Loading records...
+              </div>
+            ) : currentRecords.length === 0 ? (
+              <div className={`p-4 rounded-lg text-center text-sm ${isDarkMode ? 'bg-gray-800 text-gray-300 border border-gray-700' : 'bg-gray-50 text-gray-600 border border-gray-200'}`}>
+                No attendance records found for the selected filters
+              </div>
+            ) : (
+              currentRecords.map((record) => (
+                <div
+                  key={record.attendance_id || `placeholder-card-${record.student_id}`}
+                  className={`p-4 rounded-xl border shadow-sm transition-all select-text ${
+                    isDarkMode
+                      ? 'bg-gray-800/80 border-gray-700 text-white hover:bg-gray-700/80'
+                      : 'bg-white border-gray-200 text-gray-900 hover:shadow-md'
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="flex items-center gap-3">
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold ${
+                          isDarkMode ? 'bg-blue-500/20 text-blue-300' : 'bg-blue-100 text-blue-600'
+                        }`}>
+                          {(record.name || 'N').charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold leading-tight">{record.name || 'Unknown Student'}</p>
+                          <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>{record.department || 'N/A'}</p>
+                        </div>
+                      </div>
+                      <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                          <p className={`uppercase tracking-wide ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Year</p>
+                          <p className="font-medium">{record.academic_year || 'N/A'}</p>
+                        </div>
+                        <div>
+                          <p className={`uppercase tracking-wide ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Date</p>
+                          <p className="font-medium">{formatRecordDate(record.date)}</p>
+                        </div>
+                        <div>
+                          <p className={`uppercase tracking-wide ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Status</p>
+                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full mt-1 ${getStatusColor(record.status)}`}>
+                            {record.status || 'Not Marked'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end gap-2">
+                      {record.isPlaceholder || (filters.date && new Date(filters.date) > new Date()) ? (
+                        <span className={`text-xs font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                          Changes disabled for future dates
+                        </span>
+                      ) : !record.status ? (
+                        <div className="flex flex-col gap-2 w-full">
+                          <Button
+                            onClick={() => confirmAttendanceChange(record.attendance_id, record.name, 'Present', record.student_id, record.date)}
+                            variant="outline"
+                            isDarkMode={isDarkMode}
+                            className="bg-green-500 text-white hover:bg-green-600"
+                          >
+                            Mark Present
+                          </Button>
+                          <Button
+                            onClick={() => confirmAttendanceChange(record.attendance_id, record.name, 'Absent', record.student_id, record.date)}
+                            variant="outline"
+                            isDarkMode={isDarkMode}
+                            className="bg-red-500 text-white hover:bg-red-600"
+                          >
+                            Mark Absent
+                          </Button>
+                        </div>
+                      ) : record.status.toLowerCase() === 'present' ? (
+                        <Button
+                          onClick={() => confirmAttendanceChange(record.attendance_id, record.name, 'Absent', record.student_id, record.date)}
+                          variant="outline"
+                          isDarkMode={isDarkMode}
+                          className="bg-red-500 text-white hover:bg-red-600"
+                        >
+                          Mark Absent
+                        </Button>
+                      ) : (
+                        <Button
+                          onClick={() => confirmAttendanceChange(record.attendance_id, record.name, 'Present', record.student_id, record.date)}
+                          variant="outline"
+                          isDarkMode={isDarkMode}
+                          className="bg-green-500 text-white hover:bg-green-600"
+                        >
+                          Mark Present
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          <div className="hidden sm:block overflow-x-auto select-none">
             <table className={`min-w-full divide-y ${isDarkMode ? 'divide-gray-700' : 'divide-gray-200'}`}>
               <thead className={isDarkMode ? 'bg-gray-700' : 'bg-gray-50'}>
                 <tr>
@@ -513,7 +612,7 @@ const Attendance = ({ isDarkMode }) => {
                         ) : !record.status ? (
                           <div className="flex space-x-2 justify-center">
                             <Button
-                              onClick={() => confirmAttendanceChange(record.attendance_id, record.name, 'Present', record.student_id)}
+                              onClick={() => confirmAttendanceChange(record.attendance_id, record.name, 'Present', record.student_id, record.date)}
                               variant="outline"
                               isDarkMode={isDarkMode}
                               className="bg-green-500 text-white hover:bg-green-600"
@@ -521,7 +620,7 @@ const Attendance = ({ isDarkMode }) => {
                               Mark Present
                             </Button>
                             <Button
-                              onClick={() => confirmAttendanceChange(record.attendance_id, record.name, 'Absent', record.student_id)}
+                              onClick={() => confirmAttendanceChange(record.attendance_id, record.name, 'Absent', record.student_id, record.date)}
                               variant="outline"
                               isDarkMode={isDarkMode}
                               className="bg-red-500 text-white hover:bg-red-600"
@@ -531,7 +630,7 @@ const Attendance = ({ isDarkMode }) => {
                           </div>
                         ) : record.status.toLowerCase() === 'present' ? (
                           <Button
-                            onClick={() => confirmAttendanceChange(record.attendance_id, record.name, 'Absent', record.student_id)}
+                            onClick={() => confirmAttendanceChange(record.attendance_id, record.name, 'Absent', record.student_id, record.date)}
                             variant="outline"
                             isDarkMode={isDarkMode}
                             className="bg-red-500 text-white hover:bg-red-600"
@@ -540,7 +639,7 @@ const Attendance = ({ isDarkMode }) => {
                           </Button>
                         ) : (
                           <Button
-                            onClick={() => confirmAttendanceChange(record.attendance_id, record.name, 'Present', record.student_id)}
+                            onClick={() => confirmAttendanceChange(record.attendance_id, record.name, 'Present', record.student_id, record.date)}
                             variant="outline"
                             isDarkMode={isDarkMode}
                             className="bg-green-500 text-white hover:bg-green-600"

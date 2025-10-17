@@ -4,18 +4,22 @@ import axios from 'axios';
 const Attendance = () => {
 
   function getIsMobile() {
-    if (typeof window === 'undefined') {
+    if (typeof window === 'undefined' || typeof navigator === 'undefined') {
       return false;
+    }
+
+    if (navigator.userAgentData && typeof navigator.userAgentData.mobile === 'boolean') {
+      return navigator.userAgentData.mobile;
     }
 
     const userAgent = navigator.userAgent || navigator.vendor || '';
     const mobileRegex = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
     const isMobileUA = mobileRegex.test(userAgent);
-    const touchPoints = navigator.maxTouchPoints || navigator.msMaxTouchPoints || 0;
-    const hasCoarsePointer = window.matchMedia ? window.matchMedia('(pointer: coarse)').matches : false;
-    const supportsHover = window.matchMedia ? window.matchMedia('(hover: hover)').matches : false;
+    const maxTouchPoints = navigator.maxTouchPoints || navigator.msMaxTouchPoints || 0;
+    const hasTouchSupport = 'ontouchstart' in window || maxTouchPoints > 0;
+    const smallestViewport = Math.min(window.innerWidth || 0, window.innerHeight || 0);
 
-    return isMobileUA && hasCoarsePointer && !supportsHover && touchPoints > 1;
+    return isMobileUA && hasTouchSupport && smallestViewport <= 820;
   }
 
   const [attendanceMarked, setAttendanceMarked] = useState(false);

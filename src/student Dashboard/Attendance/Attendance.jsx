@@ -1,16 +1,56 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 
 const Attendance = () => {
 
+  function getIsMobile() {
+    if (typeof window === 'undefined') {
+      return false;
+    }
+
+    const userAgent = navigator.userAgent || navigator.vendor || '';
+    const mobileRegex = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
+    const isMobileUA = mobileRegex.test(userAgent);
+    const touchPoints = navigator.maxTouchPoints || navigator.msMaxTouchPoints || 0;
+    const hasCoarsePointer = window.matchMedia ? window.matchMedia('(pointer: coarse)').matches : false;
+    const supportsHover = window.matchMedia ? window.matchMedia('(hover: hover)').matches : false;
+
+    return isMobileUA && hasCoarsePointer && !supportsHover && touchPoints > 1;
+  }
+
   const [attendanceMarked, setAttendanceMarked] = useState(false);
   const [absentMarked, setAbsentMarked] = useState(false);
-  const [attendanceStatus, setAttendanceStatus] = useState(null); // null, 'present', 'absent'
+  const [attendanceStatus, setAttendanceStatus] = useState(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [isMobileDevice, setIsMobileDevice] = useState(() => getIsMobile());
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobileDevice(getIsMobile());
+    };
+
+    handleResize();
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('resize', handleResize);
+    }
+
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('resize', handleResize);
+      }
+    };
+  }, []);
 
   const markAttendance = async () => {
+    if (!isMobileDevice) {
+      setMessage('');
+      setError('Attendance can only be marked using a mobile device.');
+      return;
+    }
+
     setLoading(true);
     setMessage('');
     setError('');
@@ -74,6 +114,12 @@ const Attendance = () => {
   };
 
   const markAbsent = async () => {
+    if (!isMobileDevice) {
+      setMessage('');
+      setError('Attendance can only be marked using a mobile device.');
+      return;
+    }
+
     setLoading(true);
     setMessage('');
     setError('');
@@ -153,19 +199,24 @@ const Attendance = () => {
         <div className="w-full md:w-auto md:flex-shrink-0 flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-3">
           <button
             onClick={markAttendance}
-            disabled={loading || attendanceStatus !== null}
+            disabled={!isMobileDevice || loading || attendanceStatus !== null}
             className="w-full md:inline-block bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium disabled:opacity-50 transition-all duration-200 relative z-20"
           >
             {loading ? 'Marking...' : attendanceStatus === 'present' ? "Present Marked" : "✅ Mark Present"}
           </button>
           <button
             onClick={markAbsent}
-            disabled={loading || attendanceStatus !== null}
+            disabled={!isMobileDevice || loading || attendanceStatus !== null}
             className="w-full md:inline-block bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-medium disabled:opacity-50 transition-all duration-200 relative z-20"
           >
             {loading ? 'Marking...' : attendanceStatus === 'absent' ? "Absent Marked" : "❌ Mark Absent"}
           </button>
         </div>
+        {!isMobileDevice && (
+          <p className="text-sm text-red-400 mt-3">
+            Attendance can only be marked using a mobile device.
+          </p>
+        )}
       </div>
 
       {message && <p className="text-green-400 mb-4">{message}</p>}

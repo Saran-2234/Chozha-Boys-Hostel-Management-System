@@ -76,8 +76,8 @@ const Students = ({ isDarkMode }) => {
     console.log('Export students clicked');
   };
 
-  const handleApproveClick = (studentId) => {
-    const student = students.find(s => s.id === studentId);
+  const handleApproveClick = (registrationNumber) => {
+    const student = students.find(s => s.registration_number === registrationNumber);
     if (student) {
       setStudentToApprove(student);
       setShowConfirmDialog(true);
@@ -107,11 +107,11 @@ const Students = ({ isDarkMode }) => {
             return {
               ...student,
               ...responseData.student,
-              status: 'active' // Ensure status is set to active
+              status: responseData.student.status ?? true
             };
           } else {
             // Fallback to just updating status if no student details in response
-            return { ...student, status: 'active' };
+            return { ...student, status: true };
           }
         }
         return student;
@@ -138,8 +138,8 @@ const Students = ({ isDarkMode }) => {
     setStudentToApprove(null);
   };
 
-  const handleRejectClick = (studentId) => {
-    const student = students.find(s => s.id === studentId);
+  const handleRejectClick = (registrationNumber) => {
+    const student = students.find(s => s.registration_number === registrationNumber);
     if (student) {
       setStudentToReject(student);
       setRejectionReason('');
@@ -175,11 +175,11 @@ const Students = ({ isDarkMode }) => {
             return {
               ...student,
               ...responseData.student,
-              status: 'not approved' // Set status to "not approved" as per API documentation
+              status: responseData.student.status ?? false
             };
           } else {
             // Fallback to just updating status if no student details in response
-            return { ...student, status: 'not approved' };
+            return { ...student, status: false };
           }
         }
         return student;

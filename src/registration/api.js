@@ -121,11 +121,19 @@ export const fetchStudents = async () => {
 // Approve Student
 export const approveStudent = async (registrationNumber) => {
   try {
+    if (!registrationNumber) {
+      throw new Error("Registration number is required");
+    }
+
     const token = localStorage.getItem("accessToken");
+    if (!token) {
+      throw new Error("No authentication token found. Please log in again.");
+    }
+
     const response = await api.post(
       "/approve",
-      { registerno: registrationNumber, token }, // ✅ token in body
-      { headers: { Authorization: `Bearer ${token}` } } // ✅ token in headers
+      { registerno: registrationNumber },
+      { headers: { Authorization: `Bearer ${token}` } }
     );
 
     return response.data;
@@ -215,6 +223,14 @@ export const deleteDepartment = async (departmentId) => {
 // Reject Student
 export const rejectStudent = async (registrationNumber, reason) => {
   try {
+    if (!registrationNumber) {
+      throw new Error("Registration number is required");
+    }
+
+    if (!reason) {
+      throw new Error("Rejection reason is required");
+    }
+
     const authToken = localStorage.getItem("accessToken");
     if (!authToken) {
       throw new Error("No authentication token found. Please log in again.");
@@ -223,13 +239,8 @@ export const rejectStudent = async (registrationNumber, reason) => {
     const response = await api.post(
       "/adminreject",
       { registerno: registrationNumber, reason },
-      { headers: { Authorization: `Bearer ${authToken}` }, withCredentials: true }
+      { headers: { Authorization: `Bearer ${authToken}` } }
     );
-
-    // Update token if provided
-    if (response.data.token) {
-      localStorage.setItem("accessToken", response.data.token);
-    }
 
     return response.data;
   } catch (error) {

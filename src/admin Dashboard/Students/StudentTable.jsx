@@ -44,10 +44,11 @@ const StudentTable = ({ isDarkMode, searchTerm, filter, students, onApprove, onR
   const [selectedStudent, setSelectedStudent] = useState(null);
 
   const filteredStudents = students.filter(student => {
+    const normalizedStatus = normalizeStatus(student.status);
     const matchesSearch = student.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          student.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          student.registration_number?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter = filter === 'all' || (student.status ? student.status.toString().toLowerCase() === filter : false);
+    const matchesFilter = filter === 'all' || normalizedStatus === filter;
     return matchesSearch && matchesFilter;
   });
 
@@ -73,17 +74,43 @@ const StudentTable = ({ isDarkMode, searchTerm, filter, students, onApprove, onR
     setIsModalOpen(true);
   };
 
-  const handleApprove = (studentId) => {
-    console.log('Approve student:', studentId);
+  function normalizeStatus(status) {
+    if (typeof status === 'boolean') {
+      return status ? 'active' : 'not approved';
+    }
+
+    if (status === null || status === undefined) {
+      return '';
+    }
+
+    const statusString = status.toString().toLowerCase();
+
+    if (statusString === 'true') {
+      return 'active';
+    }
+
+    if (statusString === 'false') {
+      return 'not approved';
+    }
+
+    if (statusString === 'approved') {
+      return 'active';
+    }
+
+    return statusString;
+  }
+
+  const handleApprove = (registrationNumber) => {
+    console.log('Approve student:', registrationNumber);
     if (onApprove) {
-      onApprove(studentId);
+      onApprove(registrationNumber);
     }
   };
 
-  const handleReject = (studentId) => {
-    console.log('Reject student:', studentId);
+  const handleReject = (registrationNumber) => {
+    console.log('Reject student:', registrationNumber);
     if (onReject) {
-      onReject(studentId);
+      onReject(registrationNumber);
     }
   };
 
@@ -101,9 +128,7 @@ const StudentTable = ({ isDarkMode, searchTerm, filter, students, onApprove, onR
   };
 
   const getStatusColor = (status) => {
-    if (!status) return 'status-inactive';
-
-    const statusStr = status.toString().toLowerCase();
+    const statusStr = normalizeStatus(status);
 
     switch (statusStr) {
       case 'active':
@@ -112,11 +137,29 @@ const StudentTable = ({ isDarkMode, searchTerm, filter, students, onApprove, onR
         return 'status-pending';
       case 'rejected':
         return 'status-rejected';
-      case 'inactive':
-        return 'status-inactive';
+      case 'not approved':
+        return 'status-not-approved';
       default:
         return 'status-inactive';
     }
+  };
+
+  const getStatusLabel = (status) => {
+    const statusStr = normalizeStatus(status);
+
+    if (!statusStr) {
+      return 'N/A';
+    }
+
+    return statusStr
+      .split(' ')
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
+
+  const canModerateStatus = (status) => {
+    const statusStr = normalizeStatus(status);
+    return ['inactive', 'pending', 'not approved', 'rejected'].includes(statusStr);
   };
 
   const formatDate = (dateString) => {
@@ -168,7 +211,7 @@ const StudentTable = ({ isDarkMode, searchTerm, filter, students, onApprove, onR
                     </div>
                     <div className="text-right text-xs">
                       <div className={`${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>{student.registration_number || 'N/A'}</div>
-                      <div className={`mt-1 ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>{getStatusColor(student.status).replace('status-', '')}</div>
+                      <div className={`mt-1 ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>{getStatusLabel(student.status)}</div>
                     </div>
                   </div>
 
@@ -180,10 +223,10 @@ const StudentTable = ({ isDarkMode, searchTerm, filter, students, onApprove, onR
                   </div>
 
                   <div className="mt-3 flex flex-wrap gap-2">
-                    {student.status === 'inactive' && (
+                    {canModerateStatus(student.status) && (
                       <>
-                        <button onClick={() => handleApprove(student.id)} className="px-2 py-1 text-xs rounded bg-emerald-500 text-white">Approve</button>
-                        <button onClick={() => handleReject(student.id)} className="px-2 py-1 text-xs rounded bg-red-500 text-white">Reject</button>
+                        <button onClick={() => handleApprove(student.registration_number)} className="px-2 py-1 text-xs rounded bg-emerald-500 text-white">Approve</button>
+                        <button onClick={() => handleReject(student.registration_number)} className="px-2 py-1 text-xs rounded bg-red-500 text-white">Reject</button>
                       </>
                     )}
                     <button onClick={() => handleEdit(student.id)} className="px-2 py-1 text-xs rounded bg-blue-500 text-white">Edit</button>
@@ -317,25 +360,25 @@ const StudentTable = ({ isDarkMode, searchTerm, filter, students, onApprove, onR
                     {formatDate(student.created_at)}
                   </td>
                   <td className="py-3 px-4">
-                    <span className={`status-${getStatusColor(student.status)} bg-opacity-20 px-2 py-1 rounded-full text-xs font-medium`}>
-                      {student.status || 'N/A'}
+                    <span className={`${getStatusColor(student.status)} bg-opacity-20 px-2 py-1 rounded-full text-xs font-medium`}>
+                      {getStatusLabel(student.status)}
                     </span>
                   </td>
                   <td className="py-3 px-4">
                     <div className="flex items-center space-x-2">
                       {/* Visible quick actions */}
                       <div className="hidden sm:flex space-x-2">
-                        {student.status === 'inactive' && (
+                        {canModerateStatus(student.status) && (
                           <>
                             <button
-                              onClick={() => handleApprove(student.id)}
+                              onClick={() => handleApprove(student.registration_number)}
                               className="action-btn bg-emerald-500 bg-opacity-20 text-emerald-400 hover:bg-opacity-30"
                               title="Approve student"
                             >
                               ✅
                             </button>
                             <button
-                              onClick={() => handleReject(student.id)}
+                              onClick={() => handleReject(student.registration_number)}
                               className="action-btn bg-red-500 bg-opacity-20 text-red-400 hover:bg-opacity-30"
                               title="Reject student"
                             >
@@ -378,10 +421,10 @@ const StudentTable = ({ isDarkMode, searchTerm, filter, students, onApprove, onR
                               <div className="py-1">Room: {student.room_number || 'N/A'}</div>
                               <div className="py-1">Joined: {formatDate(student.created_at)}</div>
                               <div className="py-2 flex space-x-2">
-                                {student.status === 'inactive' && (
+                                {canModerateStatus(student.status) && (
                                   <>
-                                    <button onClick={() => handleApprove(student.id)} className="px-2 py-1 text-xs rounded bg-emerald-500 text-white">Approve</button>
-                                    <button onClick={() => handleReject(student.id)} className="px-2 py-1 text-xs rounded bg-red-500 text-white">Reject</button>
+                                    <button onClick={() => handleApprove(student.registration_number)} className="px-2 py-1 text-xs rounded bg-emerald-500 text-white">Approve</button>
+                                    <button onClick={() => handleReject(student.registration_number)} className="px-2 py-1 text-xs rounded bg-red-500 text-white">Reject</button>
                                   </>
                                 )}
                               <button onClick={() => handleEdit(student.id)} className="px-2 py-1 text-xs rounded bg-blue-500 text-white">Edit</button>

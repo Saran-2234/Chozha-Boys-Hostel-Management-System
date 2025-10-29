@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 import Button from '../Common/Button';
 
 const BillTable = ({ isDarkMode, students, vegFeePerDay, nonVegFeePerDay, messFeePerDay }) => {
@@ -12,6 +13,12 @@ const BillTable = ({ isDarkMode, students, vegFeePerDay, nonVegFeePerDay, messFe
       return acc;
     }, {})
   );
+
+  // State for verified students (keyed by student.id)
+  const [verifiedStudents, setVerifiedStudents] = useState({});
+
+  // State for selected students (keyed by student.id)
+  const [selectedStudents, setSelectedStudents] = useState({});
 
   const handleDaysChange = (index, field, value) => {
     setStudentDays(prev => ({
@@ -31,9 +38,35 @@ const BillTable = ({ isDarkMode, students, vegFeePerDay, nonVegFeePerDay, messFe
     return messCharges + (vegDays * vegFeePerDay) + (nonVegDays * nonVegFeePerDay);
   };
 
-  const handleSendBill = (studentId) => {
-    console.log(`Sending bill to student ${studentId}`);
-    // Simulate sending bill
+  const handleVerify = (index) => {
+    setVerifiedStudents(prev => ({
+      ...prev,
+      [index]: !prev[index]
+    }));
+  };
+
+  const handleSelectStudent = (index) => {
+    setSelectedStudents(prev => ({
+      ...prev,
+      [index]: !prev[index]
+    }));
+  };
+
+  const handleSendToSelectedVerified = async () => {
+    const selectedVerified = Object.keys(selectedStudents).filter(id => selectedStudents[id] && verifiedStudents[id]);
+    if (selectedVerified.length === 0) return;
+
+    try {
+      const response = await axios.post('https://finalbackend1.vercel.app/bulkshowmessbill', {
+        studentIds: selectedVerified.map(id => parseInt(id))
+      }, {
+        withCredentials: true,
+      });
+      alert(`Bills sent successfully to ${selectedVerified.length} students.`);
+    } catch (error) {
+      console.error('Error sending bills:', error);
+      alert('Failed to send bills. Please try again.');
+    }
   };
 
   const paginatedStudents = students.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
@@ -48,6 +81,18 @@ const BillTable = ({ isDarkMode, students, vegFeePerDay, nonVegFeePerDay, messFe
 
   return (
     <div className="space-y-4">
+      {/* Bulk Actions */}
+      <div className="flex justify-end">
+        <Button
+          onClick={handleSendToSelectedVerified}
+          variant="primary"
+          isDarkMode={isDarkMode}
+          disabled={Object.keys(selectedStudents).filter(id => selectedStudents[id] && verifiedStudents[id]).length === 0}
+        >
+          Send to Selected Verified
+        </Button>
+      </div>
+
       {/* Mobile card layout */}
       <div className="sm:hidden space-y-4">
         {paginatedStudents.map((student, index) => {
@@ -55,6 +100,8 @@ const BillTable = ({ isDarkMode, students, vegFeePerDay, nonVegFeePerDay, messFe
           const { daysPresent, vegDays, nonVegDays } = studentDays[globalIndex];
           const messCharges = calculateMessCharges(globalIndex);
           const total = calculateTotal(globalIndex);
+          const isVerified = verifiedStudents[globalIndex];
+          const isSelected = selectedStudents[globalIndex];
 
           return (
             <div
@@ -62,10 +109,19 @@ const BillTable = ({ isDarkMode, students, vegFeePerDay, nonVegFeePerDay, messFe
               className={`rounded-xl border p-4 shadow-sm ${isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
             >
               <div className="flex items-start justify-between gap-3">
-                <div className="space-y-1">
-                  <p className={`text-xs font-medium uppercase ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Student</p>
-                  <div>
-                    <p className="text-sm font-semibold">{student.student_name}</p>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={isSelected || false}
+                    onChange={() => handleSelectStudent(globalIndex)}
+                    className="w-4 h-4"
+                  />
+                  <div className="space-y-1">
+                    <p className={`text-xs font-medium uppercase ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Student</p>
+                    <div>
+                      <p className="text-sm font-semibold">{student.student_name}</p>
+                      {isVerified && <span className="text-xs text-green-500">Verified</span>}
+                    </div>
                   </div>
                 </div>
                 <div className={`rounded-full px-3 py-1 text-xs font-semibold ${isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-gray-100 text-gray-600'}`}>
@@ -123,14 +179,14 @@ const BillTable = ({ isDarkMode, students, vegFeePerDay, nonVegFeePerDay, messFe
                 </div>
 
                 <div className="pt-2">
-                  <Button
-                    onClick={() => handleSendBill(student.id)}
-                    variant="primary"
-                    size="small"
-                    isDarkMode={isDarkMode}
-                  >
-                    Send Bill
-                  </Button>
+                    <Button
+                      onClick={() => handleVerify(globalIndex)}
+                      variant={isVerified ? "outline" : "primary"}
+                      size="small"
+                      isDarkMode={isDarkMode}
+                    >
+                      {isVerified ? "Verified" : "Verify"}
+                    </Button>
                 </div>
               </div>
             </div>
@@ -143,6 +199,9 @@ const BillTable = ({ isDarkMode, students, vegFeePerDay, nonVegFeePerDay, messFe
         <table className={`min-w-full divide-y ${isDarkMode ? 'divide-gray-700' : 'divide-gray-200'}`}>
           <thead className={isDarkMode ? 'bg-gray-700' : 'bg-gray-50'}>
             <tr>
+              <th className={`px-4 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}>
+                Select
+              </th>
               <th className={`px-4 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}>
                 Student Name
               </th>
@@ -175,10 +234,21 @@ const BillTable = ({ isDarkMode, students, vegFeePerDay, nonVegFeePerDay, messFe
               const { daysPresent, vegDays, nonVegDays } = studentDays[globalIndex];
               const messCharges = calculateMessCharges(globalIndex);
               const total = calculateTotal(globalIndex);
+              const isVerified = verifiedStudents[globalIndex];
+              const isSelected = selectedStudents[globalIndex];
               return (
                 <tr key={student.id} className={isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}>
+                  <td className="px-4 py-4 whitespace-nowrap">
+                    <input
+                      type="checkbox"
+                      checked={isSelected || false}
+                      onChange={() => handleSelectStudent(globalIndex)}
+                      className="w-4 h-4"
+                    />
+                  </td>
                   <td className={`px-4 py-4 whitespace-nowrap text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                     {student.student_name}
+                    {isVerified && <span className="text-xs text-green-500 ml-2">Verified</span>}
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">
                     <input
@@ -218,12 +288,12 @@ const BillTable = ({ isDarkMode, students, vegFeePerDay, nonVegFeePerDay, messFe
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
                     <Button
-                      onClick={() => handleSendBill(student.id)}
-                      variant="primary"
+                      onClick={() => handleVerify(globalIndex)}
+                      variant={isVerified ? "outline" : "primary"}
                       size="small"
                       isDarkMode={isDarkMode}
                     >
-                      Send Bill
+                      {isVerified ? "Verified" : "Verify"}
                     </Button>
                   </td>
                 </tr>

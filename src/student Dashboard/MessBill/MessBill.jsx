@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import Modal from '../Common/Modal';
 
 const MessBill = () => {
@@ -8,6 +9,38 @@ const MessBill = () => {
   const [reason, setReason] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [messBills, setMessBills] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const API_BASE_URL = 'https://finalbackend1.vercel.app';
+
+  useEffect(() => {
+    fetchMessBills();
+  }, []);
+
+  const fetchMessBills = async () => {
+    setLoading(true);
+    try {
+      // Mock student ID - in real app, get from auth context
+      const studentId = 101; // Replace with actual student ID from auth
+      const response = await axios.post(`${API_BASE_URL}/showmessbillbyid1`, {
+        student_id: studentId,
+      }, {
+        withCredentials: true,
+      });
+
+      if (response.data && response.data.data) {
+        setMessBills(response.data.data);
+      } else {
+        setMessBills([]);
+      }
+    } catch (err) {
+      console.error('Error fetching mess bills:', err);
+      setMessBills([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleApplyClick = () => {
     console.log('Apply for Reduction button clicked');
@@ -154,152 +187,167 @@ const MessBill = () => {
         </Modal>
       )}
 
-      <div className="glass-card rounded-xl p-4 sm:p-6 mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 gap-2">
-          <h3 className="text-lg sm:text-xl font-semibold text-white">December 2024 Bill</h3>
-          <span className="status-unpaid bg-red-500 bg-opacity-20 px-3 py-1 rounded-full text-xs sm:text-sm font-medium self-start sm:self-auto">
-            Pending Payment
-          </span>
+      {loading ? (
+        <div className="text-center py-8">
+          <p className="text-slate-400">Loading mess bills...</p>
         </div>
+      ) : messBills.length > 0 ? (
+        messBills.map((bill, index) => (
+          <div key={bill.mess_bill_id} className="glass-card rounded-xl p-4 sm:p-6 mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 gap-2">
+              <h3 className="text-lg sm:text-xl font-semibold text-white">{bill.month_year} Bill</h3>
+              <span className={`px-3 py-1 rounded-full text-xs sm:text-sm font-medium self-start sm:self-auto ${
+                bill.status === 'PAID' ? 'status-paid' : 'status-unpaid bg-red-500 bg-opacity-20'
+              }`}>
+                {bill.status}
+              </span>
+            </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <h4 className="text-lg font-medium text-white mb-4">Bill Details</h4>
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-slate-400">Vegetarian Days</span>
-                <span className="text-white">20 days × ₹80</span>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h4 className="text-lg font-medium text-white mb-4">Bill Details</h4>
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Grocery Cost</span>
+                    <span className="text-white">₹{bill.grocery_cost}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Vegetable Cost</span>
+                    <span className="text-white">₹{bill.vegetable_cost}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Gas Charges</span>
+                    <span className="text-white">₹{bill.gas_charges}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Total Expenditure</span>
+                    <span className="text-white">₹{bill.total_expenditure}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Mess Fee per Day</span>
+                    <span className="text-white">₹{bill.mess_fee_per_day}</span>
+                  </div>
+                  <hr className="border-slate-600" />
+                  <div className="flex justify-between text-lg font-semibold">
+                    <span className="text-white">Total Amount</span>
+                    <span className="text-white">₹{bill.total_expenditure}</span>
+                  </div>
+                </div>
               </div>
-              <div className="flex justify-between">
-                <span className="text-slate-400">Non-Vegetarian Days</span>
-                <span className="text-white">10 days × ₹120</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-400">Special Meals</span>
-                <span className="text-white">2 days × ₹150</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-400">Service Charge</span>
-                <span className="text-white">₹50</span>
-              </div>
-              <hr className="border-slate-600" />
-              <div className="flex justify-between text-lg font-semibold">
-                <span className="text-white">Total Amount</span>
-                <span className="text-white">₹2,450</span>
+
+              <div>
+                <h4 className="text-lg font-medium text-white mb-4">Payment Information</h4>
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Bill Generated</span>
+                    <span className="text-white">{new Date(bill.created_at).toLocaleDateString()}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Due Date</span>
+                    <span className="text-red-400">Last day of {bill.month_year}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Status</span>
+                    <span className={bill.status === 'PAID' ? 'text-green-400' : 'text-red-400'}>
+                      {bill.status}
+                    </span>
+                  </div>
+                </div>
+
+                {bill.status !== 'PAID' && (
+                  <div className="mt-6">
+                    <button className="w-full btn-primary text-white py-3 rounded-lg font-semibold text-lg">
+                      💳 Pay ₹{bill.total_expenditure} Now
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>
-
-          <div>
-            <h4 className="text-lg font-medium text-white mb-4">Payment Information</h4>
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-slate-400">Bill Generated</span>
-                <span className="text-white">Dec 1, 2024</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-400">Due Date</span>
-                <span className="text-red-400">Dec 30, 2024</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-400">Days Remaining</span>
-                <span className="text-yellow-400">10 days</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-400">Late Fee (if any)</span>
-                <span className="text-white">₹100</span>
-              </div>
-            </div>
-
-            <div className="mt-6">
-              <button className="w-full btn-primary text-white py-3 rounded-lg font-semibold text-lg">
-                💳 Pay ₹2,450 Now
-              </button>
-            </div>
-          </div>
+        ))
+      ) : (
+        <div className="text-center py-8">
+          <p className="text-slate-400">No mess bills found.</p>
         </div>
-      </div>
+      )}
 
       <div className="glass-card rounded-xl p-4 sm:p-6">
         <h3 className="text-lg font-semibold text-white mb-4 sm:mb-6">Payment History</h3>
 
-        {/* Desktop/Tablet Table */}
-        <div className="hidden sm:block overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-slate-600">
-                <th className="text-left py-3 px-4 text-slate-400 font-medium">Month</th>
-                <th className="text-left py-3 px-4 text-slate-400 font-medium">Amount</th>
-                <th className="text-left py-3 px-4 text-slate-400 font-medium">Status</th>
-                <th className="text-left py-3 px-4 text-slate-400 font-medium">Payment Date</th>
-                <th className="text-left py-3 px-4 text-slate-400 font-medium">Receipt</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr className="border-b border-slate-700">
-                <td className="py-3 px-4 text-white">November 2024</td>
-                <td className="py-3 px-4 text-white">₹2,300</td>
-                <td className="py-3 px-4"><span className="status-paid">Paid</span></td>
-                <td className="py-3 px-4 text-slate-400">Nov 28, 2024</td>
-                <td className="py-3 px-4">
-                  <button className="text-blue-400 hover:text-blue-300 text-sm">📄 Download</button>
-                </td>
-              </tr>
-              <tr className="border-b border-slate-700">
-                <td className="py-3 px-4 text-white">October 2024</td>
-                <td className="py-3 px-4 text-white">₹2,400</td>
-                <td className="py-3 px-4"><span className="status-paid">Paid</span></td>
-                <td className="py-3 px-4 text-slate-400">Oct 30, 2024</td>
-                <td className="py-3 px-4">
-                  <button className="text-blue-400 hover:text-blue-300 text-sm">📄 Download</button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        {messBills.length > 0 ? (
+          <>
+            {/* Desktop/Tablet Table */}
+            <div className="hidden sm:block overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-slate-600">
+                    <th className="text-left py-3 px-4 text-slate-400 font-medium">Month</th>
+                    <th className="text-left py-3 px-4 text-slate-400 font-medium">Amount</th>
+                    <th className="text-left py-3 px-4 text-slate-400 font-medium">Status</th>
+                    <th className="text-left py-3 px-4 text-slate-400 font-medium">Payment Date</th>
+                    <th className="text-left py-3 px-4 text-slate-400 font-medium">Receipt</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {messBills.map((bill) => (
+                    <tr key={bill.mess_bill_id} className="border-b border-slate-700">
+                      <td className="py-3 px-4 text-white">{bill.month_year}</td>
+                      <td className="py-3 px-4 text-white">₹{bill.total_expenditure}</td>
+                      <td className="py-3 px-4">
+                        <span className={bill.status === 'PAID' ? 'status-paid' : 'status-unpaid'}>
+                          {bill.status}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-slate-400">
+                        {bill.status === 'PAID' ? new Date(bill.created_at).toLocaleDateString() : 'N/A'}
+                      </td>
+                      <td className="py-3 px-4">
+                        {bill.status === 'PAID' && (
+                          <button className="text-blue-400 hover:text-blue-300 text-sm">📄 Download</button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
 
-        {/* Mobile Card Layout */}
-        <div className="sm:hidden space-y-4">
-          <div className="p-4 bg-slate-900 bg-opacity-20 rounded-lg">
-            <div className="flex items-center justify-between mb-2">
-              <div className="text-white font-medium">November 2024</div>
-              <span className="status-paid text-xs">Paid</span>
+            {/* Mobile Card Layout */}
+            <div className="sm:hidden space-y-4">
+              {messBills.map((bill) => (
+                <div key={bill.mess_bill_id} className="p-4 bg-slate-900 bg-opacity-20 rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="text-white font-medium">{bill.month_year}</div>
+                    <span className={`text-xs ${bill.status === 'PAID' ? 'status-paid' : 'status-unpaid'}`}>
+                      {bill.status}
+                    </span>
+                  </div>
+                  <div className="space-y-1 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Amount</span>
+                      <span className="text-white">₹{bill.total_expenditure}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Payment Date</span>
+                      <span className="text-slate-400">
+                        {bill.status === 'PAID' ? new Date(bill.created_at).toLocaleDateString() : 'N/A'}
+                      </span>
+                    </div>
+                    {bill.status === 'PAID' && (
+                      <div className="pt-2">
+                        <button className="text-blue-400 hover:text-blue-300 text-sm">📄 Download Receipt</button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
-            <div className="space-y-1 text-sm">
-              <div className="flex justify-between">
-                <span className="text-slate-400">Amount</span>
-                <span className="text-white">₹2,300</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-400">Payment Date</span>
-                <span className="text-slate-400">Nov 28, 2024</span>
-              </div>
-              <div className="pt-2">
-                <button className="text-blue-400 hover:text-blue-300 text-sm">📄 Download Receipt</button>
-              </div>
-            </div>
+          </>
+        ) : (
+          <div className="text-center py-8">
+            <p className="text-slate-400">No payment history available.</p>
           </div>
-
-          <div className="p-4 bg-slate-900 bg-opacity-20 rounded-lg">
-            <div className="flex items-center justify-between mb-2">
-              <div className="text-white font-medium">October 2024</div>
-              <span className="status-paid text-xs">Paid</span>
-            </div>
-            <div className="space-y-1 text-sm">
-              <div className="flex justify-between">
-                <span className="text-slate-400">Amount</span>
-                <span className="text-white">₹2,400</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-400">Payment Date</span>
-                <span className="text-slate-400">Oct 30, 2024</span>
-              </div>
-              <div className="pt-2">
-                <button className="text-blue-400 hover:text-blue-300 text-sm">📄 Download Receipt</button>
-              </div>
-            </div>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );

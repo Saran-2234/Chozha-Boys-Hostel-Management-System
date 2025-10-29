@@ -5,28 +5,28 @@ const BillTable = ({ isDarkMode, students, vegFeePerDay, nonVegFeePerDay, messFe
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  // Local state for editable days
+  // Local state for editable days, keyed by index for uniqueness
   const [studentDays, setStudentDays] = useState(
-    students.reduce((acc, student) => {
-      acc[student.id] = { daysPresent: student.daysPresent, vegDays: 0, nonVegDays: 0 };
+    students.reduce((acc, student, index) => {
+      acc[index] = { daysPresent: student.daysPresent, vegDays: 0, nonVegDays: 0 };
       return acc;
     }, {})
   );
 
-  const handleDaysChange = (studentId, field, value) => {
+  const handleDaysChange = (index, field, value) => {
     setStudentDays(prev => ({
       ...prev,
-      [studentId]: { ...prev[studentId], [field]: parseInt(value) || 0 }
+      [index]: { ...prev[index], [field]: parseInt(value) || 0 }
     }));
   };
 
-  const calculateMessCharges = (studentId) => {
-    const { daysPresent } = studentDays[studentId];
+  const calculateMessCharges = (index) => {
+    const { daysPresent } = studentDays[index];
     return daysPresent * messFeePerDay;
   };
 
-  const calculateTotal = (studentId) => {
-    const { daysPresent, vegDays, nonVegDays } = studentDays[studentId];
+  const calculateTotal = (index) => {
+    const { daysPresent, vegDays, nonVegDays } = studentDays[index];
     const messCharges = daysPresent * messFeePerDay;
     return messCharges + (vegDays * vegFeePerDay) + (nonVegDays * nonVegFeePerDay);
   };
@@ -50,10 +50,11 @@ const BillTable = ({ isDarkMode, students, vegFeePerDay, nonVegFeePerDay, messFe
     <div className="space-y-4">
       {/* Mobile card layout */}
       <div className="sm:hidden space-y-4">
-        {paginatedStudents.map((student) => {
-          const { daysPresent, vegDays, nonVegDays } = studentDays[student.id];
-          const messCharges = calculateMessCharges(student.id);
-          const total = calculateTotal(student.id);
+        {paginatedStudents.map((student, index) => {
+          const globalIndex = (currentPage - 1) * itemsPerPage + index;
+          const { daysPresent, vegDays, nonVegDays } = studentDays[globalIndex];
+          const messCharges = calculateMessCharges(globalIndex);
+          const total = calculateTotal(globalIndex);
 
           return (
             <div
@@ -64,8 +65,7 @@ const BillTable = ({ isDarkMode, students, vegFeePerDay, nonVegFeePerDay, messFe
                 <div className="space-y-1">
                   <p className={`text-xs font-medium uppercase ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Student</p>
                   <div>
-                    <p className="text-sm font-semibold">{student.name}</p>
-                    <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>{student.id}</p>
+                    <p className="text-sm font-semibold">{student.student_name}</p>
                   </div>
                 </div>
                 <div className={`rounded-full px-3 py-1 text-xs font-semibold ${isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-gray-100 text-gray-600'}`}>
@@ -80,7 +80,7 @@ const BillTable = ({ isDarkMode, students, vegFeePerDay, nonVegFeePerDay, messFe
                     <input
                       type="number"
                       value={daysPresent}
-                      onChange={(event) => handleDaysChange(student.id, 'daysPresent', event.target.value)}
+                      onChange={(event) => handleDaysChange(globalIndex, 'daysPresent', event.target.value)}
                       className={`w-full px-3 py-2 border rounded text-sm ${isDarkMode ? 'bg-gray-900 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
                       min="0"
                     />
@@ -91,7 +91,7 @@ const BillTable = ({ isDarkMode, students, vegFeePerDay, nonVegFeePerDay, messFe
                       <input
                         type="number"
                         value={vegDays}
-                        onChange={(event) => handleDaysChange(student.id, 'vegDays', event.target.value)}
+                        onChange={(event) => handleDaysChange(globalIndex, 'vegDays', event.target.value)}
                         className={`w-full px-3 py-2 border rounded text-sm ${isDarkMode ? 'bg-gray-900 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
                         min="0"
                       />
@@ -101,7 +101,7 @@ const BillTable = ({ isDarkMode, students, vegFeePerDay, nonVegFeePerDay, messFe
                       <input
                         type="number"
                         value={nonVegDays}
-                        onChange={(event) => handleDaysChange(student.id, 'nonVegDays', event.target.value)}
+                        onChange={(event) => handleDaysChange(globalIndex, 'nonVegDays', event.target.value)}
                         className={`w-full px-3 py-2 border rounded text-sm ${isDarkMode ? 'bg-gray-900 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
                         min="0"
                       />
@@ -144,9 +144,6 @@ const BillTable = ({ isDarkMode, students, vegFeePerDay, nonVegFeePerDay, messFe
           <thead className={isDarkMode ? 'bg-gray-700' : 'bg-gray-50'}>
             <tr>
               <th className={`px-4 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}>
-                Student ID
-              </th>
-              <th className={`px-4 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}>
                 Student Name
               </th>
               <th className={`px-4 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}>
@@ -173,23 +170,21 @@ const BillTable = ({ isDarkMode, students, vegFeePerDay, nonVegFeePerDay, messFe
             </tr>
           </thead>
           <tbody className={`divide-y ${isDarkMode ? 'divide-gray-700 bg-gray-800' : 'divide-gray-200 bg-white'}`}>
-            {paginatedStudents.map((student) => {
-              const { daysPresent, vegDays, nonVegDays } = studentDays[student.id];
-              const messCharges = calculateMessCharges(student.id);
-              const total = calculateTotal(student.id);
+            {paginatedStudents.map((student, index) => {
+              const globalIndex = (currentPage - 1) * itemsPerPage + index;
+              const { daysPresent, vegDays, nonVegDays } = studentDays[globalIndex];
+              const messCharges = calculateMessCharges(globalIndex);
+              const total = calculateTotal(globalIndex);
               return (
                 <tr key={student.id} className={isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}>
                   <td className={`px-4 py-4 whitespace-nowrap text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                    {student.id}
-                  </td>
-                  <td className={`px-4 py-4 whitespace-nowrap text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                    {student.name}
+                    {student.student_name}
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">
                     <input
                       type="number"
                       value={daysPresent}
-                      onChange={(e) => handleDaysChange(student.id, 'daysPresent', e.target.value)}
+                      onChange={(e) => handleDaysChange(globalIndex, 'daysPresent', e.target.value)}
                       className={`w-20 px-2 py-1 border rounded text-sm ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
                       min="0"
                     />
@@ -204,7 +199,7 @@ const BillTable = ({ isDarkMode, students, vegFeePerDay, nonVegFeePerDay, messFe
                     <input
                       type="number"
                       value={vegDays}
-                      onChange={(e) => handleDaysChange(student.id, 'vegDays', e.target.value)}
+                      onChange={(e) => handleDaysChange(globalIndex, 'vegDays', e.target.value)}
                       className={`w-20 px-2 py-1 border rounded text-sm ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
                       min="0"
                     />
@@ -213,7 +208,7 @@ const BillTable = ({ isDarkMode, students, vegFeePerDay, nonVegFeePerDay, messFe
                     <input
                       type="number"
                       value={nonVegDays}
-                      onChange={(e) => handleDaysChange(student.id, 'nonVegDays', e.target.value)}
+                      onChange={(e) => handleDaysChange(globalIndex, 'nonVegDays', e.target.value)}
                       className={`w-20 px-2 py-1 border rounded text-sm ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
                       min="0"
                     />

@@ -59,6 +59,10 @@ const CreateMonthlyCalculation = ({
   setVegExtraPerDay,
   nonVegExtraPerDay,
   setNonVegExtraPerDay,
+  vegServedDays,
+  setVegServedDays,
+  nonVegServedDays,
+  setNonVegServedDays,
   fieldErrors,
   formTouched,
   touchedFields,
@@ -209,6 +213,33 @@ const CreateMonthlyCalculation = ({
                     )}
                   </div>
                 ))}
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Veg Served Days</label>
+                  <input
+                    value={vegServedDays}
+                    onChange={handleNumericChange('vegServedDays', setVegServedDays)}
+                    onBlur={() => handleFieldBlur('vegServedDays')}
+                    placeholder="Enter number of veg served days"
+                    className={inputClass}
+                  />
+                  {fieldErrors.vegServedDays && (formTouched || touchedFields.vegServedDays) && (
+                    <p className="text-xs text-rose-400">{fieldErrors.vegServedDays}</p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Non-Veg Served Days</label>
+                  <input
+                    value={nonVegServedDays}
+                    onChange={handleNumericChange('nonVegServedDays', setNonVegServedDays)}
+                    onBlur={() => handleFieldBlur('nonVegServedDays')}
+                    placeholder="Enter number of non-veg served days"
+                    className={inputClass}
+                  />
+                  {fieldErrors.nonVegServedDays && (formTouched || touchedFields.nonVegServedDays) && (
+                    <p className="text-xs text-rose-400">{fieldErrors.nonVegServedDays}</p>
+                  )}
+                </div>
               </div>
             </div>
           </div>

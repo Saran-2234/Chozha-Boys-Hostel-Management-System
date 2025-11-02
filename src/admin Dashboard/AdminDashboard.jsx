@@ -11,7 +11,7 @@ import RoomManagement from './RoomManagement/RoomManagement';
 import Messaging from './Messaging/Messaging';
 import Departments from './Departments/Departments';
 import Settings from './Settings/Settings';
-import Reduction from './Reduction/Reduction';
+
 import Promotion from './Promotion/Promotion';
 import RefreshConfirmationModal from './components/RefreshConfirmationModal'; // Import the refresh modal
 import './styles/adminDashboard.css';
@@ -116,8 +116,7 @@ const AdminDashboard = () => {
         return <Departments isDarkMode={isDarkMode} />;
       case 'reports':
         return <Reports isDarkMode={isDarkMode} />;
-      case 'reduction':
-        return <Reduction isDarkMode={isDarkMode} />;
+
       case 'settings':
         return <Settings isDarkMode={isDarkMode} />;
       default:

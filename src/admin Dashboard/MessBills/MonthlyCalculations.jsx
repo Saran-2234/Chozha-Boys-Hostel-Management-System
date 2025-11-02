@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card, CardHeader, CardContent } from '../Common/Card';
 import Button from '../Common/Button';
 
@@ -10,37 +10,72 @@ const MonthlyCalculations = ({
   selectedMonthId,
   setSelectedMonthId,
   fetchMonthlyCalculations,
-  setActiveSection,
+  onEdit,
+  onConfirm,
   selectedMonthData,
   formattedCurrency,
+  isVerificationStep = false,
+  newCalculationId = null,
 }) => {
+  const [showDetails, setShowDetails] = React.useState(false);
   return (
     <Card className="space-y-6" isDarkMode={isDarkMode}>
       <CardHeader>
         <div className="flex flex-col gap-3 text-left sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="text-xl font-semibold">Monthly Calculations</h2>
+            <h2 className="text-xl font-semibold">
+              {isVerificationStep ? 'Verify Monthly Calculation' : 'Monthly Calculations'}
+            </h2>
             <p className={isDarkMode ? 'text-slate-400' : 'text-slate-600'}>
-              View and select from all monthly mess bill calculations.
+              {isVerificationStep
+                ? 'Review the newly created calculation before proceeding.'
+                : 'View and select from all monthly mess bill calculations.'
+              }
             </p>
           </div>
           <div className="flex gap-3">
-            <Button
-              onClick={fetchMonthlyCalculations}
-              variant="outline"
-              isDarkMode={isDarkMode}
-              disabled={loadingMonthly}
-            >
-              {loadingMonthly ? 'Loading...' : 'Refresh'}
-            </Button>
-            <Button
-              onClick={() => setActiveSection('createCalculation')}
-              variant="primary"
-              isDarkMode={isDarkMode}
-              className="shadow-md"
-            >
-              Create New
-            </Button>
+            {!isVerificationStep && (
+              <>
+                <Button
+                  onClick={() => {
+                    fetchMonthlyCalculations();
+                    setShowDetails(false);
+                  }}
+                  variant="outline"
+                  isDarkMode={isDarkMode}
+                  disabled={loadingMonthly}
+                >
+                  {loadingMonthly ? 'Loading...' : 'Refresh'}
+                </Button>
+                <Button
+                  onClick={onEdit}
+                  variant="primary"
+                  isDarkMode={isDarkMode}
+                  className="shadow-md"
+                >
+                  Edit Bill
+                </Button>
+              </>
+            )}
+            {isVerificationStep && (
+              <>
+                <Button
+                  onClick={onEdit}
+                  variant="outline"
+                  isDarkMode={isDarkMode}
+                >
+                  Edit
+                </Button>
+                <Button
+                  onClick={onConfirm}
+                  variant="primary"
+                  isDarkMode={isDarkMode}
+                  className="shadow-md"
+                >
+                  Confirm & Proceed
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </CardHeader>
@@ -53,85 +88,105 @@ const MonthlyCalculations = ({
 
         {monthlyData.length > 0 && (
           <div className="space-y-4">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <label className="text-sm font-medium">Select Month:</label>
-              <select
-                value={selectedMonthId || ''}
-                onChange={(e) => setSelectedMonthId(parseInt(e.target.value))}
-                className={`w-full sm:w-64 rounded-md border px-3 py-2 text-sm transition focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 ${
-                  isDarkMode
-                    ? 'bg-gray-800 border-gray-700 text-gray-100'
-                    : 'bg-white border-gray-300 text-gray-900'
-                }`}
-              >
-                {monthlyData.map((item) => (
-                  <option key={item.monthly_base_costs_id} value={item.monthly_base_costs_id}>
-                    {item.month_year}
-                  </option>
-                ))}
-              </select>
-            </div>
+            {!isVerificationStep && (
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <label className="text-sm font-medium">Select Month:</label>
+                <select
+                  value={selectedMonthId || ''}
+                  onChange={(e) => setSelectedMonthId(parseInt(e.target.value))}
+                  className={`w-full sm:w-64 rounded-md border px-3 py-2 text-sm transition focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 ${
+                    isDarkMode
+                      ? 'bg-gray-800 border-gray-700 text-gray-100'
+                      : 'bg-white border-gray-300 text-gray-900'
+                  }`}
+                >
+                  {monthlyData.map((item) => (
+                    <option key={item.monthly_base_costs_id} value={item.monthly_base_costs_id}>
+                      {item.month_year}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
-            <div className={`overflow-hidden rounded-2xl border shadow-lg ${
-              isDarkMode ? 'border-slate-700 bg-slate-900/60' : 'border-white/50 bg-white/85 backdrop-blur-xl'
-            }`}>
-              <div className={isDarkMode ? 'border-b border-slate-700 px-6 py-4' : 'border-b border-white/60 px-6 py-4'}>
-                <h3 className="text-lg font-semibold">All Monthly Calculations</h3>
-                <p className={`text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
-                  Overview of all saved monthly calculations.
-                </p>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-slate-200">
-                  <thead className={isDarkMode ? 'bg-slate-800/70 text-slate-200' : 'bg-indigo-50/60 text-indigo-900'}>
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Month/Year</th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Total Expenditure</th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Net Expenditure</th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Mess Fee/Day</th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Total Students</th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Created At</th>
-                    </tr>
-                  </thead>
-                  <tbody className={isDarkMode ? 'divide-y divide-slate-800 bg-slate-900/40' : 'divide-y divide-slate-100 bg-white/80'}>
-                    {monthlyData.map((item) => (
-                      <tr
-                        key={item.monthly_base_costs_id}
-                        className={`cursor-pointer transition ${
-                          selectedMonthId === item.monthly_base_costs_id
-                            ? (isDarkMode ? 'bg-blue-900/30' : 'bg-blue-50')
-                            : (isDarkMode ? 'hover:bg-slate-800/60' : 'hover:bg-slate-50')
-                        }`}
-                        onClick={() => setSelectedMonthId(item.monthly_base_costs_id)}
-                      >
-                        <td className="px-6 py-4 text-sm font-medium">{item.month_year}</td>
-                        <td className="px-6 py-4 text-sm font-semibold text-indigo-500">
-                          {formattedCurrency(item.total_expenditure)}
-                        </td>
-                        <td className="px-6 py-4 text-sm font-semibold text-indigo-500">
-                          {formattedCurrency(item.expenditure_after_income)}
-                        </td>
-                        <td className="px-6 py-4 text-sm font-semibold text-indigo-500">
-                          {formattedCurrency(item.mess_fee_per_day)}
-                        </td>
-                        <td className="px-6 py-4 text-sm font-medium">
-                          {item.years_data?.reduce((sum, y) => sum + (y.total_students || 0), 0) || 0}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-slate-500">
-                          {new Date(item.created_at).toLocaleDateString()}
-                        </td>
+            {!isVerificationStep && (
+              <div className={`overflow-hidden rounded-2xl border shadow-lg ${
+                isDarkMode ? 'border-slate-700 bg-slate-900/60' : 'border-white/50 bg-white/85 backdrop-blur-xl'
+              }`}>
+                <div className={isDarkMode ? 'border-b border-slate-700 px-6 py-4' : 'border-b border-white/60 px-6 py-4'}>
+                  <h3 className="text-lg font-semibold">All Monthly Calculations</h3>
+                  <p className={`text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                    Overview of all saved monthly calculations.
+                  </p>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-slate-200">
+                    <thead className={isDarkMode ? 'bg-slate-800/70 text-slate-200' : 'bg-indigo-50/60 text-indigo-900'}>
+                      <tr>
+                        <th className="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider w-24">Month/Year</th>
+                        <th className="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider w-32">Total Expenditure</th>
+                        <th className="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider w-32">Net Expenditure</th>
+                        <th className="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider w-28">Mess Fee/Day</th>
+                        <th className="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider w-24">Students</th>
+                        <th className="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider w-24">Created</th>
+                        <th className="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider w-20">Actions</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className={isDarkMode ? 'divide-y divide-slate-800 bg-slate-900/40' : 'divide-y divide-slate-100 bg-white/80'}>
+                      {monthlyData.map((item) => (
+                        <tr
+                          key={item.monthly_base_costs_id}
+                          className={`cursor-pointer transition-all duration-200 ${
+                            selectedMonthId === item.monthly_base_costs_id
+                              ? (isDarkMode ? 'bg-blue-900/30 shadow-md' : 'bg-blue-50 shadow-md')
+                              : (isDarkMode ? 'hover:bg-slate-800/60 hover:shadow-sm' : 'hover:bg-slate-50 hover:shadow-sm')
+                          }`}
+                          onClick={() => setSelectedMonthId(item.monthly_base_costs_id)}
+                        >
+                          <td className="px-4 py-4 text-sm font-medium whitespace-nowrap">{item.month_year}</td>
+                          <td className="px-4 py-4 text-sm font-semibold text-indigo-500 whitespace-nowrap">
+                            {formattedCurrency(item.total_expenditure)}
+                          </td>
+                          <td className="px-4 py-4 text-sm font-semibold text-indigo-500 whitespace-nowrap">
+                            {formattedCurrency(item.expenditure_after_income)}
+                          </td>
+                          <td className="px-4 py-4 text-sm font-semibold text-indigo-500 whitespace-nowrap">
+                            {formattedCurrency(item.mess_fee_per_day)}
+                          </td>
+                          <td className="px-4 py-4 text-sm font-medium text-center">
+                            {item.years_data?.reduce((sum, y) => sum + (y.total_students || 0), 0) || 0}
+                          </td>
+                          <td className="px-4 py-4 text-sm text-slate-500 whitespace-nowrap">
+                            {new Date(item.created_at).toLocaleDateString()}
+                          </td>
+                          <td className="px-4 py-4 text-sm">
+                            <Button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedMonthId(item.monthly_base_costs_id);
+                                setShowDetails(true);
+                              }}
+                              variant="primary"
+                              isDarkMode={isDarkMode}
+                              size="sm"
+                              className="transition-all duration-200 hover:scale-105 hover:shadow-md bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-medium"
+                            >
+                              View Details
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         )}
 
-        {selectedMonthData && (
+        {selectedMonthData && showDetails && (
           <>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {[{
                 label: 'Total Expenditure',
                 value: formattedCurrency(selectedMonthData.total_expenditure),
@@ -161,6 +216,21 @@ const MonthlyCalculations = ({
                 label: 'Total Students',
                 value: selectedMonthData.years_data?.reduce((sum, y) => sum + (y.total_students || 0), 0).toLocaleString() || '0',
                 tone: 'from-rose-500/90 via-rose-500/70 to-rose-600/80',
+              },
+              {
+                label: 'Total Milk Litres',
+                value: selectedMonthData.total_milk_litres ? selectedMonthData.total_milk_litres.toLocaleString() + ' L' : '0 L',
+                tone: 'from-cyan-500/90 via-cyan-500/70 to-cyan-600/80',
+              },
+              {
+                label: 'Veg Extra/Day',
+                value: formattedCurrency(selectedMonthData.veg_extra_per_day),
+                tone: 'from-green-500/90 via-green-500/70 to-green-600/80',
+              },
+              {
+                label: 'Non-Veg Extra/Day',
+                value: formattedCurrency(selectedMonthData.nonveg_extra_per_day),
+                tone: 'from-red-500/90 via-red-500/70 to-red-600/80',
               }].map((item) => (
                 <div
                   key={item.label}
@@ -250,7 +320,7 @@ const MonthlyCalculations = ({
                       isDarkMode ? 'border-slate-700 bg-slate-900/80' : 'border-indigo-100 bg-indigo-50/70'
                     }`}
                   >
-                    <p className="text-sm font-semibold text-indigo-500">{year.year}st Year</p>
+                    <p className="text-sm font-semibold text-indigo-500">{year.year}{year.year === 1 ? 'st' : year.year === 2 ? 'nd' : year.year === 3 ? 'rd' : 'th'} Year</p>
                     <div className="mt-3 flex items-end justify-between">
                       <div>
                         <p className="text-xs uppercase tracking-wide text-slate-400">Students</p>

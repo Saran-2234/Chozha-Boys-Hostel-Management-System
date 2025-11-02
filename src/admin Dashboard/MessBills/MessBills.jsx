@@ -7,25 +7,16 @@ import MonthlyCalculations from './MonthlyCalculations';
 import CreateMonthlyCalculation from './CreateMonthlyCalculation';
 import MessBillsManagement from './MessBillsManagement';
 
-const NAV_ITEMS = [
-  {
-    id: 'monthlyCalculations',
-    label: 'Monthly Calculations',
-    subtitle: 'View live totals & year wise breakdown',
-  },
-  {
-    id: 'createCalculation',
-    label: 'Create Monthly Calculation',
-    subtitle: 'Update expenses, attendance & confirm totals',
-  },
-  {
-    id: 'messBillsManagement',
-    label: 'Mess Bills Management',
-    subtitle: 'Filter and manage individual student bills',
-  },
-];
-
 const API_BASE_URL = 'https://finalbackend1.vercel.app';
+
+// Flow steps
+const FLOW_STEPS = {
+  LANDING: 'landing',
+  CREATE_CALCULATION: 'createCalculation',
+  VERIFY_CALCULATION: 'verifyCalculation',
+  APPLY_REDUCTIONS: 'applyReductions',
+  VERIFY_SEND_BILLS: 'verifySendBills',
+};
 
 const sanitizeNumericInput = (value, allowDecimal = true) => {
   let sanitized = value.replace(/[^\d.]/g, '');
@@ -46,8 +37,32 @@ const sanitizeNumericInput = (value, allowDecimal = true) => {
   return sanitized;
 };
 
+const REQUIRED_FIELD_LABELS = {
+  selectedMonth: 'Month',
+  selectedYear: 'Year',
+  groceryCost: 'Grocery Cost',
+  vegetableCost: 'Vegetable Cost',
+  gasCharges: 'Gas Charges',
+  milkLitres: 'Total Milk (litres)',
+  milkCostPerLitre: 'Milk Cost per Litre',
+  otherCosts: 'Other Costs',
+  deductions: 'Income / Deductions',
+  students1st: '1st Year Students',
+  days1st: '1st Year Days',
+  students2nd: '2nd Year Students',
+  days2nd: '2nd Year Days',
+  students3rd: '3rd Year Students',
+  days3rd: '3rd Year Days',
+  students4th: '4th Year Students',
+  days4th: '4th Year Days',
+  vegExtraPerDay: 'Veg Extra per Day',
+  nonVegExtraPerDay: 'Non-Veg Extra per Day',
+};
+
 const MessBills = ({ isDarkMode }) => {
-  const [activeSection, setActiveSection] = useState('monthlyCalculations');
+  const [currentStep, setCurrentStep] = useState(FLOW_STEPS.LANDING);
+  const [newCalculationId, setNewCalculationId] = useState(null);
+  const [reductionData, setReductionData] = useState([]);
 
   // Input states
   const [selectedMonth, setSelectedMonth] = useState('');
@@ -70,6 +85,8 @@ const MessBills = ({ isDarkMode }) => {
   const [reductionDays, setReductionDays] = useState('');
   const [vegExtraPerDay, setVegExtraPerDay] = useState('');
   const [nonVegExtraPerDay, setNonVegExtraPerDay] = useState('');
+  const [vegServedDays, setVegServedDays] = useState('');
+  const [nonVegServedDays, setNonVegServedDays] = useState('');
 
   // Form validation state
   const [fieldErrors, setFieldErrors] = useState({});
@@ -132,9 +149,16 @@ const MessBills = ({ isDarkMode }) => {
     return monthlyData.find(item => item.monthly_base_costs_id === selectedMonthId) || null;
   }, [monthlyData, selectedMonthId]);
 
-  // Update display values when selected month changes
+  // Update display values when selected month changes (only for viewing existing calculations)
   useEffect(() => {
-    if (selectedMonthData) {
+    if (selectedMonthData && currentStep !== FLOW_STEPS.CREATE_CALCULATION) {
+      // Parse month and year from month_year
+      if (selectedMonthData.month_year) {
+        const [month, year] = selectedMonthData.month_year.split('-');
+        setSelectedMonth(month || '');
+        setSelectedYear(year || '');
+      }
+
       setGroceryCost(selectedMonthData.grocery_cost?.toString() || '');
       setVegetableCost(selectedMonthData.vegetable_cost?.toString() || '');
       setGasCharges(selectedMonthData.gas_charges?.toString() || '');
@@ -144,6 +168,9 @@ const MessBills = ({ isDarkMode }) => {
       setDeductions(selectedMonthData.deductions_income?.toString() || '');
       setVegExtraPerDay(selectedMonthData.veg_extra_per_day?.toString() || '');
       setNonVegExtraPerDay(selectedMonthData.nonveg_extra_per_day?.toString() || '');
+      setVegServedDays(selectedMonthData.veg_served_days?.toString() || '');
+      setNonVegServedDays(selectedMonthData.nonveg_served_days?.toString() || '');
+      setReductionDays(selectedMonthData.reduction_days?.toString() || '');
       setMessFeePerDay(selectedMonthData.mess_fee_per_day || 0);
 
       // Update year-wise data
@@ -162,12 +189,43 @@ const MessBills = ({ isDarkMode }) => {
       setStudents4th(year4?.total_students?.toString() || '');
       setDays4th(year4?.total_days?.toString() || '');
     }
-  }, [selectedMonthData]);
+  }, [selectedMonthData, currentStep]);
 
   // Fetch data on component mount
   useEffect(() => {
     fetchMonthlyCalculations();
   }, []);
+
+  // Reset form fields for new calculation
+  const resetFormFields = () => {
+    setSelectedMonth('');
+    setSelectedYear('');
+    setGroceryCost('');
+    setVegetableCost('');
+    setGasCharges('');
+    setMilkLitres('');
+    setMilkCostPerLitre('');
+    setOtherCosts('');
+    setDeductions('');
+    setStudents1st('');
+    setDays1st('');
+    setStudents2nd('');
+    setDays2nd('');
+    setStudents3rd('');
+    setDays3rd('');
+    setStudents4th('');
+    setDays4th('');
+    setReductionDays('');
+    setVegExtraPerDay('');
+    setNonVegExtraPerDay('');
+    setVegServedDays('');
+    setNonVegServedDays('');
+    setFieldErrors({});
+    setFormTouched(false);
+    setTouchedFields({});
+    setCalculated(false);
+    setNewCalculationId(null);
+  };
 
   const getFieldValues = () => ({
     selectedMonth,
@@ -190,6 +248,8 @@ const MessBills = ({ isDarkMode }) => {
     reductionDays,
     vegExtraPerDay,
     nonVegExtraPerDay,
+    vegServedDays,
+    nonVegServedDays,
   });
 
   const handleFieldBlur = (fieldKey) => {
@@ -332,6 +392,8 @@ const MessBills = ({ isDarkMode }) => {
       deductions_income: parseFloat(deductions || 0),
       veg_extra_per_day: parseFloat(vegExtraPerDay || 0),
       nonveg_extra_per_day: parseFloat(nonVegExtraPerDay || 0),
+      veg_served_days: parseInt(vegServedDays || 0, 10),
+      nonveg_served_days: parseInt(nonVegServedDays || 0, 10),
       total_expenditure: totalExpenditure,
       expenditure_after_income: netExpenditure,
       mess_fee_per_day: messFeePerDay,
@@ -375,7 +437,8 @@ const MessBills = ({ isDarkMode }) => {
       setApiSuccess(response.data?.message || 'Monthly calculation saved successfully');
       setShowConfirmationModal(false);
       setCalculated(true);
-      setActiveSection('monthlyCalculations');
+      setNewCalculationId(response.data?.data?.monthly_base_costs_id);
+      setCurrentStep(FLOW_STEPS.VERIFY_CALCULATION);
     } catch (error) {
       const message = error.response?.data?.error || error.response?.data?.message || error.message || 'Failed to save monthly calculation';
       setApiError(message);
@@ -402,11 +465,13 @@ const MessBills = ({ isDarkMode }) => {
     const snapshotData = [
       { field: 'Month', value: selectedMonth || 'N/A' },
       { field: 'Year', value: selectedYear || 'N/A' },
+      { field: 'Milk Cost per Litre', value: milkCostPerLitre || '0' },
+      { field: 'Veg Served Days', value: vegServedDays || '0' },
+      { field: 'Non-Veg Served Days', value: nonVegServedDays || '0' },
       { field: 'Grocery Cost', value: groceryCost || '0' },
       { field: 'Vegetable Cost', value: vegetableCost || '0' },
       { field: 'Gas Charges', value: gasCharges || '0' },
       { field: 'Total Milk (litres)', value: milkLitres || '0' },
-      { field: 'Milk Cost per Litre', value: milkCostPerLitre || '0' },
       { field: 'Other Costs', value: otherCosts || '0' },
       { field: 'Income / Deductions', value: deductions || '0' },
       { field: 'Veg Extra per Day', value: vegExtraPerDay || '0' },
@@ -419,7 +484,6 @@ const MessBills = ({ isDarkMode }) => {
       { field: '3rd Year Days', value: days3rd || '0' },
       { field: '4th Year Students', value: students4th || '0' },
       { field: '4th Year Days', value: days4th || '0' },
-      { field: 'Reduction Days', value: reductionDays || '0' },
     ];
 
     const headers = ['Field', 'Value'];
@@ -443,76 +507,208 @@ const MessBills = ({ isDarkMode }) => {
 
 
 
+  // Helper function to get days in month
+  const getDaysInMonth = (month, year) => {
+    const monthNames = {
+      'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'May': 4, 'Jun': 5,
+      'Jul': 6, 'Aug': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11
+    };
+    return new Date(year, monthNames[month] + 1, 0).getDate();
+  };
+
   return (
     <div className="space-y-6 px-4 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl space-y-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className={`text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-              Mess Management
+              Mess Bills Management
             </h1>
             <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-              Review monthly calculations and manage student bills.
+              {currentStep === FLOW_STEPS.LANDING ? 'Create new monthly bills or view existing ones' :
+               currentStep === FLOW_STEPS.CREATE_CALCULATION ? 'Create monthly mess bill calculation' :
+               currentStep === FLOW_STEPS.VERIFY_CALCULATION ? 'Verify the created calculation' :
+               currentStep === FLOW_STEPS.APPLY_REDUCTIONS ? 'Apply reductions for students' :
+               'Verify and send bills to students'}
             </p>
           </div>
-          <div className="flex flex-wrap gap-3">
-            <Button
-              onClick={() => setActiveSection('createCalculation')}
-              variant="primary"
-              isDarkMode={isDarkMode}
-            >
-              Update Monthly Inputs
-            </Button>
-          </div>
+          {currentStep !== FLOW_STEPS.LANDING && (
+            <div className="flex flex-wrap gap-3">
+              <Button
+                onClick={() => setCurrentStep(FLOW_STEPS.LANDING)}
+                variant="outline"
+                isDarkMode={isDarkMode}
+              >
+                Back to Home
+              </Button>
+            </div>
+          )}
         </div>
 
-        <nav
-          className={`flex flex-wrap items-center justify-center gap-3 rounded-lg border p-3 ${
-            isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-          }`}
-        >
-          {NAV_ITEMS.map((item) => {
-            const isActive = activeSection === item.id;
-            return (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => setActiveSection(item.id)}
-                className={`flex min-w-[200px] flex-col items-center rounded-md border px-4 py-3 text-center transition ${
-                  isActive
-                    ? 'border-blue-500 bg-blue-600 text-white'
-                    : isDarkMode
-                      ? 'border-gray-600 bg-gray-700 text-gray-300 hover:border-blue-400 hover:text-white'
-                      : 'border-gray-200 bg-gray-50 text-gray-700 hover:border-blue-400 hover:bg-blue-50'
-                }`}
-              >
-                <span className="text-sm font-semibold">{item.label}</span>
-                <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                  {item.subtitle}
-                </span>
-              </button>
-            );
-          })}
-        </nav>
+        {/* Step 1: Landing Page */}
+        {currentStep === FLOW_STEPS.LANDING && (
+          <div className="space-y-6">
+            {/* Students with Applied Reductions Card */}
+            {(() => {
+              // Get reductions from localStorage (temporary until backend API is ready)
+              const appliedReductions = JSON.parse(localStorage.getItem('appliedReductions') || '[]');
 
-        {/* Monthly Calculations (Live View) */}
-        <section className={activeSection === 'monthlyCalculations' ? 'space-y-6' : 'hidden'}>
-          <MonthlyCalculations
-            isDarkMode={isDarkMode}
-            monthlyData={monthlyData}
-            loadingMonthly={loadingMonthly}
-            monthlyError={monthlyError}
-            selectedMonthId={selectedMonthId}
-            setSelectedMonthId={setSelectedMonthId}
-            fetchMonthlyCalculations={fetchMonthlyCalculations}
-            setActiveSection={setActiveSection}
-            selectedMonthData={selectedMonthData}
-            formattedCurrency={formattedCurrency}
-          />
-        </section>
+              return appliedReductions.length > 0 ? (
+                <Card className="p-6" isDarkMode={isDarkMode}>
+                  <CardHeader>
+                    <div className="space-y-2 text-left">
+                      <h2 className="text-xl font-semibold">Students with Applied Reductions</h2>
+                      <p className={isDarkMode ? 'text-slate-400' : 'text-slate-600'}>
+                        Students who have had mess bill reductions applied ({appliedReductions.length} students)
+                      </p>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {appliedReductions.map((student) => (
+                        <div
+                          key={student.student_id}
+                          className={`rounded-lg border p-4 ${isDarkMode ? 'bg-gray-800 border-gray-700 hover:bg-gray-750' : 'bg-white border-gray-200 hover:bg-gray-50'} transition-colors`}
+                        >
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                              <h3 className={`text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                                {student.student_name}
+                              </h3>
+                              <Button
+                                onClick={() => {
+                                  // Navigate to apply reductions step with this student pre-selected
+                                  setCurrentStep(FLOW_STEPS.APPLY_REDUCTIONS);
+                                }}
+                                variant="outline"
+                                size="small"
+                                isDarkMode={isDarkMode}
+                              >
+                                Edit
+                              </Button>
+                            </div>
+                            <div className="space-y-2">
+                              <div className="flex justify-between items-center">
+                                <span className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                  Reduction Days:
+                                </span>
+                                <span className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                                  {student.reduction_days || 0} days
+                                </span>
+                              </div>
+                              <div className="flex justify-between items-center">
+                                <span className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                  Department:
+                                </span>
+                                <span className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                                  {student.department}
+                                </span>
+                              </div>
+                              <div className="flex justify-between items-center">
+                                <span className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                  Year:
+                                </span>
+                                <span className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                                  {student.academic_year}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : null;
+            })()}
 
-        {/* Create Monthly Calculation */}
-        <section className={activeSection === 'createCalculation' ? 'space-y-6' : 'hidden'}>
+            <div className="text-center mb-8">
+              <h1 className="text-3xl font-bold mb-4">Mess Bills Management</h1>
+              <p className="text-lg text-gray-600 dark:text-gray-400">
+                Create new monthly bills or view existing ones
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
+              <Card className="p-8 text-center hover:shadow-lg transition-shadow cursor-pointer" isDarkMode={isDarkMode} onClick={() => {
+                resetFormFields();
+                setCurrentStep(FLOW_STEPS.CREATE_CALCULATION);
+              }}>
+                <div className="space-y-4">
+                  <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto">
+                    <svg className="w-8 h-8 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-semibold">Create New Monthly Mess Bill</h3>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    Start the process to create a new monthly mess bill calculation
+                  </p>
+                  <Button variant="primary" isDarkMode={isDarkMode} className="mt-4">
+                    Create New Bill
+                  </Button>
+                </div>
+              </Card>
+              <Card className="p-8 text-center hover:shadow-lg transition-shadow cursor-pointer" isDarkMode={isDarkMode} onClick={() => {
+                setSelectedMonthId(null);
+                fetchMonthlyCalculations();
+                setCurrentStep(FLOW_STEPS.VERIFY_CALCULATION);
+              }}>
+                <div className="space-y-4">
+                  <div className="w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mx-auto">
+                    <svg className="w-8 h-8 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-semibold">View Old Mess Bills</h3>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    Review and manage existing monthly calculations
+                  </p>
+                  <Button variant="outline" isDarkMode={isDarkMode} className="mt-4">
+                    View Existing Bills
+                  </Button>
+                </div>
+              </Card>
+
+              <Card className="p-8 text-center hover:shadow-lg transition-shadow cursor-pointer" isDarkMode={isDarkMode} onClick={() => setCurrentStep(FLOW_STEPS.APPLY_REDUCTIONS)}>
+                <div className="space-y-4">
+                  <div className="w-16 h-16 bg-yellow-100 dark:bg-yellow-900 rounded-full flex items-center justify-center mx-auto">
+                    <svg className="w-8 h-8 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-semibold">Apply Reductions</h3>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    Select students who have applied for mess bill reductions
+                  </p>
+                  <Button variant="primary" isDarkMode={isDarkMode} className="mt-4">
+                    Apply Reductions
+                  </Button>
+                </div>
+              </Card>
+
+              <Card className="p-8 text-center hover:shadow-lg transition-shadow cursor-pointer" isDarkMode={isDarkMode} onClick={() => setCurrentStep(FLOW_STEPS.VERIFY_SEND_BILLS)}>
+                <div className="space-y-4">
+                  <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center mx-auto">
+                    <svg className="w-8 h-8 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-semibold">Send Bills to Students</h3>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    Send calculated mess bills to students with reduction updates applied
+                  </p>
+                  <Button variant="primary" isDarkMode={isDarkMode} className="mt-4">
+                    Send Bills
+                  </Button>
+                </div>
+              </Card>
+            </div>
+          </div>
+        )}
+
+        {/* Step 2: Create Monthly Calculation */}
+        {currentStep === FLOW_STEPS.CREATE_CALCULATION && (
           <CreateMonthlyCalculation
             isDarkMode={isDarkMode}
             selectedMonth={selectedMonth}
@@ -555,6 +751,10 @@ const MessBills = ({ isDarkMode }) => {
             setVegExtraPerDay={setVegExtraPerDay}
             nonVegExtraPerDay={nonVegExtraPerDay}
             setNonVegExtraPerDay={setNonVegExtraPerDay}
+            vegServedDays={vegServedDays}
+            setVegServedDays={setVegServedDays}
+            nonVegServedDays={nonVegServedDays}
+            setNonVegServedDays={setNonVegServedDays}
             fieldErrors={fieldErrors}
             formTouched={formTouched}
             touchedFields={touchedFields}
@@ -563,10 +763,70 @@ const MessBills = ({ isDarkMode }) => {
             handleCalculate={handleCalculate}
             handleDownloadExcel={handleDownloadExcel}
           />
-        </section>
+        )}
 
-        {/* Mess Bills Management */}
-        <section className={activeSection === 'messBillsManagement' ? 'space-y-6' : 'hidden'}>
+        {/* Step 3: Verify Monthly Calculation or View Existing Bills */}
+        {currentStep === FLOW_STEPS.VERIFY_CALCULATION && (
+          <MonthlyCalculations
+            isDarkMode={isDarkMode}
+            monthlyData={monthlyData}
+            loadingMonthly={loadingMonthly}
+            monthlyError={monthlyError}
+            selectedMonthId={newCalculationId || selectedMonthId}
+            setSelectedMonthId={setSelectedMonthId}
+            fetchMonthlyCalculations={fetchMonthlyCalculations}
+            onEdit={() => {
+              // Populate form fields before switching to create step
+              if (selectedMonthData) {
+                // Parse month and year from month_year
+                if (selectedMonthData.month_year) {
+                  const [month, year] = selectedMonthData.month_year.split('-');
+                  setSelectedMonth(month || '');
+                  setSelectedYear(year || '');
+                }
+
+                setGroceryCost(selectedMonthData.grocery_cost?.toString() || '');
+                setVegetableCost(selectedMonthData.vegetable_cost?.toString() || '');
+                setGasCharges(selectedMonthData.gas_charges?.toString() || '');
+                setMilkLitres(selectedMonthData.total_milk_litres?.toString() || '');
+                setMilkCostPerLitre(selectedMonthData.milk_cost_per_litre?.toString() || '');
+                setOtherCosts(selectedMonthData.other_costs?.toString() || '');
+                setDeductions(selectedMonthData.deductions_income?.toString() || '');
+                setVegExtraPerDay(selectedMonthData.veg_extra_per_day?.toString() || '');
+                setNonVegExtraPerDay(selectedMonthData.nonveg_extra_per_day?.toString() || '');
+                setVegServedDays(selectedMonthData.veg_served_days?.toString() || '');
+                setNonVegServedDays(selectedMonthData.nonveg_served_days?.toString() || '');
+                setReductionDays(selectedMonthData.reduction_days?.toString() || '0');
+                setMessFeePerDay(selectedMonthData.mess_fee_per_day || 0);
+
+                // Update year-wise data
+                const yearsData = selectedMonthData.years_data || [];
+                const year1 = yearsData.find(y => y.year === 1);
+                const year2 = yearsData.find(y => y.year === 2);
+                const year3 = yearsData.find(y => y.year === 3);
+                const year4 = yearsData.find(y => y.year === 4);
+
+                setStudents1st(year1?.total_students?.toString() || '');
+                setDays1st(year1?.total_days?.toString() || '');
+                setStudents2nd(year2?.total_students?.toString() || '');
+                setDays2nd(year2?.total_days?.toString() || '');
+                setStudents3rd(year3?.total_students?.toString() || '');
+                setDays3rd(year3?.total_days?.toString() || '');
+                setStudents4th(year4?.total_students?.toString() || '');
+                setDays4th(year4?.total_days?.toString() || '');
+              }
+              setCurrentStep(FLOW_STEPS.CREATE_CALCULATION);
+            }}
+            onConfirm={() => setCurrentStep(FLOW_STEPS.APPLY_REDUCTIONS)}
+            selectedMonthData={selectedMonthData}
+            formattedCurrency={formattedCurrency}
+            isVerificationStep={!!newCalculationId}
+            newCalculationId={newCalculationId}
+          />
+        )}
+
+        {/* Step 4: Apply Reductions */}
+        {currentStep === FLOW_STEPS.APPLY_REDUCTIONS && (
           <MessBillsManagement
             isDarkMode={isDarkMode}
             yearFilter={yearFilter}
@@ -582,10 +842,38 @@ const MessBills = ({ isDarkMode }) => {
             handleBulkSendYearDept={handleBulkSendYearDept}
             handleSendAll={handleSendAll}
             handleDownloadExcel={handleDownloadExcel}
-            setActiveSection={setActiveSection}
+            onNext={() => setCurrentStep(FLOW_STEPS.VERIFY_SEND_BILLS)}
             selectedMonthData={selectedMonthData}
+            reductionData={reductionData}
+            setReductionData={setReductionData}
+            isReductionStep={true}
           />
-        </section>
+        )}
+
+        {/* Step 5: Verify and Send Bills */}
+        {currentStep === FLOW_STEPS.VERIFY_SEND_BILLS && (
+          <MessBillsManagement
+            isDarkMode={isDarkMode}
+            yearFilter={yearFilter}
+            setYearFilter={setYearFilter}
+            departmentFilter={departmentFilter}
+            setDepartmentFilter={setDepartmentFilter}
+            studentSearch={studentSearch}
+            setStudentSearch={setStudentSearch}
+            messFeePerDay={messFeePerDay}
+            vegFeePerDay={vegFeePerDay}
+            nonVegFeePerDay={nonVegFeePerDay}
+            calculated={calculated}
+            handleBulkSendYearDept={handleBulkSendYearDept}
+            handleSendAll={handleSendAll}
+            handleDownloadExcel={handleDownloadExcel}
+            onBack={() => setCurrentStep(FLOW_STEPS.APPLY_REDUCTIONS)}
+            selectedMonthData={selectedMonthData}
+            reductionData={reductionData}
+            isFinalStep={true}
+            getDaysInMonth={getDaysInMonth}
+          />
+        )}
       </div>
 
       {/* Confirmation Modal */}

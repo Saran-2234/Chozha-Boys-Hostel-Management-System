@@ -21,8 +21,8 @@ const NavigationMenu = ({ setActiveSection, activeSection }) => {
             e.preventDefault();
             setActiveSection(item.id);
           }}
-          className={`flex items-center space-x-3 px-4 py-3 rounded-lg text-white hover:bg-white hover:bg-opacity-10 transition-all ${
-            activeSection === item.id ? 'bg-white bg-opacity-20' : ''
+          className={`flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-900 hover:bg-gray-200 transition-all ${
+            activeSection === item.id ? 'bg-gray-200' : ''
           }`}
         >
           <span className="text-lg">{item.icon}</span>

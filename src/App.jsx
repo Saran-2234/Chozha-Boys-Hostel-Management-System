@@ -3,6 +3,9 @@ import Home from './Home.jsx'
 import Login from './Login.jsx'
 import Dashboard from './student Dashboard/StudentDashboard.jsx'
 import AdminDashboard from './admin Dashboard/AdminDashboard.jsx'
+import MessBillsDetail from './admin Dashboard/MessBillsDetail/MessBillsDetail.jsx'
+import MessBillIndividual from './admin Dashboard/MessBillsDetail/MessBillIndividual.jsx'
+import MessBillsIndividualList from './admin Dashboard/MessBillsDetail/MessBillsIndividualList.jsx'
 import { createBrowserRouter, RouterProvider, redirect } from "react-router-dom";
 
 
@@ -42,6 +45,21 @@ function App() {
   {
     path: "/admin-dashboard",
     element: <AdminDashboard/>,
+    loader: adminDashboardLoader,
+  },
+  {
+    path: "/mess-bills-detail",
+    element: <MessBillsDetail/>,
+    loader: adminDashboardLoader,
+  },
+  {
+    path: "/mess-bill-individual",
+    element: <MessBillIndividual/>,
+    loader: adminDashboardLoader,
+  },
+  {
+    path: "/mess-bills-individual-list",
+    element: <MessBillsIndividualList/>,
     loader: adminDashboardLoader,
   },
   {

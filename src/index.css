@@ -13,22 +13,7 @@
             max-width: 100vw;
         }
         
-        .professional-bg {
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 25%, #334155 50%, #475569 75%, #64748b 100%);
-            position: relative;
-        }
-        
-        .professional-bg::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
-                        radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
-                        radial-gradient(circle at 40% 40%, rgba(16, 185, 129, 0.05) 0%, transparent 50%);
-        }
+
         
         .glass-effect {
             background: rgba(255, 255, 255, 0.08);
@@ -275,18 +260,7 @@
                         0 0 0 1px rgba(226, 232, 240, 0.6);
         }
         
-        .light-mode .theme-toggle {
-            color: #475569 !important;
-            background: rgba(255, 255, 255, 0.8) !important;
-            border: 2px solid rgba(226, 232, 240, 0.8) !important;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05) !important;
-        }
-        
-        .light-mode .theme-toggle:hover {
-            background: rgba(255, 255, 255, 0.95) !important;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08) !important;
-            transform: scale(1.15) !important;
-        }
+
         
         .light-mode input {
             color: #1e293b !important;

@@ -19,7 +19,7 @@ import './styles/adminDashboard.css';
 const AdminDashboard = () => {
   const [activeSection, setActiveSection] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(true);
+
   const [showRefreshModal, setShowRefreshModal] = useState(false); // Refresh modal state
 
   const handleLogout = () => {
@@ -95,51 +95,48 @@ const AdminDashboard = () => {
   const renderSection = () => {
     switch (activeSection) {
       case 'dashboard':
-        return <Dashboard setActiveSection={setActiveSection} isDarkMode={isDarkMode} />;
+        return <Dashboard setActiveSection={setActiveSection} />;
       case 'students':
-        return <Students isDarkMode={isDarkMode} />;
+        return <Students />;
       case 'attendance':
-        return <Attendance isDarkMode={isDarkMode} />;
+        return <Attendance />;
       case 'messbills':
-        return <MessBills isDarkMode={isDarkMode} />;
+        return <MessBills />;
       case 'promotion':
-        return <Promotion isDarkMode={isDarkMode} />;
+        return <Promotion />;
       case 'complaints':
-        return <Complaints isDarkMode={isDarkMode} />;
+        return <Complaints />;
       case 'rooms':
-        return <RoomManagement isDarkMode={isDarkMode} />;
+        return <RoomManagement />;
       case 'visitors':
-        return <Visitors isDarkMode={isDarkMode} />;
+        return <Visitors />;
       case 'messaging':
-        return <Messaging isDarkMode={isDarkMode} />;
+        return <Messaging />;
       case 'departments':
-        return <Departments isDarkMode={isDarkMode} />;
+        return <Departments />;
       case 'reports':
-        return <Reports isDarkMode={isDarkMode} />;
+        return <Reports />;
 
       case 'settings':
-        return <Settings isDarkMode={isDarkMode} />;
+        return <Settings />;
       default:
-        return <Dashboard setActiveSection={setActiveSection} isDarkMode={isDarkMode} />;
+        return <Dashboard setActiveSection={setActiveSection} />;
     }
   };
 
   return (
-    <div className={`${isDarkMode ? 'professional-bg' : 'light-mode'} flex min-h-screen ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-      <Sidebar 
-        setActiveSection={setActiveSection} 
-        activeSection={activeSection} 
-        onLogout={handleLogout} 
-        isDarkMode={isDarkMode} 
+    <div className="light-mode flex min-h-screen text-gray-900">
+      <Sidebar
+        setActiveSection={setActiveSection}
+        activeSection={activeSection}
+        onLogout={handleLogout}
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
       />
       {/* Backdrop overlay for mobile sidebar - removed to fix overlay issue */}
       <div className={`flex-1 min-w-0 flex flex-col transition-transform duration-300 pointer-events-auto md:ml-64 ${sidebarOpen ? 'translate-x-64 md:translate-x-0' : 'translate-x-0'}`}>
-        <Header 
-          isDarkMode={isDarkMode} 
-          setIsDarkMode={setIsDarkMode} 
-          onLogout={handleLogout} 
+        <Header
+          onLogout={handleLogout}
           sidebarOpen={sidebarOpen}
           setSidebarOpen={setSidebarOpen}
         />

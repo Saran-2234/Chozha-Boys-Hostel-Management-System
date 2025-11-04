@@ -1,922 +1,1290 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import axios from 'axios';
-import { Card, CardHeader, CardContent } from '../Common/Card';
-import Button from '../Common/Button';
-import Modal from '../Common/Modal';
-import MonthlyCalculations from './MonthlyCalculations';
-import CreateMonthlyCalculation from './CreateMonthlyCalculation';
-import MessBillsManagement from './MessBillsManagement';
-
-const API_BASE_URL = 'https://finalbackend1.vercel.app';
-
-// Flow steps
-const FLOW_STEPS = {
-  LANDING: 'landing',
-  CREATE_CALCULATION: 'createCalculation',
-  VERIFY_CALCULATION: 'verifyCalculation',
-  APPLY_REDUCTIONS: 'applyReductions',
-  VERIFY_SEND_BILLS: 'verifySendBills',
-};
-
-const sanitizeNumericInput = (value, allowDecimal = true) => {
-  let sanitized = value.replace(/[^\d.]/g, '');
-
-  if (!allowDecimal) {
-    return sanitized.replace(/\./g, '');
-  }
-
-  const parts = sanitized.split('.');
-  if (parts.length > 1) {
-    sanitized = `${parts[0]}.${parts.slice(1).join('')}`;
-  }
-
-  if (sanitized.startsWith('.')) {
-    sanitized = `0${sanitized}`;
-  }
-
-  return sanitized;
-};
-
-const REQUIRED_FIELD_LABELS = {
-  selectedMonth: 'Month',
-  selectedYear: 'Year',
-  groceryCost: 'Grocery Cost',
-  vegetableCost: 'Vegetable Cost',
-  gasCharges: 'Gas Charges',
-  milkLitres: 'Total Milk (litres)',
-  milkCostPerLitre: 'Milk Cost per Litre',
-  otherCosts: 'Other Costs',
-  deductions: 'Income / Deductions',
-  students1st: '1st Year Students',
-  days1st: '1st Year Days',
-  students2nd: '2nd Year Students',
-  days2nd: '2nd Year Days',
-  students3rd: '3rd Year Students',
-  days3rd: '3rd Year Days',
-  students4th: '4th Year Students',
-  days4th: '4th Year Days',
-  vegExtraPerDay: 'Veg Extra per Day',
-  nonVegExtraPerDay: 'Non-Veg Extra per Day',
-};
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const MessBills = ({ isDarkMode }) => {
-  const [currentStep, setCurrentStep] = useState(FLOW_STEPS.LANDING);
-  const [newCalculationId, setNewCalculationId] = useState(null);
-  const [reductionData, setReductionData] = useState([]);
+  const navigate = useNavigate();
+  const [activeSection, setActiveSection] = useState('new-bill');
+  const [formData, setFormData] = useState({
+    // Basic Information
+    month_year: '',
+    years: [1, 2, 3, 4], // Default all years selected
 
-  // Input states
-  const [selectedMonth, setSelectedMonth] = useState('');
-  const [selectedYear, setSelectedYear] = useState('');
-  const [groceryCost, setGroceryCost] = useState('');
-  const [vegetableCost, setVegetableCost] = useState('');
-  const [gasCharges, setGasCharges] = useState('');
-  const [milkLitres, setMilkLitres] = useState('');
-  const [milkCostPerLitre, setMilkCostPerLitre] = useState('');
-  const [otherCosts, setOtherCosts] = useState('');
-  const [deductions, setDeductions] = useState('');
-  const [students1st, setStudents1st] = useState('');
-  const [days1st, setDays1st] = useState('');
-  const [students2nd, setStudents2nd] = useState('');
-  const [days2nd, setDays2nd] = useState('');
-  const [students3rd, setStudents3rd] = useState('');
-  const [days3rd, setDays3rd] = useState('');
-  const [students4th, setStudents4th] = useState('');
-  const [days4th, setDays4th] = useState('');
-  const [reductionDays, setReductionDays] = useState('');
-  const [vegExtraPerDay, setVegExtraPerDay] = useState('');
-  const [nonVegExtraPerDay, setNonVegExtraPerDay] = useState('');
-  const [vegServedDays, setVegServedDays] = useState('');
-  const [nonVegServedDays, setNonVegServedDays] = useState('');
+    // Cost Details
+    grocery_cost: '',
+    vegetable_cost: '',
+    gas_charges: '',
+    total_milk_litres: '',
+    milk_cost_per_litre: '',
+    milk_charges_computed: '',
+    other_costs: '',
+    deductions_income: '',
+    veg_extra_per_day: '',
+    nonveg_extra_per_day: '',
 
-  // Form validation state
-  const [fieldErrors, setFieldErrors] = useState({});
-  const [formTouched, setFormTouched] = useState(false);
-  const [touchedFields, setTouchedFields] = useState({});
+    // Summary
+    total_expenditure: '',
+    expenditure_after_income: '',
+    mess_fee_per_day: '',
 
-  // Computed values
-  const [milkCharges, setMilkCharges] = useState(0);
-  const [totalStudents, setTotalStudents] = useState(0);
-
-  // Calculation results
-  const [totalExpenditure, setTotalExpenditure] = useState(0);
-  const [totalIncome, setTotalIncome] = useState(0);
-  const [netExpenditure, setNetExpenditure] = useState(0);
-  const [totalPossibleStudentDays, setTotalPossibleStudentDays] = useState(0);
-  const [applicableStudentDays, setApplicableStudentDays] = useState(0);
-  const [messFeePerDay, setMessFeePerDay] = useState(0);
-  const [vegFeePerDay, setVegFeePerDay] = useState(0);
-  const [nonVegFeePerDay, setNonVegFeePerDay] = useState(0);
-  const [calculated, setCalculated] = useState(false);
-
-  // Monthly data states
-  const [monthlyData, setMonthlyData] = useState([]);
-  const [loadingMonthly, setLoadingMonthly] = useState(false);
-  const [monthlyError, setMonthlyError] = useState('');
-  const [selectedMonthId, setSelectedMonthId] = useState(null);
-
-  // Filters
-  const [yearFilter, setYearFilter] = useState('all');
-  const [departmentFilter, setDepartmentFilter] = useState('all');
-  const [studentSearch, setStudentSearch] = useState('');
-
-
-
-  // Fetch monthly calculations
-  const fetchMonthlyCalculations = async () => {
-    setLoadingMonthly(true);
-    setMonthlyError('');
-    try {
-      const response = await axios.post(`${API_BASE_URL}/show`, {}, {
-        withCredentials: true,
-      });
-      if (response.data && response.data.data) {
-        setMonthlyData(response.data.data);
-        // Set default to latest month
-        if (response.data.data.length > 0) {
-          setSelectedMonthId(response.data.data[0].monthly_base_costs_id);
-        }
-      }
-    } catch (error) {
-      const message = error.response?.data?.error || error.response?.data?.message || error.message || 'Failed to fetch monthly data';
-      setMonthlyError(message);
-    } finally {
-      setLoadingMonthly(false);
-    }
-  };
-
-  // Get selected month data
-  const selectedMonthData = useMemo(() => {
-    return monthlyData.find(item => item.monthly_base_costs_id === selectedMonthId) || null;
-  }, [monthlyData, selectedMonthId]);
-
-  // Update display values when selected month changes (only for viewing existing calculations)
-  useEffect(() => {
-    if (selectedMonthData && currentStep !== FLOW_STEPS.CREATE_CALCULATION) {
-      // Parse month and year from month_year
-      if (selectedMonthData.month_year) {
-        const [month, year] = selectedMonthData.month_year.split('-');
-        setSelectedMonth(month || '');
-        setSelectedYear(year || '');
-      }
-
-      setGroceryCost(selectedMonthData.grocery_cost?.toString() || '');
-      setVegetableCost(selectedMonthData.vegetable_cost?.toString() || '');
-      setGasCharges(selectedMonthData.gas_charges?.toString() || '');
-      setMilkLitres(selectedMonthData.total_milk_litres?.toString() || '');
-      setMilkCostPerLitre(selectedMonthData.milk_cost_per_litre?.toString() || '');
-      setOtherCosts(selectedMonthData.other_costs?.toString() || '');
-      setDeductions(selectedMonthData.deductions_income?.toString() || '');
-      setVegExtraPerDay(selectedMonthData.veg_extra_per_day?.toString() || '');
-      setNonVegExtraPerDay(selectedMonthData.nonveg_extra_per_day?.toString() || '');
-      setVegServedDays(selectedMonthData.veg_served_days?.toString() || '');
-      setNonVegServedDays(selectedMonthData.nonveg_served_days?.toString() || '');
-      setReductionDays(selectedMonthData.reduction_days?.toString() || '');
-      setMessFeePerDay(selectedMonthData.mess_fee_per_day || 0);
-
-      // Update year-wise data
-      const yearsData = selectedMonthData.years_data || [];
-      const year1 = yearsData.find(y => y.year === 1);
-      const year2 = yearsData.find(y => y.year === 2);
-      const year3 = yearsData.find(y => y.year === 3);
-      const year4 = yearsData.find(y => y.year === 4);
-
-      setStudents1st(year1?.total_students?.toString() || '');
-      setDays1st(year1?.total_days?.toString() || '');
-      setStudents2nd(year2?.total_students?.toString() || '');
-      setDays2nd(year2?.total_days?.toString() || '');
-      setStudents3rd(year3?.total_students?.toString() || '');
-      setDays3rd(year3?.total_days?.toString() || '');
-      setStudents4th(year4?.total_students?.toString() || '');
-      setDays4th(year4?.total_days?.toString() || '');
-    }
-  }, [selectedMonthData, currentStep]);
-
-  // Fetch data on component mount
-  useEffect(() => {
-    fetchMonthlyCalculations();
-  }, []);
-
-  // Reset form fields for new calculation
-  const resetFormFields = () => {
-    setSelectedMonth('');
-    setSelectedYear('');
-    setGroceryCost('');
-    setVegetableCost('');
-    setGasCharges('');
-    setMilkLitres('');
-    setMilkCostPerLitre('');
-    setOtherCosts('');
-    setDeductions('');
-    setStudents1st('');
-    setDays1st('');
-    setStudents2nd('');
-    setDays2nd('');
-    setStudents3rd('');
-    setDays3rd('');
-    setStudents4th('');
-    setDays4th('');
-    setReductionDays('');
-    setVegExtraPerDay('');
-    setNonVegExtraPerDay('');
-    setVegServedDays('');
-    setNonVegServedDays('');
-    setFieldErrors({});
-    setFormTouched(false);
-    setTouchedFields({});
-    setCalculated(false);
-    setNewCalculationId(null);
-  };
-
-  const getFieldValues = () => ({
-    selectedMonth,
-    selectedYear,
-    groceryCost,
-    vegetableCost,
-    gasCharges,
-    milkLitres,
-    milkCostPerLitre,
-    otherCosts,
-    deductions,
-    students1st,
-    days1st,
-    students2nd,
-    days2nd,
-    students3rd,
-    days3rd,
-    students4th,
-    days4th,
-    reductionDays,
-    vegExtraPerDay,
-    nonVegExtraPerDay,
-    vegServedDays,
-    nonVegServedDays,
+    // Year-wise Data
+    first_year_students: '',
+    first_year_days: '',
+    second_year_students: '',
+    second_year_days: '',
+    third_year_students: '',
+    third_year_days: '',
+    fourth_year_students: '',
+    fourth_year_days: ''
   });
+  const [billSummary, setBillSummary] = useState(null);
+  const [existingBills, setExistingBills] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [expandedCards, setExpandedCards] = useState({});
+  const [shownBills, setShownBills] = useState({});
 
-  const handleFieldBlur = (fieldKey) => {
-    setTouchedFields((previous) => ({
-      ...previous,
-      [fieldKey]: true,
+  const handleNavClick = (target) => {
+    setActiveSection(target);
+    if (target === 'existing-bill') {
+      fetchExistingBills();
+    }
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+
+    if (type === 'checkbox') {
+      if (name === 'years') {
+        setFormData(prev => ({
+          ...prev,
+          years: checked
+            ? [...prev.years, parseInt(value)]
+            : prev.years.filter(year => year !== parseInt(value))
+        }));
+      }
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+
+      // Auto-calculations
+      setTimeout(() => {
+        if (name === 'total_milk_litres' || name === 'milk_cost_per_litre') {
+          calculateMilkCharges();
+        }
+        if (['grocery_cost', 'vegetable_cost', 'gas_charges', 'milk_charges_computed', 'other_costs'].includes(name)) {
+          calculateTotalExpenditure();
+        }
+        if (name === 'deductions_income') {
+          calculateExpenditureAfterIncome();
+        }
+      }, 0);
+    }
+  };
+
+  const calculateMilkCharges = () => {
+    const totalMilkLitres = parseFloat(formData.total_milk_litres) || 0;
+    const milkCostPerLitre = parseFloat(formData.milk_cost_per_litre) || 0;
+
+    if (totalMilkLitres > 0 && milkCostPerLitre > 0) {
+      const milkCharges = totalMilkLitres * milkCostPerLitre;
+      setFormData(prev => ({ ...prev, milk_charges_computed: milkCharges.toFixed(2) }));
+    }
+  };
+
+  const calculateTotalExpenditure = () => {
+    const costFields = ['grocery_cost', 'vegetable_cost', 'gas_charges', 'milk_charges_computed', 'other_costs'];
+    let total = 0;
+
+    costFields.forEach(field => {
+      const value = parseFloat(formData[field]) || 0;
+      total += value;
+    });
+
+    setFormData(prev => ({
+      ...prev,
+      total_expenditure: total.toFixed(2),
+      expenditure_after_income: (total - (parseFloat(formData.deductions_income) || 0)).toFixed(2)
     }));
+  };
 
-    setFieldErrors((previous) => {
-      const updatedErrors = { ...previous };
-      const currentValue = getFieldValues()[fieldKey];
+  const calculateExpenditureAfterIncome = () => {
+    const totalExpenditure = parseFloat(formData.total_expenditure) || 0;
+    const deductionsIncome = parseFloat(formData.deductions_income) || 0;
+    setFormData(prev => ({
+      ...prev,
+      expenditure_after_income: (totalExpenditure - deductionsIncome).toFixed(2)
+    }));
+  };
 
-      if (currentValue === '') {
-        updatedErrors[fieldKey] = `${REQUIRED_FIELD_LABELS[fieldKey]} cannot be empty`;
-      } else {
-        delete updatedErrors[fieldKey];
-      }
+  const handleSubmit = (e) => {
+    e.preventDefault();
 
-      return updatedErrors;
+    // Calculate mess fee per day based on total expenditure and student data
+    const totalExpenditure = parseFloat(formData.expenditure_after_income) || 0;
+    let totalStudentDays = 0;
+
+    formData.years.forEach(year => {
+      const students = parseInt(formData[`${['first', 'second', 'third', 'fourth'][year-1]}_year_students`]) || 0;
+      const days = parseInt(formData[`${['first', 'second', 'third', 'fourth'][year-1]}_year_days`]) || 0;
+      totalStudentDays += students * days;
+    });
+
+    const messFeePerDay = totalStudentDays > 0 ? totalExpenditure / totalStudentDays : 0;
+
+    setFormData(prev => ({ ...prev, mess_fee_per_day: messFeePerDay.toFixed(2) }));
+
+    setBillSummary({
+      month_year: formData.month_year,
+      total_expenditure: formData.total_expenditure,
+      expenditure_after_income: formData.expenditure_after_income,
+      mess_fee_per_day: messFeePerDay.toFixed(2),
+      selected_years: formData.years,
+      total_student_days: totalStudentDays
     });
   };
 
-  const handleNumericChange = (fieldKey, setter, allowDecimal = true) => (event) => {
-    const sanitizedValue = sanitizeNumericInput(event.target.value, allowDecimal);
-    setter(sanitizedValue);
-
-    setFieldErrors((previous) => {
-      const updatedErrors = { ...previous };
-
-      if (sanitizedValue === '') {
-        updatedErrors[fieldKey] = `${REQUIRED_FIELD_LABELS[fieldKey]} cannot be empty`;
-      } else {
-        delete updatedErrors[fieldKey];
-      }
-
-      return updatedErrors;
-    });
-  };
-
-  useEffect(() => {
-    const grocery = parseFloat(groceryCost || 0);
-    const vegetable = parseFloat(vegetableCost || 0);
-    const gas = parseFloat(gasCharges || 0);
-    const milk = parseFloat(milkLitres || 0) * parseFloat(milkCostPerLitre || 0);
-    const other = parseFloat(otherCosts || 0);
-    const income = parseFloat(deductions || 0);
-    const students1 = parseInt(students1st || 0, 10);
-    const days1 = parseInt(days1st || 0, 10);
-    const students2 = parseInt(students2nd || 0, 10);
-    const days2 = parseInt(days2nd || 0, 10);
-    const students3 = parseInt(students3rd || 0, 10);
-    const days3 = parseInt(days3rd || 0, 10);
-    const students4 = parseInt(students4th || 0, 10);
-    const days4 = parseInt(days4th || 0, 10);
-    const reduction = parseInt(reductionDays || 0, 10);
-    const vegExtra = parseFloat(vegExtraPerDay || 0);
-    const nonVegExtra = parseFloat(nonVegExtraPerDay || 0);
-
-    setMilkCharges(milk);
-
-    const totalStudentsComputed = students1 + students2 + students3 + students4;
-    setTotalStudents(totalStudentsComputed);
-
-    const totalPossible = students1 * days1 + students2 * days2 + students3 * days3 + students4 * days4;
-    const totalExp = grocery + vegetable + gas + milk + other;
-    const netExp = totalExp - income;
-    const applicable = totalPossible - reduction;
-    const messFee = applicable > 0 ? Math.round(netExp / applicable) : 0;
-
-    setTotalExpenditure(totalExp);
-    setTotalIncome(income);
-    setNetExpenditure(netExp);
-    setTotalPossibleStudentDays(totalPossible);
-    setApplicableStudentDays(applicable);
-    setMessFeePerDay(messFee);
-    setVegFeePerDay(vegExtra);
-    setNonVegFeePerDay(nonVegExtra);
-  }, [
-    groceryCost,
-    vegetableCost,
-    gasCharges,
-    milkLitres,
-    milkCostPerLitre,
-    otherCosts,
-    deductions,
-    students1st,
-    days1st,
-    students2nd,
-    days2nd,
-    students3rd,
-    days3rd,
-    students4th,
-    days4th,
-    reductionDays,
-    vegExtraPerDay,
-    nonVegExtraPerDay,
-  ]);
-
-  const formattedCurrency = (amount) =>
-    new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      maximumFractionDigits: 2,
-    }).format(amount || 0);
-
-  const validateForm = () => {
-    const errors = {};
-
-    Object.entries(REQUIRED_FIELD_LABELS).forEach(([key, label]) => {
-      const inputValue = getFieldValues()[key];
-
-      if (inputValue === '') {
-        errors[key] = `${label} cannot be empty`;
-      }
-    });
-
-    setFieldErrors(errors);
-    return errors;
-  };
-
-  const buildPayload = () => {
-    const yearsData = [
-      { year: 1, total_students: parseInt(students1st || 0, 10), total_days: parseInt(days1st || 0, 10) },
-      { year: 2, total_students: parseInt(students2nd || 0, 10), total_days: parseInt(days2nd || 0, 10) },
-      { year: 3, total_students: parseInt(students3rd || 0, 10), total_days: parseInt(days3rd || 0, 10) },
-      { year: 4, total_students: parseInt(students4th || 0, 10), total_days: parseInt(days4th || 0, 10) },
-    ];
-
-    const monthYear = selectedMonth && selectedYear ? `${selectedMonth}-${selectedYear}` : '';
-
-    return {
-      month_year: monthYear,
-      grocery_cost: parseFloat(groceryCost || 0),
-      vegetable_cost: parseFloat(vegetableCost || 0),
-      gas_charges: parseFloat(gasCharges || 0),
-      total_milk_litres: parseFloat(milkLitres || 0),
-      milk_cost_per_litre: parseFloat(milkCostPerLitre || 0),
-      milk_charges_computed: milkCharges,
-      other_costs: parseFloat(otherCosts || 0),
-      deductions_income: parseFloat(deductions || 0),
-      veg_extra_per_day: parseFloat(vegExtraPerDay || 0),
-      nonveg_extra_per_day: parseFloat(nonVegExtraPerDay || 0),
-      veg_served_days: parseInt(vegServedDays || 0, 10),
-      nonveg_served_days: parseInt(nonVegServedDays || 0, 10),
-      total_expenditure: totalExpenditure,
-      expenditure_after_income: netExpenditure,
-      mess_fee_per_day: messFeePerDay,
-      years_data: yearsData,
-    };
-  };
-
-  const [isSaving, setIsSaving] = useState(false);
-  const [showConfirmationModal, setShowConfirmationModal] = useState(false);
-  const [apiError, setApiError] = useState('');
-  const [apiSuccess, setApiSuccess] = useState('');
-
-  const handleCalculate = () => {
-    const errors = validateForm();
-    setFormTouched(true);
-
-    if (Object.keys(errors).length > 0) {
-      return;
-    }
-
-    setShowConfirmationModal(true);
-  };
-
-  const handleConfirmSave = async () => {
-    const payload = buildPayload();
-
-    if (!payload.month_year || payload.years_data.some((entry) => !entry.total_students || !entry.total_days)) {
-      setApiError('Please ensure all month, year, and year-wise details are filled.');
-      return;
-    }
-
-    setIsSaving(true);
-    setApiError('');
-    setApiSuccess('');
-
-    try {
-      const response = await axios.post(`${API_BASE_URL}/create`, payload, {
-        withCredentials: true,
+  const fetchExistingBills = () => {
+    setLoading(true);
+    setError('');
+    setTimeout(() => {
+      setLoading(false);
+      setSuccess('Existing mess bills data loaded successfully!');
+      setExistingBills({
+        months: [
+          {
+            title: 'March 2023',
+            date: 'Created: March 15, 2023, 10:30 AM',
+            totalBills: 24,
+            totalAmount: 58420,
+            costs: [
+              { label: 'Paid Bills', value: 18 },
+              { label: 'Pending Bills', value: 6 },
+              { label: 'Computer Science', value: 12450 },
+              { label: 'Electrical', value: 10680 },
+              { label: 'Mechanical', value: 9870 },
+              { label: 'Civil', value: 8920 },
+              { label: 'Chemical', value: 7560 },
+              { label: 'Other Departments', value: 8940 },
+              { label: 'Average Bill Amount', value: 2434.17 },
+              { label: 'Highest Bill', value: 3250 },
+              { label: 'Total Revenue', value: 58420 }
+            ],
+            departments: [
+              { name: 'Computer Science', bills: 8, amount: 12450 },
+              { name: 'Electrical', bills: 6, amount: 10680 },
+              { name: 'Mechanical', bills: 5, amount: 9870 },
+              { name: 'Civil', bills: 3, amount: 8920 }
+            ],
+            bills: [
+              { name: 'John Doe', room: '101', days: 28, rate: 150, extra: 350, total: 4550, status: 'pending' },
+              { name: 'Jane Smith', room: '205', days: 25, rate: 150, extra: 200, total: 3950, status: 'pending' },
+              { name: 'Robert Johnson', room: '312', days: 30, rate: 150, extra: 450, total: 4950, status: 'verified' }
+            ]
+          },
+          {
+            title: 'February 2023',
+            date: 'Created: February 14, 2023, 09:15 AM',
+            totalBills: 22,
+            totalAmount: 52180,
+            costs: [
+              { label: 'Paid Bills', value: 16 },
+              { label: 'Pending Bills', value: 6 },
+              { label: 'Computer Science', value: 11200 },
+              { label: 'Electrical', value: 9850 },
+              { label: 'Mechanical', value: 8760 },
+              { label: 'Civil', value: 7920 },
+              { label: 'Chemical', value: 6890 },
+              { label: 'Other Departments', value: 7560 },
+              { label: 'Average Bill Amount', value: 2371.82 },
+              { label: 'Highest Bill', value: 3150 },
+              { label: 'Total Revenue', value: 52180 }
+            ],
+            departments: [
+              { name: 'Computer Science', bills: 7, amount: 11200 },
+              { name: 'Electrical', bills: 5, amount: 9850 },
+              { name: 'Mechanical', bills: 4, amount: 8760 },
+              { name: 'Civil', bills: 4, amount: 7920 }
+            ],
+            bills: [
+              { name: 'John Doe', room: '101', days: 25, rate: 150, extra: 300, total: 4050, status: 'verified' },
+              { name: 'Jane Smith', room: '205', days: 22, rate: 150, extra: 150, total: 3450, status: 'verified' }
+            ]
+          }
+        ]
       });
-
-      setApiSuccess(response.data?.message || 'Monthly calculation saved successfully');
-      setShowConfirmationModal(false);
-      setCalculated(true);
-      setNewCalculationId(response.data?.data?.monthly_base_costs_id);
-      setCurrentStep(FLOW_STEPS.VERIFY_CALCULATION);
-    } catch (error) {
-      const message = error.response?.data?.error || error.response?.data?.message || error.message || 'Failed to save monthly calculation';
-      setApiError(message);
-    } finally {
-      setIsSaving(false);
-    }
+    }, 1500);
   };
 
-  const handleConfirmationCancel = () => {
-    setShowConfirmationModal(false);
-    setApiError('');
-    setApiSuccess('');
+  const toggleCard = (index) => {
+    sessionStorage.setItem('monthData', JSON.stringify(existingBills.months[index]));
+    navigate('/mess-bills-detail');
   };
 
-  const handleBulkSendYearDept = () => {
-    console.log(`Send bills to ${yearFilter} year ${departmentFilter} department`);
+  const showIndividualBills = (index) => {
+    setShownBills(prev => ({ ...prev, [index]: true }));
   };
 
-  const handleSendAll = () => {
-    console.log('Send bills to all students');
+  const hideIndividualBills = (index) => {
+    setShownBills(prev => ({ ...prev, [index]: false }));
   };
 
-  const handleDownloadExcel = () => {
-    const snapshotData = [
-      { field: 'Month', value: selectedMonth || 'N/A' },
-      { field: 'Year', value: selectedYear || 'N/A' },
-      { field: 'Milk Cost per Litre', value: milkCostPerLitre || '0' },
-      { field: 'Veg Served Days', value: vegServedDays || '0' },
-      { field: 'Non-Veg Served Days', value: nonVegServedDays || '0' },
-      { field: 'Grocery Cost', value: groceryCost || '0' },
-      { field: 'Vegetable Cost', value: vegetableCost || '0' },
-      { field: 'Gas Charges', value: gasCharges || '0' },
-      { field: 'Total Milk (litres)', value: milkLitres || '0' },
-      { field: 'Other Costs', value: otherCosts || '0' },
-      { field: 'Income / Deductions', value: deductions || '0' },
-      { field: 'Veg Extra per Day', value: vegExtraPerDay || '0' },
-      { field: 'Non-Veg Extra per Day', value: nonVegExtraPerDay || '0' },
-      { field: '1st Year Students', value: students1st || '0' },
-      { field: '1st Year Days', value: days1st || '0' },
-      { field: '2nd Year Students', value: students2nd || '0' },
-      { field: '2nd Year Days', value: days2nd || '0' },
-      { field: '3rd Year Students', value: students3rd || '0' },
-      { field: '3rd Year Days', value: days3rd || '0' },
-      { field: '4th Year Students', value: students4th || '0' },
-      { field: '4th Year Days', value: days4th || '0' },
-    ];
-
-    const headers = ['Field', 'Value'];
-    const csvContent = [
-      headers.join(','),
-      ...snapshotData.map((item) => [item.field, item.value].join(',')),
-    ].join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `monthly_calculation_snapshot_${selectedMonth || 'unknown'}_${selectedYear || 'unknown'}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
-
-
-
-
-  // Helper function to get days in month
-  const getDaysInMonth = (month, year) => {
-    const monthNames = {
-      'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'May': 4, 'Jun': 5,
-      'Jul': 6, 'Aug': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11
-    };
-    return new Date(year, monthNames[month] + 1, 0).getDate();
+  const verifyBill = (billIndex, monthIndex) => {
+    // For demo, just log
+    console.log(`Verify bill ${billIndex} in month ${monthIndex}`);
   };
 
   return (
-    <div className="space-y-6 px-4 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-7xl space-y-6">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className={`text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-              Mess Bills Management
-            </h1>
-            <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-              {currentStep === FLOW_STEPS.LANDING ? 'Create new monthly bills or view existing ones' :
-               currentStep === FLOW_STEPS.CREATE_CALCULATION ? 'Create monthly mess bill calculation' :
-               currentStep === FLOW_STEPS.VERIFY_CALCULATION ? 'Verify the created calculation' :
-               currentStep === FLOW_STEPS.APPLY_REDUCTIONS ? 'Apply reductions for students' :
-               'Verify and send bills to students'}
-            </p>
-          </div>
-          {currentStep !== FLOW_STEPS.LANDING && (
-            <div className="flex flex-wrap gap-3">
-              <Button
-                onClick={() => setCurrentStep(FLOW_STEPS.LANDING)}
-                variant="outline"
-                isDarkMode={isDarkMode}
-              >
-                Back to Home
-              </Button>
+    <div className="container">
+      <header>
+        <h1>Mess Bill Management</h1>
+        <p className="subtitle">Manage your new and existing mess bills in one place</p>
+      </header>
+
+      <div className="navigation">
+        <button className={`nav-btn ${activeSection === 'new-bill' ? 'active' : ''}`} onClick={() => handleNavClick('new-bill')}>New Mess Bill</button>
+        <button className={`nav-btn ${activeSection === 'existing-bill' ? 'active' : ''}`} onClick={() => handleNavClick('existing-bill')}>Existing Mess Bills</button>
+      </div>
+
+      <section id="new-bill" className={`content-section ${activeSection === 'new-bill' ? 'active' : ''}`}>
+        <h2>Create Monthly Calculation</h2>
+
+        <form id="bill-form" onSubmit={handleSubmit}>
+          {/* Basic Information Section */}
+          <div className="form-section">
+            <div className="form-section-title">Basic Information</div>
+            <div className="form-grid">
+              <div className="form-group">
+                <label htmlFor="month_year">Month-Year *</label>
+                <input
+                  type="month"
+                  id="month_year"
+                  name="month_year"
+                  value={formData.month_year}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>Academic Years *</label>
+                <div className="checkbox-group">
+                  {[1, 2, 3, 4].map(year => (
+                    <div key={year} className="checkbox-item">
+                      <input
+                        type="checkbox"
+                        id={`year${year}`}
+                        name="years"
+                        value={year}
+                        checked={formData.years.includes(year)}
+                        onChange={handleInputChange}
+                      />
+                      <label htmlFor={`year${year}`}>{year === 1 ? 'First' : year === 2 ? 'Second' : year === 3 ? 'Third' : 'Fourth'} Year</label>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
-          )}
+          </div>
+
+          {/* Cost Details Section */}
+          <div className="form-section">
+            <div className="form-section-title">Cost Details</div>
+            <div className="form-grid">
+              <div className="form-group">
+                <label htmlFor="grocery_cost">Grocery Cost *</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  id="grocery_cost"
+                  name="grocery_cost"
+                  value={formData.grocery_cost}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="vegetable_cost">Vegetable Cost *</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  id="vegetable_cost"
+                  name="vegetable_cost"
+                  value={formData.vegetable_cost}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="gas_charges">Gas Charges *</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  id="gas_charges"
+                  name="gas_charges"
+                  value={formData.gas_charges}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="total_milk_litres">Total Milk Litres</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  id="total_milk_litres"
+                  name="total_milk_litres"
+                  value={formData.total_milk_litres}
+                  onChange={handleInputChange}
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="milk_cost_per_litre">Milk Cost Per Litre</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  id="milk_cost_per_litre"
+                  name="milk_cost_per_litre"
+                  value={formData.milk_cost_per_litre}
+                  onChange={handleInputChange}
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="milk_charges_computed">Milk Charges Computed</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  id="milk_charges_computed"
+                  name="milk_charges_computed"
+                  value={formData.milk_charges_computed}
+                  onChange={handleInputChange}
+                  readOnly
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="other_costs">Other Costs</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  id="other_costs"
+                  name="other_costs"
+                  value={formData.other_costs}
+                  onChange={handleInputChange}
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="deductions_income">Deductions/Income</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  id="deductions_income"
+                  name="deductions_income"
+                  value={formData.deductions_income}
+                  onChange={handleInputChange}
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="veg_extra_per_day">Veg Extra Per Day</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  id="veg_extra_per_day"
+                  name="veg_extra_per_day"
+                  value={formData.veg_extra_per_day}
+                  onChange={handleInputChange}
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="nonveg_extra_per_day">Non-Veg Extra Per Day</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  id="nonveg_extra_per_day"
+                  name="nonveg_extra_per_day"
+                  value={formData.nonveg_extra_per_day}
+                  onChange={handleInputChange}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Summary Section */}
+          <div className="form-section">
+            <div className="form-section-title">Summary</div>
+            <div className="form-grid">
+              <div className="form-group">
+                <label htmlFor="total_expenditure">Total Expenditure</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  id="total_expenditure"
+                  name="total_expenditure"
+                  value={formData.total_expenditure}
+                  onChange={handleInputChange}
+                  readOnly
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="expenditure_after_income">Expenditure After Income</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  id="expenditure_after_income"
+                  name="expenditure_after_income"
+                  value={formData.expenditure_after_income}
+                  onChange={handleInputChange}
+                  readOnly
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="mess_fee_per_day">Mess Fee Per Day *</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  id="mess_fee_per_day"
+                  name="mess_fee_per_day"
+                  value={formData.mess_fee_per_day}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Year-wise Data Section */}
+          <div className="form-section">
+            <div className="form-section-title">Year-wise Student Data</div>
+            <div className="form-grid">
+              {/* First Year */}
+              <div className="form-group">
+                <label htmlFor="first_year_students">First Year Students</label>
+                <input
+                  type="number"
+                  id="first_year_students"
+                  name="first_year_students"
+                  value={formData.first_year_students}
+                  onChange={handleInputChange}
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="first_year_days">First Year Days</label>
+                <input
+                  type="number"
+                  id="first_year_days"
+                  name="first_year_days"
+                  value={formData.first_year_days}
+                  onChange={handleInputChange}
+                />
+              </div>
+
+              {/* Second Year */}
+              <div className="form-group">
+                <label htmlFor="second_year_students">Second Year Students</label>
+                <input
+                  type="number"
+                  id="second_year_students"
+                  name="second_year_students"
+                  value={formData.second_year_students}
+                  onChange={handleInputChange}
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="second_year_days">Second Year Days</label>
+                <input
+                  type="number"
+                  id="second_year_days"
+                  name="second_year_days"
+                  value={formData.second_year_days}
+                  onChange={handleInputChange}
+                />
+              </div>
+
+              {/* Third Year */}
+              <div className="form-group">
+                <label htmlFor="third_year_students">Third Year Students</label>
+                <input
+                  type="number"
+                  id="third_year_students"
+                  name="third_year_students"
+                  value={formData.third_year_students}
+                  onChange={handleInputChange}
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="third_year_days">Third Year Days</label>
+                <input
+                  type="number"
+                  id="third_year_days"
+                  name="third_year_days"
+                  value={formData.third_year_days}
+                  onChange={handleInputChange}
+                />
+              </div>
+
+              {/* Fourth Year */}
+              <div className="form-group">
+                <label htmlFor="fourth_year_students">Fourth Year Students</label>
+                <input
+                  type="number"
+                  id="fourth_year_students"
+                  name="fourth_year_students"
+                  value={formData.fourth_year_students}
+                  onChange={handleInputChange}
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="fourth_year_days">Fourth Year Days</label>
+                <input
+                  type="number"
+                  id="fourth_year_days"
+                  name="fourth_year_days"
+                  value={formData.fourth_year_days}
+                  onChange={handleInputChange}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="form-actions">
+            <button type="button" className="btn btn-reset" onClick={() => setFormData({
+              month_year: '',
+              years: [1, 2, 3, 4],
+              grocery_cost: '',
+              vegetable_cost: '',
+              gas_charges: '',
+              total_milk_litres: '',
+              milk_cost_per_litre: '',
+              milk_charges_computed: '',
+              other_costs: '',
+              deductions_income: '',
+              veg_extra_per_day: '',
+              nonveg_extra_per_day: '',
+              total_expenditure: '',
+              expenditure_after_income: '',
+              mess_fee_per_day: '',
+              first_year_students: '',
+              first_year_days: '',
+              second_year_students: '',
+              second_year_days: '',
+              third_year_students: '',
+              third_year_days: '',
+              fourth_year_students: '',
+              fourth_year_days: ''
+            })}>Reset Form</button>
+            <button type="submit" className="btn btn-search">Calculate Monthly Bill</button>
+          </div>
+        </form>
+
+        {billSummary && (
+          <div id="bill-summary" className="bill-summary">
+            <h3>Monthly Calculation Summary</h3>
+            <div className="bill-item">
+              <span>Month-Year:</span>
+              <span>{billSummary.month_year}</span>
+            </div>
+            <div className="bill-item">
+              <span>Total Expenditure:</span>
+              <span>₹{billSummary.total_expenditure}</span>
+            </div>
+            <div className="bill-item">
+              <span>Expenditure After Income:</span>
+              <span>₹{billSummary.expenditure_after_income}</span>
+            </div>
+            <div className="bill-item">
+              <span>Mess Fee Per Day:</span>
+              <span>₹{billSummary.mess_fee_per_day}</span>
+            </div>
+            <div className="bill-item">
+              <span>Selected Years:</span>
+              <span>{billSummary.selected_years.join(', ')}</span>
+            </div>
+            <div className="bill-item">
+              <span>Total Student-Days:</span>
+              <span>{billSummary.total_student_days}</span>
+            </div>
+            <button className="btn">Save Monthly Calculation</button>
+          </div>
+        )}
+      </section>
+
+      <section id="existing-bill" className={`content-section ${activeSection === 'existing-bill' ? 'active' : ''}`}>
+        <div className="controls">
+          <h2>Existing Mess Bills</h2>
+          <button id="fetchData" className="btn" onClick={fetchExistingBills}>Refresh Data</button>
         </div>
 
-        {/* Step 1: Landing Page */}
-        {currentStep === FLOW_STEPS.LANDING && (
-          <div className="space-y-6">
-            {/* Students with Applied Reductions Card */}
-            {(() => {
-              // Get reductions from localStorage (temporary until backend API is ready)
-              const appliedReductions = JSON.parse(localStorage.getItem('appliedReductions') || '[]');
+        {loading && (
+          <div id="loadingMonthly" className="loading">
+            <p>Loading existing mess bills data...</p>
+            <div>
+              <div style={{display: 'inline-block', width: '20px', height: '20px', border: '3px solid #f3f3f3', borderTop: '3px solid #4a6cf7', borderRadius: '50%', animation: 'spin 1s linear infinite'}}></div>
+            </div>
+          </div>
+        )}
 
-              return appliedReductions.length > 0 ? (
-                <Card className="p-6" isDarkMode={isDarkMode}>
-                  <CardHeader>
-                    <div className="space-y-2 text-left">
-                      <h2 className="text-xl font-semibold">Students with Applied Reductions</h2>
-                      <p className={isDarkMode ? 'text-slate-400' : 'text-slate-600'}>
-                        Students who have had mess bill reductions applied ({appliedReductions.length} students)
-                      </p>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {appliedReductions.map((student) => (
-                        <div
-                          key={student.student_id}
-                          className={`rounded-lg border p-4 ${isDarkMode ? 'bg-gray-800 border-gray-700 hover:bg-gray-750' : 'bg-white border-gray-200 hover:bg-gray-50'} transition-colors`}
-                        >
-                          <div className="space-y-3">
-                            <div className="flex items-center justify-between">
-                              <h3 className={`text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                                {student.student_name}
-                              </h3>
-                              <Button
-                                onClick={() => {
-                                  // Navigate to apply reductions step with this student pre-selected
-                                  setCurrentStep(FLOW_STEPS.APPLY_REDUCTIONS);
-                                }}
-                                variant="outline"
-                                size="small"
-                                isDarkMode={isDarkMode}
-                              >
-                                Edit
-                              </Button>
+        {error && (
+          <div id="errorMonthly" className="error">
+            {error}
+          </div>
+        )}
+
+        {success && (
+          <div id="successMonthly" className="success">
+            {success}
+          </div>
+        )}
+
+        {existingBills && (
+          <div id="dataContainer">
+            {existingBills.months.map((month, index) => (
+              <div key={index} className={`month-card ${expandedCards[index] ? 'expanded' : ''}`}>
+                <div className="month-header" onClick={() => toggleCard(index)} style={{cursor: 'pointer'}}>
+                  <div>
+                    <div className="month-title">{month.title}</div>
+                    <div className="month-date">{month.date}</div>
+                  </div>
+                  <div style={{textAlign: 'right'}}>
+                    <div style={{fontSize: '0.9rem', opacity: 0.9}}>Total Bills: {month.totalBills}</div>
+                    <div style={{fontSize: '0.9rem', opacity: 0.9}}>Total Amount: ₹{month.totalAmount.toFixed(2)}</div>
+                    <div className="expand-icon">▼</div>
+                  </div>
+                </div>
+
+                <div className="month-content">
+                  <table className="costs-table">
+                    <thead>
+                      <tr>
+                        <th>Bill Category</th>
+                        <th>Amount</th>
+                        <th>Bill Category</th>
+                        <th>Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {month.costs.map((cost, i) => (
+                        i % 2 === 0 ? (
+                          <tr key={i}>
+                            <td>{cost.label}</td>
+                            <td className="cost-value">{typeof cost.value === 'number' && cost.value > 100 ? `₹${cost.value.toFixed(2)}` : cost.value}</td>
+                            {month.costs[i+1] && (
+                              <>
+                                <td>{month.costs[i+1].label}</td>
+                                <td className="cost-value">{typeof month.costs[i+1].value === 'number' && month.costs[i+1].value > 100 ? `₹${month.costs[i+1].value.toFixed(2)}` : month.costs[i+1].value}</td>
+                              </>
+                            )}
+                          </tr>
+                        ) : null
+                      ))}
+                    </tbody>
+                  </table>
+
+                  <div className="years-section">
+                    <h3>Department-wise Breakdown</h3>
+                    <div className="years-grid">
+                      {month.departments.map((dept, i) => (
+                        <div key={i} className="year-card">
+                          <div className="year-title">{dept.name}</div>
+                          <div className="year-stats">
+                            <div className="stat">
+                              <div className="stat-value">{dept.bills}</div>
+                              <div className="stat-label">Bills</div>
                             </div>
-                            <div className="space-y-2">
-                              <div className="flex justify-between items-center">
-                                <span className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                                  Reduction Days:
-                                </span>
-                                <span className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                                  {student.reduction_days || 0} days
-                                </span>
-                              </div>
-                              <div className="flex justify-between items-center">
-                                <span className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                                  Department:
-                                </span>
-                                <span className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                                  {student.department}
-                                </span>
-                              </div>
-                              <div className="flex justify-between items-center">
-                                <span className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                                  Year:
-                                </span>
-                                <span className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                                  {student.academic_year}
-                                </span>
-                              </div>
+                            <div className="stat">
+                              <div className="stat-value">₹{dept.amount}</div>
+                              <div className="stat-label">Amount</div>
                             </div>
                           </div>
                         </div>
                       ))}
                     </div>
-                  </CardContent>
-                </Card>
-              ) : null;
-            })()}
-
-            <div className="text-center mb-8">
-              <h1 className="text-3xl font-bold mb-4">Mess Bills Management</h1>
-              <p className="text-lg text-gray-600 dark:text-gray-400">
-                Create new monthly bills or view existing ones
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
-              <Card className="p-8 text-center hover:shadow-lg transition-shadow cursor-pointer" isDarkMode={isDarkMode} onClick={() => {
-                resetFormFields();
-                setCurrentStep(FLOW_STEPS.CREATE_CALCULATION);
-              }}>
-                <div className="space-y-4">
-                  <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto">
-                    <svg className="w-8 h-8 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                    </svg>
                   </div>
-                  <h3 className="text-xl font-semibold">Create New Monthly Mess Bill</h3>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    Start the process to create a new monthly mess bill calculation
-                  </p>
-                  <Button variant="primary" isDarkMode={isDarkMode} className="mt-4">
-                    Create New Bill
-                  </Button>
-                </div>
-              </Card>
-              <Card className="p-8 text-center hover:shadow-lg transition-shadow cursor-pointer" isDarkMode={isDarkMode} onClick={() => {
-                setSelectedMonthId(null);
-                fetchMonthlyCalculations();
-                setCurrentStep(FLOW_STEPS.VERIFY_CALCULATION);
-              }}>
-                <div className="space-y-4">
-                  <div className="w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mx-auto">
-                    <svg className="w-8 h-8 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                  </div>
-                  <h3 className="text-xl font-semibold">View Old Mess Bills</h3>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    Review and manage existing monthly calculations
-                  </p>
-                  <Button variant="outline" isDarkMode={isDarkMode} className="mt-4">
-                    View Existing Bills
-                  </Button>
-                </div>
-              </Card>
 
-              <Card className="p-8 text-center hover:shadow-lg transition-shadow cursor-pointer" isDarkMode={isDarkMode} onClick={() => setCurrentStep(FLOW_STEPS.APPLY_REDUCTIONS)}>
-                <div className="space-y-4">
-                  <div className="w-16 h-16 bg-yellow-100 dark:bg-yellow-900 rounded-full flex items-center justify-center mx-auto">
-                    <svg className="w-8 h-8 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                  <h3 className="text-xl font-semibold">Apply Reductions</h3>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    Select students who have applied for mess bill reductions
-                  </p>
-                  <Button variant="primary" isDarkMode={isDarkMode} className="mt-4">
-                    Apply Reductions
-                  </Button>
+                  <button className="btn-show-bills" onClick={(e) => { e.stopPropagation(); sessionStorage.setItem('monthData', JSON.stringify(month)); navigate('/mess-bills-detail'); }}>View Full Details</button>
                 </div>
-              </Card>
-
-              <Card className="p-8 text-center hover:shadow-lg transition-shadow cursor-pointer" isDarkMode={isDarkMode} onClick={() => setCurrentStep(FLOW_STEPS.VERIFY_SEND_BILLS)}>
-                <div className="space-y-4">
-                  <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center mx-auto">
-                    <svg className="w-8 h-8 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                    </svg>
-                  </div>
-                  <h3 className="text-xl font-semibold">Send Bills to Students</h3>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    Send calculated mess bills to students with reduction updates applied
-                  </p>
-                  <Button variant="primary" isDarkMode={isDarkMode} className="mt-4">
-                    Send Bills
-                  </Button>
-                </div>
-              </Card>
-            </div>
+              </div>
+            ))}
           </div>
         )}
+      </section>
 
-        {/* Step 2: Create Monthly Calculation */}
-        {currentStep === FLOW_STEPS.CREATE_CALCULATION && (
-          <CreateMonthlyCalculation
-            isDarkMode={isDarkMode}
-            selectedMonth={selectedMonth}
-            setSelectedMonth={setSelectedMonth}
-            selectedYear={selectedYear}
-            setSelectedYear={setSelectedYear}
-            groceryCost={groceryCost}
-            setGroceryCost={setGroceryCost}
-            vegetableCost={vegetableCost}
-            setVegetableCost={setVegetableCost}
-            gasCharges={gasCharges}
-            setGasCharges={setGasCharges}
-            milkLitres={milkLitres}
-            setMilkLitres={setMilkLitres}
-            milkCostPerLitre={milkCostPerLitre}
-            setMilkCostPerLitre={setMilkCostPerLitre}
-            otherCosts={otherCosts}
-            setOtherCosts={setOtherCosts}
-            deductions={deductions}
-            setDeductions={setDeductions}
-            students1st={students1st}
-            setStudents1st={setStudents1st}
-            days1st={days1st}
-            setDays1st={setDays1st}
-            students2nd={students2nd}
-            setStudents2nd={setStudents2nd}
-            days2nd={days2nd}
-            setDays2nd={setDays2nd}
-            students3rd={students3rd}
-            setStudents3rd={setStudents3rd}
-            days3rd={days3rd}
-            setDays3rd={setDays3rd}
-            students4th={students4th}
-            setStudents4th={setStudents4th}
-            days4th={days4th}
-            setDays4th={setDays4th}
-            reductionDays={reductionDays}
-            setReductionDays={setReductionDays}
-            vegExtraPerDay={vegExtraPerDay}
-            setVegExtraPerDay={setVegExtraPerDay}
-            nonVegExtraPerDay={nonVegExtraPerDay}
-            setNonVegExtraPerDay={setNonVegExtraPerDay}
-            vegServedDays={vegServedDays}
-            setVegServedDays={setVegServedDays}
-            nonVegServedDays={nonVegServedDays}
-            setNonVegServedDays={setNonVegServedDays}
-            fieldErrors={fieldErrors}
-            formTouched={formTouched}
-            touchedFields={touchedFields}
-            handleFieldBlur={handleFieldBlur}
-            handleNumericChange={handleNumericChange}
-            handleCalculate={handleCalculate}
-            handleDownloadExcel={handleDownloadExcel}
-          />
-        )}
+      <footer>
+        <p>Mess Bill Management System &copy; 2023</p>
+      </footer>
 
-        {/* Step 3: Verify Monthly Calculation or View Existing Bills */}
-        {currentStep === FLOW_STEPS.VERIFY_CALCULATION && (
-          <MonthlyCalculations
-            isDarkMode={isDarkMode}
-            monthlyData={monthlyData}
-            loadingMonthly={loadingMonthly}
-            monthlyError={monthlyError}
-            selectedMonthId={newCalculationId || selectedMonthId}
-            setSelectedMonthId={setSelectedMonthId}
-            fetchMonthlyCalculations={fetchMonthlyCalculations}
-            onEdit={() => {
-              // Populate form fields before switching to create step
-              if (selectedMonthData) {
-                // Parse month and year from month_year
-                if (selectedMonthData.month_year) {
-                  const [month, year] = selectedMonthData.month_year.split('-');
-                  setSelectedMonth(month || '');
-                  setSelectedYear(year || '');
-                }
+      <style>
+        {`
+          * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          }
 
-                setGroceryCost(selectedMonthData.grocery_cost?.toString() || '');
-                setVegetableCost(selectedMonthData.vegetable_cost?.toString() || '');
-                setGasCharges(selectedMonthData.gas_charges?.toString() || '');
-                setMilkLitres(selectedMonthData.total_milk_litres?.toString() || '');
-                setMilkCostPerLitre(selectedMonthData.milk_cost_per_litre?.toString() || '');
-                setOtherCosts(selectedMonthData.other_costs?.toString() || '');
-                setDeductions(selectedMonthData.deductions_income?.toString() || '');
-                setVegExtraPerDay(selectedMonthData.veg_extra_per_day?.toString() || '');
-                setNonVegExtraPerDay(selectedMonthData.nonveg_extra_per_day?.toString() || '');
-                setVegServedDays(selectedMonthData.veg_served_days?.toString() || '');
-                setNonVegServedDays(selectedMonthData.nonveg_served_days?.toString() || '');
-                setReductionDays(selectedMonthData.reduction_days?.toString() || '0');
-                setMessFeePerDay(selectedMonthData.mess_fee_per_day || 0);
+          body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+          }
 
-                // Update year-wise data
-                const yearsData = selectedMonthData.years_data || [];
-                const year1 = yearsData.find(y => y.year === 1);
-                const year2 = yearsData.find(y => y.year === 2);
-                const year3 = yearsData.find(y => y.year === 3);
-                const year4 = yearsData.find(y => y.year === 4);
+          .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+          }
 
-                setStudents1st(year1?.total_students?.toString() || '');
-                setDays1st(year1?.total_days?.toString() || '');
-                setStudents2nd(year2?.total_students?.toString() || '');
-                setDays2nd(year2?.total_days?.toString() || '');
-                setStudents3rd(year3?.total_students?.toString() || '');
-                setDays3rd(year3?.total_days?.toString() || '');
-                setStudents4th(year4?.total_students?.toString() || '');
-                setDays4th(year4?.total_days?.toString() || '');
-              }
-              setCurrentStep(FLOW_STEPS.CREATE_CALCULATION);
-            }}
-            onConfirm={() => setCurrentStep(FLOW_STEPS.APPLY_REDUCTIONS)}
-            selectedMonthData={selectedMonthData}
-            formattedCurrency={formattedCurrency}
-            isVerificationStep={!!newCalculationId}
-            newCalculationId={newCalculationId}
-          />
-        )}
+          header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+          }
 
-        {/* Step 4: Apply Reductions */}
-        {currentStep === FLOW_STEPS.APPLY_REDUCTIONS && (
-          <MessBillsManagement
-            isDarkMode={isDarkMode}
-            yearFilter={yearFilter}
-            setYearFilter={setYearFilter}
-            departmentFilter={departmentFilter}
-            setDepartmentFilter={setDepartmentFilter}
-            studentSearch={studentSearch}
-            setStudentSearch={setStudentSearch}
-            messFeePerDay={messFeePerDay}
-            vegFeePerDay={vegFeePerDay}
-            nonVegFeePerDay={nonVegFeePerDay}
-            calculated={calculated}
-            handleBulkSendYearDept={handleBulkSendYearDept}
-            handleSendAll={handleSendAll}
-            handleDownloadExcel={handleDownloadExcel}
-            onNext={() => setCurrentStep(FLOW_STEPS.VERIFY_SEND_BILLS)}
-            selectedMonthData={selectedMonthData}
-            reductionData={reductionData}
-            setReductionData={setReductionData}
-            isReductionStep={true}
-          />
-        )}
+          h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+          }
 
-        {/* Step 5: Verify and Send Bills */}
-        {currentStep === FLOW_STEPS.VERIFY_SEND_BILLS && (
-          <MessBillsManagement
-            isDarkMode={isDarkMode}
-            yearFilter={yearFilter}
-            setYearFilter={setYearFilter}
-            departmentFilter={departmentFilter}
-            setDepartmentFilter={setDepartmentFilter}
-            studentSearch={studentSearch}
-            setStudentSearch={setStudentSearch}
-            messFeePerDay={messFeePerDay}
-            vegFeePerDay={vegFeePerDay}
-            nonVegFeePerDay={nonVegFeePerDay}
-            calculated={calculated}
-            handleBulkSendYearDept={handleBulkSendYearDept}
-            handleSendAll={handleSendAll}
-            handleDownloadExcel={handleDownloadExcel}
-            onBack={() => setCurrentStep(FLOW_STEPS.APPLY_REDUCTIONS)}
-            selectedMonthData={selectedMonthData}
-            reductionData={reductionData}
-            isFinalStep={true}
-            getDaysInMonth={getDaysInMonth}
-          />
-        )}
-      </div>
+          .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+          }
 
-      {/* Confirmation Modal */}
-      <Modal
-        isOpen={showConfirmationModal}
-        onClose={handleConfirmationCancel}
-        title="Confirm Calculation"
-        isDarkMode={isDarkMode}
-      >
-        <div className="space-y-4">
-          <p className={isDarkMode ? 'text-slate-400' : 'text-slate-600'}>
-            Are you sure you want to save this monthly calculation? This action cannot be undone.
-          </p>
-          {apiError && (
-            <div className="rounded-md bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-400">
-              {apiError}
-            </div>
-          )}
-          {apiSuccess && (
-            <div className="rounded-md bg-green-50 p-3 text-sm text-green-700 dark:bg-green-900/20 dark:text-green-400">
-              {apiSuccess}
-            </div>
-          )}
-          <div className="flex gap-3 justify-end">
-            <Button
-              onClick={handleConfirmationCancel}
-              variant="outline"
-              isDarkMode={isDarkMode}
-              disabled={isSaving}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleConfirmSave}
-              variant="primary"
-              isDarkMode={isDarkMode}
-              disabled={isSaving}
-            >
-              {isSaving ? 'Saving...' : 'Confirm & Save'}
-            </Button>
-          </div>
-        </div>
-      </Modal>
+          .navigation {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+          }
+
+          .nav-btn {
+            flex: 1;
+            padding: 15px 20px;
+            text-align: center;
+            background: none;
+            border: none;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+          }
+
+          .nav-btn.active {
+            background: #2575fc;
+            color: white;
+          }
+
+          .nav-btn:hover:not(.active) {
+            background: #f0f5ff;
+          }
+
+          .content-section {
+            display: none;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+          }
+
+          .content-section.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+          }
+
+          @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+
+          h2 {
+            color: #2575fc;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f5ff;
+          }
+
+          .form-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border-radius: 8px;
+            background: #f8f9fa;
+          }
+
+          .form-section-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #4a6cf7;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e9ecef;
+          }
+
+          .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+          }
+
+          .form-group {
+            margin-bottom: 15px;
+          }
+
+          label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+          }
+
+          input, select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+          }
+
+          input:focus, select:focus {
+            outline: none;
+            border-color: #4a6cf7;
+            box-shadow: 0 0 0 3px rgba(74, 108, 247, 0.1);
+          }
+
+          input[readonly] {
+            background-color: #f8f9fa;
+            cursor: not-allowed;
+          }
+
+          .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 10px;
+          }
+
+          .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+          }
+
+          .checkbox-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+          }
+
+          .btn {
+            background: #4a6cf7;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+          }
+
+          .btn:hover {
+            background: #3a5ce5;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+          }
+
+          .btn-reset {
+            background: #6c757d;
+          }
+
+          .btn-reset:hover {
+            background: #5a6268;
+          }
+
+          .btn-search {
+            background: #28a745;
+          }
+
+          .btn-search:hover {
+            background: #218838;
+          }
+
+          .form-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+          }
+
+          .bill-summary {
+            background: #f8faff;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border-left: 4px solid #2575fc;
+          }
+
+          .bill-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+          }
+
+          .bill-total {
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 2px solid #ddd;
+          }
+
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+          }
+
+          th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+          }
+
+          th {
+            background-color: #f8faff;
+            font-weight: 600;
+          }
+
+          tr:hover {
+            background-color: #f8faff;
+          }
+
+          .status-paid {
+            color: #28a745;
+            font-weight: 600;
+          }
+
+          .status-pending {
+            color: #ffc107;
+            font-weight: 600;
+          }
+
+          .action-btn {
+            background: none;
+            border: none;
+            color: #2575fc;
+            cursor: pointer;
+            font-weight: 600;
+          }
+
+          footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: #666;
+            font-size: 0.9rem;
+          }
+
+          .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+          }
+
+          .loading {
+            text-align: center;
+            padding: 30px;
+            color: #666;
+          }
+
+          .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border-left: 4px solid #dc3545;
+          }
+
+          .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border-left: 4px solid #28a745;
+          }
+
+          .month-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+          }
+
+          .month-card:hover {
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+          }
+
+          .month-card.expanded {
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+          }
+
+          .month-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #f8faff 0%, #e8f2ff 100%);
+            border-radius: 10px 10px 0 0;
+          }
+
+          .month-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #2575fc;
+            margin-bottom: 5px;
+          }
+
+          .month-date {
+            font-size: 0.9rem;
+            opacity: 0.7;
+          }
+
+          .expand-icon {
+            font-size: 1.2rem;
+            transition: transform 0.3s ease;
+          }
+
+          .month-card.expanded .expand-icon {
+            transform: rotate(180deg);
+          }
+
+          .month-content {
+            padding: 20px;
+            display: none;
+          }
+
+          .month-card.expanded .month-content {
+            display: block;
+          }
+
+          .costs-table {
+            margin-bottom: 30px;
+          }
+
+          .cost-value {
+            font-weight: 600;
+            color: #2575fc;
+          }
+
+          .years-section {
+            margin-bottom: 20px;
+          }
+
+          .years-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+          }
+
+          .year-card {
+            background: #f8faff;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #2575fc;
+          }
+
+          .year-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #2575fc;
+          }
+
+          .year-stats {
+            display: flex;
+            justify-content: space-between;
+          }
+
+          .stat {
+            text-align: center;
+          }
+
+          .stat-value {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #333;
+            display: block;
+          }
+
+          .stat-label {
+            font-size: 0.8rem;
+            opacity: 0.7;
+            margin-top: 2px;
+          }
+
+          .btn-show-bills, .btn-hide-bills {
+            background: #2575fc;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin-right: 10px;
+            transition: all 0.3s ease;
+          }
+
+          .btn-show-bills:hover, .btn-hide-bills:hover {
+            background: #1a5ce5;
+          }
+
+          .individual-bills {
+            margin-top: 20px;
+            display: none;
+          }
+
+          .individual-bills.active {
+            display: block;
+          }
+
+          .bill-card {
+            background: #f8faff;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 4px solid #2575fc;
+          }
+
+          .bill-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+          }
+
+          .bill-card-title {
+            font-weight: 600;
+            color: #333;
+          }
+
+          .bill-status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+          }
+
+          .bill-status.verified {
+            background: #d4edda;
+            color: #155724;
+          }
+
+          .bill-status.pending {
+            background: #fff3cd;
+            color: #856404;
+          }
+
+          .bill-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
+          }
+
+          .bill-detail {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+          }
+
+          .bill-detail-label {
+            font-weight: 600;
+            color: #666;
+          }
+
+          .bill-detail-value {
+            font-weight: 600;
+            color: #333;
+          }
+
+          .bill-actions {
+            display: flex;
+            gap: 10px;
+          }
+
+          .btn-verify {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+          }
+
+          .btn-verify:hover:not(.disabled) {
+            background: #218838;
+          }
+
+          .btn-verify.disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+          }
+
+          .btn-download {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+          }
+
+          .btn-download:hover {
+            background: #5a6268;
+          }
+
+          @media (max-width: 768px) {
+            .container {
+              padding: 10px;
+            }
+
+            .form-grid {
+              grid-template-columns: 1fr;
+            }
+
+            .navigation {
+              flex-direction: column;
+            }
+
+            .month-header {
+              flex-direction: column;
+              text-align: center;
+            }
+
+            .bill-details {
+              grid-template-columns: 1fr;
+            }
+          }
+        `}
+      </style>
     </div>
   );
 };

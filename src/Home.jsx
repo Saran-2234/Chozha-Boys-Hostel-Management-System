@@ -13,7 +13,6 @@ import Register from "./Register.jsx";
 
 function Home() {
   const location = useLocation();
-  const [isLight, setIsLight] = useState(false);
 
   // login modal state
   const [isLoginOpen, setLoginOpen] = useState(false);
@@ -23,8 +22,8 @@ function Home() {
   const [isRegisterOpen, setRegisterOpen] = useState(false);
 
   useEffect(() => {
-    document.body.classList.toggle("light-mode", isLight);
-  }, [isLight]);
+    document.body.classList.add("light-mode");
+  }, []);
 
   useEffect(() => {
     if (location.state?.fromDashboard) {
@@ -49,8 +48,8 @@ function Home() {
     <>
       <Notification />
       <Navigation
-        isLight={isLight}
-        onToggleTheme={() => setIsLight((v) => !v)}
+        isLight={true}
+        onToggleTheme={() => {}}
         onOpenLogin={(type) => {
           setLoginType(type || "student");
           setLoginOpen(true);
@@ -61,16 +60,16 @@ function Home() {
         }}
       />
       <Herosection
-        isLight={isLight}
+        isLight={true}
         onOpenLogin={(type) => {
           setLoginType(type || "student");
           setLoginOpen(true);
         }}
       />
-      <HostelShowcase isLight={isLight} />
-      <Features isLight={isLight} />
-      <Stats isLight={isLight} />
-      <Footer isLight={isLight} />
+      <HostelShowcase isLight={true} />
+      <Features isLight={true} />
+      <Stats isLight={true} />
+      <Footer isLight={true} />
 
       {/* Login Modal */}
       {isLoginOpen && (

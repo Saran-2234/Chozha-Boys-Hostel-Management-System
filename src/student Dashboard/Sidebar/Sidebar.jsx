@@ -27,8 +27,8 @@ const Sidebar = ({ setActiveSection, activeSection, sidebarOpen, setSidebarOpen,
         <div className="flex items-center space-x-3 mb-8">
           <Logo />
           <div>
-            <h2 className="text-lg font-bold text-white">Chozha Boys</h2>
-            <p className="text-xs text-slate-400">Student Portal</p>
+            <h2 className="text-lg font-bold text-gray-900">Chozha Boys</h2>
+            <p className="text-xs text-gray-600">Student Portal</p>
           </div>
         </div>
         <NavigationMenu setActiveSection={setActiveSection} activeSection={activeSection} />

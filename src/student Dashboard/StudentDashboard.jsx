@@ -23,7 +23,7 @@ const StudentDashboard = () => {
   
   const [activeSection, setActiveSection] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(true);
+
   const [showLogoutModal, setShowLogoutModal] = useState(false); // Centralized modal state
   const [showRefreshModal, setShowRefreshModal] = useState(false); // Refresh modal state
   
@@ -142,7 +142,7 @@ const StudentDashboard = () => {
   };
 
   return (
-    <div className={`${isDarkMode ? 'professional-bg' : 'light-mode'} flex h-screen ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+    <div className="light-mode flex h-screen text-gray-900">
       <Sidebar
         setActiveSection={handleSetActiveSection}
         activeSection={activeSection}
@@ -150,11 +150,9 @@ const StudentDashboard = () => {
         setSidebarOpen={setSidebarOpen}
         onLogoutClick={handleLogoutClick} // Pass click handler instead of direct logout
       />
-      
+
       <div className="flex-1 flex flex-col md:ml-64">
         <Header
-          isDarkMode={isDarkMode}
-          setIsDarkMode={setIsDarkMode}
           onLogoutClick={handleLogoutClick} // Pass click handler instead of direct logout
           studentData={studentData}
           setActiveSection={handleSetActiveSection}

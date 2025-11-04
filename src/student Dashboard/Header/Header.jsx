@@ -1,8 +1,7 @@
 import React from 'react';
 import ProfileDropdown from './ProfileDropdown';
-import ThemeToggle from './ThemeToggle';
 
-const Header = ({ isDarkMode, setIsDarkMode, onLogoutClick, studentData, setActiveSection, sidebarOpen, setSidebarOpen }) => {
+const Header = ({ onLogoutClick, studentData, setActiveSection, sidebarOpen, setSidebarOpen }) => {
   // Extract student name from the studentData prop
   const getStudentName = () => {
     if (!studentData) return 'Student';
@@ -30,7 +29,7 @@ const Header = ({ isDarkMode, setIsDarkMode, onLogoutClick, studentData, setActi
       <div className="flex items-center justify-between px-6 py-4">
         <div className="flex items-center space-x-4">
           <button
-            className="md:hidden text-white hover:text-slate-300"
+            className="md:hidden text-gray-900 hover:text-gray-600"
             onClick={() => setSidebarOpen(!sidebarOpen)}
             aria-label="Toggle sidebar"
           >
@@ -39,14 +38,13 @@ const Header = ({ isDarkMode, setIsDarkMode, onLogoutClick, studentData, setActi
             </svg>
           </button>
           <div>
-            <h1 className="text-xl font-bold text-white">Student Dashboard</h1>
-            <p className="text-sm text-slate-400">Welcome back, {studentName}</p>
+            <h1 className="text-xl font-bold text-gray-900">Student Dashboard</h1>
+            <p className="text-sm text-gray-600">Welcome back, {studentName}</p>
           </div>
         </div>
 
         <div className="flex items-center space-x-4">
-          <ThemeToggle isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} />
-          <ProfileDropdown 
+          <ProfileDropdown
             onLogoutClick={onLogoutClick}
             studentData={studentData}
             setActiveSection={setActiveSection}

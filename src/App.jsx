@@ -6,6 +6,8 @@ import AdminDashboard from './admin Dashboard/AdminDashboard.jsx'
 import MessBillsDetail from './admin Dashboard/MessBillsDetail/MessBillsDetail.jsx'
 import MessBillIndividual from './admin Dashboard/MessBillsDetail/MessBillIndividual.jsx'
 import MessBillsIndividualList from './admin Dashboard/MessBillsDetail/MessBillsIndividualList.jsx'
+import PaidStudents from './admin Dashboard/MessBillsDetail/PaidStudents.jsx'
+import UnpaidStudents from './admin Dashboard/MessBillsDetail/UnpaidStudents.jsx'
 import { createBrowserRouter, RouterProvider, redirect } from "react-router-dom";
 
 
@@ -60,6 +62,16 @@ function App() {
   {
     path: "/mess-bills-individual-list",
     element: <MessBillsIndividualList/>,
+    loader: adminDashboardLoader,
+  },
+  {
+    path: "/paid-students",
+    element: <PaidStudents/>,
+    loader: adminDashboardLoader,
+  },
+  {
+    path: "/unpaid-students",
+    element: <UnpaidStudents/>,
     loader: adminDashboardLoader,
   },
   {

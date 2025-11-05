@@ -7,6 +7,17 @@ import MainContent from '../Header/MainContent';
 const MessBillsDetail = () => {
   const navigate = useNavigate();
   const [month, setMonth] = useState(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showPublishPopup, setShowPublishPopup] = useState(false);
+  const [publishMessage, setPublishMessage] = useState('');
+  const [students, setStudents] = useState([
+    { id: 1, name: 'John Doe', room: '101', paymentStatus: 'paid', department: 'CSE', year: '3rd' },
+    { id: 2, name: 'Jane Smith', room: '205', paymentStatus: 'unpaid', department: 'ECE', year: '2nd' },
+    { id: 3, name: 'Robert Johnson', room: '312', paymentStatus: 'paid', department: 'CSE', year: '4th' },
+    { id: 4, name: 'Alice Brown', room: '102', paymentStatus: 'paid', department: 'ME', year: '3rd' },
+    { id: 5, name: 'Bob Wilson', room: '206', paymentStatus: 'unpaid', department: 'CSE', year: '1st' },
+    // Add more mock data as needed
+  ]);
 
   useEffect(() => {
     const monthData = sessionStorage.getItem('monthData');
@@ -14,7 +25,6 @@ const MessBillsDetail = () => {
       setMonth(JSON.parse(monthData));
     }
   }, []);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleLogout = () => {
     localStorage.removeItem('accessToken');
@@ -30,6 +40,27 @@ const MessBillsDetail = () => {
   const handleViewBill = (bill) => {
     sessionStorage.setItem('billData', JSON.stringify(bill));
     navigate('/mess-bill-individual');
+  };
+
+  const handlePublishClick = () => {
+    setShowPublishPopup(true);
+  };
+
+  const handleConfirmPublish = () => {
+    setShowPublishPopup(false);
+    setPublishMessage('Your bills have been published');
+  };
+
+  const handleCancelPublish = () => {
+    setShowPublishPopup(false);
+  };
+
+  const handleShowPaidStudents = () => {
+    navigate('/paid-students', { state: { students: students.filter(s => s.paymentStatus === 'paid') } });
+  };
+
+  const handleShowUnpaidStudents = () => {
+    navigate('/unpaid-students', { state: { students: students.filter(s => s.paymentStatus === 'unpaid') } });
   };
 
   if (!month) {
@@ -91,6 +122,47 @@ const MessBillsDetail = () => {
                 </div>
               </div>
 
+              <div className="actions-section" style={{display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '20px'}}>
+                <div className="student-cards">
+                  <div className="student-card paid-card" onClick={handleShowPaidStudents}>
+                    <div className="card-icon">✓</div>
+                    <div className="card-content">
+                      <div className="card-title">Paid Students</div>
+                      <div className="card-count">{students.filter(s => s.paymentStatus === 'paid').length}</div>
+                    </div>
+                  </div>
+                  <div className="student-card unpaid-card" onClick={handleShowUnpaidStudents}>
+                    <div className="card-icon">⚠</div>
+                    <div className="card-content">
+                      <div className="card-title">Unpaid Students</div>
+                      <div className="card-count">{students.filter(s => s.paymentStatus === 'unpaid').length}</div>
+                    </div>
+                  </div>
+                </div>
+                <button className="btn" onClick={handlePublishClick}>Publish Bills</button>
+                {publishMessage && <div className="success-message">{publishMessage}</div>}
+              </div>
+
+              <div className="order-tracker">
+                <div className={`step ${['created', 'verified', 'published'].indexOf((month.status || 'created').toLowerCase()) >= 0 ? 'completed' : 'pending'}`}>
+                  <div className="circle"></div>
+                  <p>Created</p>
+                  <span className="date">{month.createdDate || 'N/A'}</span>
+                </div>
+                <div className={`bar ${['verified', 'published'].indexOf((month.status || 'created').toLowerCase()) >= 0 ? 'completed' : 'pending'}`}></div>
+                <div className={`step ${['verified', 'published'].indexOf((month.status || 'created').toLowerCase()) >= 0 ? 'completed' : 'pending'}`}>
+                  <div className="circle"></div>
+                  <p>Verified</p>
+                  <span className="date">{month.verifiedDate || 'N/A'}</span>
+                </div>
+                <div className={`bar ${(month.status || 'created').toLowerCase() === 'published' ? 'completed' : 'pending'}`}></div>
+                <div className={`step ${(month.status || 'created').toLowerCase() === 'published' ? 'completed' : 'pending'}`}>
+                  <div className="circle"></div>
+                  <p>Published</p>
+                  <span className="date">{month.publishedDate || 'N/A'}</span>
+                </div>
+              </div>
+
               <div className="month-content">
                 <table className="costs-table">
                   <thead>
@@ -144,9 +216,21 @@ const MessBillsDetail = () => {
                   <button className="btn-individual-bills" onClick={() => navigate('/mess-bills-individual-list', { state: { month } })}>Individual Bills</button>
                 </div>
 
-
               </div>
             </div>
+            {showPublishPopup && (
+              <div className="popup-overlay">
+                <div className="popup">
+                  <p>Need to publish your bills?</p>
+                  <div className="popup-buttons">
+                    <button className="btn-cancel" onClick={handleCancelPublish}>Cancel</button>
+                    <button className="btn-confirm" onClick={handleConfirmPublish}>OK</button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+
           </div>
         </MainContent>
       </div>
@@ -299,6 +383,16 @@ const MessBillsDetail = () => {
             color: #856404;
           }
 
+          .bill-status.created {
+            background: #cce5ff;
+            color: #004085;
+          }
+
+          .bill-status.published {
+            background: #e7e8ff;
+            color: #3c009d;
+          }
+
           .bill-details {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -411,6 +505,269 @@ const MessBillsDetail = () => {
 
           .btn-individual-bills:hover {
             background: #218838;
+          }
+
+          .btn-paid {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+            position: relative;
+            overflow: hidden;
+          }
+
+          .btn-paid::before {
+            content: '✓';
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.2rem;
+          }
+
+          .btn-paid:hover {
+            background: linear-gradient(135deg, #218838 0%, #17a2b8 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(40, 167, 69, 0.4);
+          }
+
+          .btn-unpaid {
+            background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(255, 193, 7, 0.3);
+            position: relative;
+            overflow: hidden;
+          }
+
+          .btn-unpaid::before {
+            content: '⚠';
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.2rem;
+          }
+
+          .btn-unpaid:hover {
+            background: linear-gradient(135deg, #e0a800 0%, #d39e00 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(255, 193, 7, 0.4);
+          }
+
+          .students-list {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 20px;
+          }
+
+          .student-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            text-align: left;
+          }
+
+          .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+          }
+
+          .popup {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+          }
+
+          .popup-buttons {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+          }
+
+          .btn-cancel {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+          }
+
+          .btn-cancel:hover {
+            background: #5a6268;
+          }
+
+          .btn-confirm {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+          }
+
+          .btn-confirm:hover {
+            background: #218838;
+          }
+
+          .success-message {
+            color: green;
+            margin-top: 10px;
+            font-weight: 600;
+          }
+
+          .order-tracker {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 90%;
+            margin: 20px auto;
+            font-family: Arial, sans-serif;
+          }
+
+          .step {
+            text-align: center;
+            width: 110px;
+          }
+
+          .circle {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin: 0 auto 5px;
+            border: 3px solid #4CAF50;
+            background: white;
+          }
+
+          .completed .circle {
+            background: #4CAF50;
+          }
+
+          .pending .circle {
+            background: #ccc;
+            border-color: #ccc;
+          }
+
+          .bar {
+            flex: 1;
+            height: 4px;
+            background: #ccc;
+            margin: 0 5px;
+            border-radius: 5px;
+          }
+
+          .bar.completed {
+            background: #4CAF50;
+          }
+
+          .order-tracker p {
+            margin: 5px 0;
+            font-weight: bold;
+            color: #333;
+            font-size: 0.9rem;
+          }
+
+          .date {
+            font-size: 12px;
+            color: #777;
+          }
+
+          .student-cards {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+          }
+
+          .student-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            min-width: 200px;
+          }
+
+          .student-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+          }
+
+          .paid-card {
+            border-left: 4px solid #28a745;
+          }
+
+          .unpaid-card {
+            border-left: 4px solid #ffc107;
+          }
+
+          .card-icon {
+            font-size: 2rem;
+            color: #2575fc;
+          }
+
+          .card-content {
+            flex: 1;
+          }
+
+          .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+          }
+
+          .card-count {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2575fc;
+          }
+
+          .filter-section {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            justify-content: center;
+          }
+
+          .filter-select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background: white;
+            font-size: 0.9rem;
+            cursor: pointer;
+          }
+
+          .filter-select:focus {
+            outline: none;
+            border-color: #2575fc;
           }
         `}
       </style>

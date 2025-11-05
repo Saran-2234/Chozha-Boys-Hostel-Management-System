@@ -1,13 +1,22 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const MessBills = ({ isDarkMode }) => {
+const MessBills = () => {
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState('new-bill');
   const [formData, setFormData] = useState({
     // Basic Information
     month_year: '',
-    years: [1, 2, 3, 4], // Default all years selected
+
+    // Year-wise Student Data
+    students1st: '',
+    days1st: '',
+    students2nd: '',
+    days2nd: '',
+    students3rd: '',
+    days3rd: '',
+    students4th: '',
+    days4th: '',
 
     // Cost Details
     grocery_cost: '',
@@ -20,29 +29,24 @@ const MessBills = ({ isDarkMode }) => {
     deductions_income: '',
     veg_extra_per_day: '',
     nonveg_extra_per_day: '',
+    reduction_applicable_days: '',
+    extra_veg_served_days: '',
+    extra_nonveg_served_days: '',
 
     // Summary
     total_expenditure: '',
     expenditure_after_income: '',
     mess_fee_per_day: '',
-
-    // Year-wise Data
-    first_year_students: '',
-    first_year_days: '',
-    second_year_students: '',
-    second_year_days: '',
-    third_year_students: '',
-    third_year_days: '',
-    fourth_year_students: '',
-    fourth_year_days: ''
+    veg_fee_per_day: '',
+    nonveg_fee_per_day: ''
   });
   const [billSummary, setBillSummary] = useState(null);
   const [existingBills, setExistingBills] = useState(null);
+  const [expandedCards, setExpandedCards] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [expandedCards, setExpandedCards] = useState({});
-  const [shownBills, setShownBills] = useState({});
+
 
   const handleNavClick = (target) => {
     setActiveSection(target);
@@ -52,94 +56,80 @@ const MessBills = ({ isDarkMode }) => {
   };
 
   const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value } = e.target;
 
-    if (type === 'checkbox') {
-      if (name === 'years') {
-        setFormData(prev => ({
-          ...prev,
-          years: checked
-            ? [...prev.years, parseInt(value)]
-            : prev.years.filter(year => year !== parseInt(value))
-        }));
+    const newFormData = { ...formData, [name]: value };
+
+    // Calculate dependent values
+    if (name === 'total_milk_litres' || name === 'milk_cost_per_litre') {
+      const totalMilkLitres = parseFloat(newFormData.total_milk_litres) || 0;
+      const milkCostPerLitre = parseFloat(newFormData.milk_cost_per_litre) || 0;
+      newFormData.milk_charges_computed = (totalMilkLitres * milkCostPerLitre).toFixed(2);
+    }
+
+    if (['grocery_cost', 'vegetable_cost', 'gas_charges', 'milk_charges_computed', 'other_costs', 'deductions_income'].includes(name)) {
+      const costFields = ['grocery_cost', 'vegetable_cost', 'gas_charges', 'milk_charges_computed', 'other_costs'];
+      let total = 0;
+      costFields.forEach(field => {
+        total += parseFloat(newFormData[field]) || 0;
+      });
+      newFormData.total_expenditure = total.toFixed(2);
+      newFormData.expenditure_after_income = (total - (parseFloat(newFormData.deductions_income) || 0)).toFixed(2);
+    }
+
+    if (['students1st', 'days1st', 'students2nd', 'days2nd', 'students3rd', 'days3rd', 'students4th', 'days4th', 'reduction_applicable_days', 'veg_extra_per_day', 'nonveg_extra_per_day', 'extra_veg_served_days', 'extra_nonveg_served_days', 'expenditure_after_income'].includes(name)) {
+      // Mess Fee Per Day
+      const students1st = parseFloat(newFormData.students1st) || 0;
+      const days1st = parseFloat(newFormData.days1st) || 0;
+      const students2nd = parseFloat(newFormData.students2nd) || 0;
+      const days2nd = parseFloat(newFormData.days2nd) || 0;
+      const students3rd = parseFloat(newFormData.students3rd) || 0;
+      const days3rd = parseFloat(newFormData.days3rd) || 0;
+      const students4th = parseFloat(newFormData.students4th) || 0;
+      const days4th = parseFloat(newFormData.days4th) || 0;
+      const reductionDays = parseFloat(newFormData.reduction_applicable_days) || 0;
+
+      const totalStudentDays = (students1st * days1st) + (students2nd * days2nd) + (students3rd * days3rd) + (students4th * days4th);
+      const applicableStudentDays = totalStudentDays - reductionDays;
+      const netExpenditure = parseFloat(newFormData.expenditure_after_income) || 0;
+
+      if (applicableStudentDays > 0 && netExpenditure > 0) {
+        const messFeePerDay = netExpenditure / applicableStudentDays;
+        newFormData.mess_fee_per_day = Math.round(messFeePerDay).toString();
       }
-    } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
 
-      // Auto-calculations
-      setTimeout(() => {
-        if (name === 'total_milk_litres' || name === 'milk_cost_per_litre') {
-          calculateMilkCharges();
-        }
-        if (['grocery_cost', 'vegetable_cost', 'gas_charges', 'milk_charges_computed', 'other_costs'].includes(name)) {
-          calculateTotalExpenditure();
-        }
-        if (name === 'deductions_income') {
-          calculateExpenditureAfterIncome();
-        }
-      }, 0);
+      // Veg Fee Per Day
+      const vegExtraPerDay = parseFloat(newFormData.veg_extra_per_day) || 0;
+      const extraVegServedDays = parseFloat(newFormData.extra_veg_served_days) || 0;
+      if (extraVegServedDays > 0 && vegExtraPerDay > 0) {
+        const vegFeePerDay = vegExtraPerDay / extraVegServedDays;
+        newFormData.veg_fee_per_day = Math.round(vegFeePerDay).toString();
+      }
+
+      // Non-Veg Fee Per Day
+      const nonVegExtraPerDay = parseFloat(newFormData.nonveg_extra_per_day) || 0;
+      const extraNonVegServedDays = parseFloat(newFormData.extra_nonveg_served_days) || 0;
+      if (extraNonVegServedDays > 0 && nonVegExtraPerDay > 0) {
+        const nonVegFeePerDay = nonVegExtraPerDay / extraNonVegServedDays;
+        newFormData.nonveg_fee_per_day = Math.round(nonVegFeePerDay).toString();
+      }
     }
+
+    setFormData(newFormData);
   };
 
-  const calculateMilkCharges = () => {
-    const totalMilkLitres = parseFloat(formData.total_milk_litres) || 0;
-    const milkCostPerLitre = parseFloat(formData.milk_cost_per_litre) || 0;
 
-    if (totalMilkLitres > 0 && milkCostPerLitre > 0) {
-      const milkCharges = totalMilkLitres * milkCostPerLitre;
-      setFormData(prev => ({ ...prev, milk_charges_computed: milkCharges.toFixed(2) }));
-    }
-  };
-
-  const calculateTotalExpenditure = () => {
-    const costFields = ['grocery_cost', 'vegetable_cost', 'gas_charges', 'milk_charges_computed', 'other_costs'];
-    let total = 0;
-
-    costFields.forEach(field => {
-      const value = parseFloat(formData[field]) || 0;
-      total += value;
-    });
-
-    setFormData(prev => ({
-      ...prev,
-      total_expenditure: total.toFixed(2),
-      expenditure_after_income: (total - (parseFloat(formData.deductions_income) || 0)).toFixed(2)
-    }));
-  };
-
-  const calculateExpenditureAfterIncome = () => {
-    const totalExpenditure = parseFloat(formData.total_expenditure) || 0;
-    const deductionsIncome = parseFloat(formData.deductions_income) || 0;
-    setFormData(prev => ({
-      ...prev,
-      expenditure_after_income: (totalExpenditure - deductionsIncome).toFixed(2)
-    }));
-  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    // Calculate mess fee per day based on total expenditure and student data
-    const totalExpenditure = parseFloat(formData.expenditure_after_income) || 0;
-    let totalStudentDays = 0;
-
-    formData.years.forEach(year => {
-      const students = parseInt(formData[`${['first', 'second', 'third', 'fourth'][year-1]}_year_students`]) || 0;
-      const days = parseInt(formData[`${['first', 'second', 'third', 'fourth'][year-1]}_year_days`]) || 0;
-      totalStudentDays += students * days;
-    });
-
-    const messFeePerDay = totalStudentDays > 0 ? totalExpenditure / totalStudentDays : 0;
-
-    setFormData(prev => ({ ...prev, mess_fee_per_day: messFeePerDay.toFixed(2) }));
 
     setBillSummary({
       month_year: formData.month_year,
       total_expenditure: formData.total_expenditure,
       expenditure_after_income: formData.expenditure_after_income,
-      mess_fee_per_day: messFeePerDay.toFixed(2),
-      selected_years: formData.years,
-      total_student_days: totalStudentDays
+      mess_fee_per_day: formData.mess_fee_per_day,
+      veg_fee_per_day: formData.veg_fee_per_day,
+      nonveg_fee_per_day: formData.nonveg_fee_per_day
     });
   };
 
@@ -216,22 +206,13 @@ const MessBills = ({ isDarkMode }) => {
   };
 
   const toggleCard = (index) => {
-    sessionStorage.setItem('monthData', JSON.stringify(existingBills.months[index]));
-    navigate('/mess-bills-detail');
+    setExpandedCards(prev => ({
+      ...prev,
+      [index]: !prev[index]
+    }));
   };
 
-  const showIndividualBills = (index) => {
-    setShownBills(prev => ({ ...prev, [index]: true }));
-  };
 
-  const hideIndividualBills = (index) => {
-    setShownBills(prev => ({ ...prev, [index]: false }));
-  };
-
-  const verifyBill = (billIndex, monthIndex) => {
-    // For demo, just log
-    console.log(`Verify bill ${billIndex} in month ${monthIndex}`);
-  };
 
   return (
     <div className="container">
@@ -264,23 +245,92 @@ const MessBills = ({ isDarkMode }) => {
                   required
                 />
               </div>
+            </div>
+          </div>
+
+          {/* Year-wise Student Data Section */}
+          <div className="form-section">
+            <div className="form-section-title">Year-wise Student Data</div>
+            <div className="form-grid">
               <div className="form-group">
-                <label>Academic Years *</label>
-                <div className="checkbox-group">
-                  {[1, 2, 3, 4].map(year => (
-                    <div key={year} className="checkbox-item">
-                      <input
-                        type="checkbox"
-                        id={`year${year}`}
-                        name="years"
-                        value={year}
-                        checked={formData.years.includes(year)}
-                        onChange={handleInputChange}
-                      />
-                      <label htmlFor={`year${year}`}>{year === 1 ? 'First' : year === 2 ? 'Second' : year === 3 ? 'Third' : 'Fourth'} Year</label>
-                    </div>
-                  ))}
-                </div>
+                <label htmlFor="students1st">First Year Students</label>
+                <input
+                  type="number"
+                  id="students1st"
+                  name="students1st"
+                  value={formData.students1st}
+                  onChange={handleInputChange}
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="days1st">First Year Days</label>
+                <input
+                  type="number"
+                  id="days1st"
+                  name="days1st"
+                  value={formData.days1st}
+                  onChange={handleInputChange}
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="students2nd">Second Year Students</label>
+                <input
+                  type="number"
+                  id="students2nd"
+                  name="students2nd"
+                  value={formData.students2nd}
+                  onChange={handleInputChange}
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="days2nd">Second Year Days</label>
+                <input
+                  type="number"
+                  id="days2nd"
+                  name="days2nd"
+                  value={formData.days2nd}
+                  onChange={handleInputChange}
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="students3rd">Third Year Students</label>
+                <input
+                  type="number"
+                  id="students3rd"
+                  name="students3rd"
+                  value={formData.students3rd}
+                  onChange={handleInputChange}
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="days3rd">Third Year Days</label>
+                <input
+                  type="number"
+                  id="days3rd"
+                  name="days3rd"
+                  value={formData.days3rd}
+                  onChange={handleInputChange}
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="students4th">Fourth Year Students</label>
+                <input
+                  type="number"
+                  id="students4th"
+                  name="students4th"
+                  value={formData.students4th}
+                  onChange={handleInputChange}
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="days4th">Fourth Year Days</label>
+                <input
+                  type="number"
+                  id="days4th"
+                  name="days4th"
+                  value={formData.days4th}
+                  onChange={handleInputChange}
+                />
               </div>
             </div>
           </div>
@@ -403,6 +453,36 @@ const MessBills = ({ isDarkMode }) => {
                   onChange={handleInputChange}
                 />
               </div>
+              <div className="form-group">
+                <label htmlFor="reduction_applicable_days">Reduction Applicable Days</label>
+                <input
+                  type="number"
+                  id="reduction_applicable_days"
+                  name="reduction_applicable_days"
+                  value={formData.reduction_applicable_days}
+                  onChange={handleInputChange}
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="extra_veg_served_days">Extra Veg Served Days</label>
+                <input
+                  type="number"
+                  id="extra_veg_served_days"
+                  name="extra_veg_served_days"
+                  value={formData.extra_veg_served_days}
+                  onChange={handleInputChange}
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="extra_nonveg_served_days">Extra Non-Veg Served Days</label>
+                <input
+                  type="number"
+                  id="extra_nonveg_served_days"
+                  name="extra_nonveg_served_days"
+                  value={formData.extra_nonveg_served_days}
+                  onChange={handleInputChange}
+                />
+              </div>
             </div>
           </div>
 
@@ -443,110 +523,25 @@ const MessBills = ({ isDarkMode }) => {
                   name="mess_fee_per_day"
                   value={formData.mess_fee_per_day}
                   onChange={handleInputChange}
-                  required
+                  readOnly
                 />
               </div>
-            </div>
+              </div>
           </div>
 
-          {/* Year-wise Data Section */}
-          <div className="form-section">
-            <div className="form-section-title">Year-wise Student Data</div>
-            <div className="form-grid">
-              {/* First Year */}
-              <div className="form-group">
-                <label htmlFor="first_year_students">First Year Students</label>
-                <input
-                  type="number"
-                  id="first_year_students"
-                  name="first_year_students"
-                  value={formData.first_year_students}
-                  onChange={handleInputChange}
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="first_year_days">First Year Days</label>
-                <input
-                  type="number"
-                  id="first_year_days"
-                  name="first_year_days"
-                  value={formData.first_year_days}
-                  onChange={handleInputChange}
-                />
-              </div>
 
-              {/* Second Year */}
-              <div className="form-group">
-                <label htmlFor="second_year_students">Second Year Students</label>
-                <input
-                  type="number"
-                  id="second_year_students"
-                  name="second_year_students"
-                  value={formData.second_year_students}
-                  onChange={handleInputChange}
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="second_year_days">Second Year Days</label>
-                <input
-                  type="number"
-                  id="second_year_days"
-                  name="second_year_days"
-                  value={formData.second_year_days}
-                  onChange={handleInputChange}
-                />
-              </div>
-
-              {/* Third Year */}
-              <div className="form-group">
-                <label htmlFor="third_year_students">Third Year Students</label>
-                <input
-                  type="number"
-                  id="third_year_students"
-                  name="third_year_students"
-                  value={formData.third_year_students}
-                  onChange={handleInputChange}
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="third_year_days">Third Year Days</label>
-                <input
-                  type="number"
-                  id="third_year_days"
-                  name="third_year_days"
-                  value={formData.third_year_days}
-                  onChange={handleInputChange}
-                />
-              </div>
-
-              {/* Fourth Year */}
-              <div className="form-group">
-                <label htmlFor="fourth_year_students">Fourth Year Students</label>
-                <input
-                  type="number"
-                  id="fourth_year_students"
-                  name="fourth_year_students"
-                  value={formData.fourth_year_students}
-                  onChange={handleInputChange}
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="fourth_year_days">Fourth Year Days</label>
-                <input
-                  type="number"
-                  id="fourth_year_days"
-                  name="fourth_year_days"
-                  value={formData.fourth_year_days}
-                  onChange={handleInputChange}
-                />
-              </div>
-            </div>
-          </div>
 
           <div className="form-actions">
             <button type="button" className="btn btn-reset" onClick={() => setFormData({
               month_year: '',
-              years: [1, 2, 3, 4],
+              students1st: '',
+              days1st: '',
+              students2nd: '',
+              days2nd: '',
+              students3rd: '',
+              days3rd: '',
+              students4th: '',
+              days4th: '',
               grocery_cost: '',
               vegetable_cost: '',
               gas_charges: '',
@@ -557,17 +552,14 @@ const MessBills = ({ isDarkMode }) => {
               deductions_income: '',
               veg_extra_per_day: '',
               nonveg_extra_per_day: '',
+              reduction_applicable_days: '',
+              extra_veg_served_days: '',
+              extra_nonveg_served_days: '',
               total_expenditure: '',
               expenditure_after_income: '',
               mess_fee_per_day: '',
-              first_year_students: '',
-              first_year_days: '',
-              second_year_students: '',
-              second_year_days: '',
-              third_year_students: '',
-              third_year_days: '',
-              fourth_year_students: '',
-              fourth_year_days: ''
+              veg_fee_per_day: '',
+              nonveg_fee_per_day: ''
             })}>Reset Form</button>
             <button type="submit" className="btn btn-search">Calculate Monthly Bill</button>
           </div>
@@ -592,14 +584,7 @@ const MessBills = ({ isDarkMode }) => {
               <span>Mess Fee Per Day:</span>
               <span>₹{billSummary.mess_fee_per_day}</span>
             </div>
-            <div className="bill-item">
-              <span>Selected Years:</span>
-              <span>{billSummary.selected_years.join(', ')}</span>
-            </div>
-            <div className="bill-item">
-              <span>Total Student-Days:</span>
-              <span>{billSummary.total_student_days}</span>
-            </div>
+            
             <button className="btn">Save Monthly Calculation</button>
           </div>
         )}

@@ -20,42 +20,6 @@ const MessBillsIndividualList = () => {
   const [resultsVisible, setResultsVisible] = useState(false);
   const [bills, setBills] = useState([]);
   const [selectedStudents, setSelectedStudents] = useState([]);
-  const [students, setStudents] = useState([
-    {
-      id: 1,
-      name: 'John Doe',
-      room: '101',
-      status: 'Pending Verification',
-      daysPresent: 28,
-      mealRate: 150.00,
-      extraCharges: 350.00,
-      totalAmount: 4550.00,
-      isEditing: false
-    },
-    {
-      id: 2,
-      name: 'Jane Smith',
-      room: '205',
-      status: 'Pending Verification',
-      daysPresent: 25,
-      mealRate: 150.00,
-      extraCharges: 200.00,
-      totalAmount: 3950.00,
-      isEditing: false
-    },
-    {
-      id: 3,
-      name: 'Robert Johnson',
-      room: '312',
-      status: 'Verified',
-      daysPresent: 30,
-      mealRate: 150.00,
-      extraCharges: 450.00,
-      totalAmount: 4950.00,
-      isEditing: false
-    },
-    // Add more static data as needed
-  ]);
 
   useEffect(() => {
     if (location.state && location.state.month) {
@@ -67,6 +31,8 @@ const MessBillsIndividualList = () => {
       }
     }
   }, [location.state]);
+
+
 
   const handleLogout = () => {
     localStorage.removeItem('accessToken');
@@ -128,7 +94,7 @@ const MessBillsIndividualList = () => {
   };
 
   const handleEditStudent = (studentId) => {
-    setStudents(students.map(student =>
+    setBills(bills.map(student =>
       student.id === studentId
         ? { ...student, isEditing: true }
         : student
@@ -136,7 +102,7 @@ const MessBillsIndividualList = () => {
   };
 
   const handleSaveStudent = (studentId) => {
-    setStudents(students.map(student =>
+    setBills(bills.map(student =>
       student.id === studentId
         ? { ...student, isEditing: false }
         : student
@@ -145,7 +111,7 @@ const MessBillsIndividualList = () => {
   };
 
   const handleCancelEdit = (studentId) => {
-    setStudents(students.map(student =>
+    setBills(bills.map(student =>
       student.id === studentId
         ? { ...student, isEditing: false }
         : student
@@ -155,32 +121,195 @@ const MessBillsIndividualList = () => {
 
   const handleDaysPresentChange = (studentId, value) => {
     const days = Math.max(0, Math.min(31, parseInt(value) || 0)); // Ensure value is between 0 and 31
-    const student = students.find(s => s.id === studentId);
-    const newTotalAmount = (days * student.mealRate) + student.extraCharges;
 
-    setStudents(students.map(student =>
-      student.id === studentId
-        ? {
-            ...student,
-            daysPresent: days,
-            totalAmount: newTotalAmount
-          }
-        : student
-    ));
+    const updateStudent = (student) => {
+      if (student.id === studentId) {
+        // Recalculate extra charges based on current meal type
+        const extraCharges = student.isveg
+          ? (student.vegDays * student.vegExtraPerDay)
+          : (student.nonVegDays * student.nonVegExtraPerDay);
+        const newTotalAmount = (days * student.mealRate) + extraCharges;
+        return {
+          ...student,
+          daysPresent: days,
+          extraCharges,
+          totalAmount: newTotalAmount
+        };
+      }
+      return student;
+    };
+
+    setBills(prev => prev.map(updateStudent));
   };
 
-  const handleFetchBills = (e) => {
+  const handleMealTypeChange = (studentId, value) => {
+    const isveg = value === 'Veg';
+    const updateStudent = (student) => {
+      if (student.id === studentId) {
+        const vegDays = isveg ? student.vegDays : 0;
+        const nonVegDays = !isveg ? student.nonVegDays : 0;
+        const extraCharges = isveg
+          ? (vegDays * student.vegExtraPerDay)
+          : (nonVegDays * student.nonVegExtraPerDay);
+        const newTotalAmount = (student.daysPresent * student.mealRate) + extraCharges;
+        return {
+          ...student,
+          isveg,
+          vegDays,
+          nonVegDays,
+          extraCharges,
+          totalAmount: newTotalAmount
+        };
+      }
+      return student;
+    };
+
+    setBills(bills.map(updateStudent));
+  };
+
+  const handleVegDaysChange = (studentId, value) => {
+    const vegDays = Math.max(0, parseInt(value) || 0);
+    const updateStudent = (student) => {
+      if (student.id === studentId) {
+        const extraCharges = vegDays * student.vegExtraPerDay;
+        const newTotalAmount = (student.daysPresent * student.mealRate) + extraCharges;
+        return { ...student, vegDays, extraCharges, totalAmount: newTotalAmount };
+      }
+      return student;
+    };
+
+    setBills(bills.map(updateStudent));
+  };
+
+  const handleNonVegDaysChange = (studentId, value) => {
+    const nonVegDays = Math.max(0, parseInt(value) || 0);
+    const updateStudent = (student) => {
+      if (student.id === studentId) {
+        const extraCharges = nonVegDays * student.nonVegExtraPerDay;
+        const newTotalAmount = (student.daysPresent * student.mealRate) + extraCharges;
+        return { ...student, nonVegDays, extraCharges, totalAmount: newTotalAmount };
+      }
+      return student;
+    };
+
+    setBills(bills.map(updateStudent));
+  };
+
+  const handleVerifiedChange = (studentId, value) => {
+    const verified = value === 'true';
+    const status = verified ? 'Verified' : 'Pending Verification';
+    const updateStudent = (student) =>
+      student.id === studentId
+        ? { ...student, status }
+        : student;
+
+    setBills(bills.map(updateStudent));
+  };
+
+  const handleUpdateStudent = async (student) => {
+    try {
+      const body = {
+        id: student.id,
+        number_of_days: student.daysPresent,
+        verified: student.status === 'Verified',
+        isveg: student.isveg,
+        veg_days: student.isveg ? student.vegDays : 0,
+        non_veg_days: !student.isveg ? student.nonVegDays : 0,
+      };
+
+      const response = await fetch('https://finalbackend1.vercel.app/upadatemessbill', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        alert('✅ ' + result.message);
+      } else {
+        alert('❌ ' + (result.error || 'Update failed'));
+      }
+    } catch (err) {
+      alert('❌ Network or server error during update');
+      console.error(err);
+    }
+  };
+
+  const handleFetchBills = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
     setSuccess('');
     setSelectedStudents([]);
-    setTimeout(() => {
-      setBills(students);
-      setResultsVisible(true);
+
+    if (!selectedMonthYear || !selectedDepartmentText || !selectedAcademicYear) {
+      setError('Please fill in all required fields');
       setLoading(false);
+      return;
+    }
+
+    try {
+      const [year, month] = selectedMonthYear.split('-');
+      const formattedMonthYear = `${month}-${year}`;
+
+      const payload = {
+        month_year: formattedMonthYear,
+        department: selectedDepartmentText,
+        academic_year: selectedAcademicYear
+      };
+
+      const response = await fetch('https://finalbackend1.vercel.app/fetchstudentsmessbillnew', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch bills');
+      }
+
+      const data = await response.json();
+
+      if (!data.data || data.data.length === 0) {
+        setError(data.message || 'No records found for the given filters');
+        setResultsVisible(false);
+        setLoading(false);
+        return;
+      }
+
+      const transformedData = data.data.map(student => ({
+        id: student.mess_bill_id,
+        name: student.student_name || '',
+        room: student.registration_number || '',
+        status: student.verified ? 'Verified' : 'Pending Verification',
+        daysPresent: parseInt(student.effective_number_of_days) || 0,
+        mealRate: parseFloat(student.mess_fee_per_day) || 0,
+        vegExtraPerDay: parseFloat(student.veg_extra_per_day) || 0,
+        nonVegExtraPerDay: parseFloat(student.nonveg_extra_per_day) || 0,
+        extraCharges: student.isveg
+          ? ((parseInt(student.veg_days) || 0) * (parseFloat(student.veg_extra_per_day) || 0))
+          : ((parseInt(student.non_veg_days) || 0) * (parseFloat(student.nonveg_extra_per_day) || 0)),
+        totalAmount: parseFloat(student.total_amount) || 0,
+        isEditing: false,
+        messStatus: student.payment_status || '',
+        isveg: Boolean(student.isveg),
+        vegDays: parseInt(student.veg_days) || 0,
+        nonVegDays: parseInt(student.non_veg_days) || 0
+      }));
+
+      setBills(transformedData);
+      setResultsVisible(true);
       setSuccess('Bills fetched successfully');
-    }, 2000);
+    } catch (err) {
+      setError(err.message || 'An error occurred while fetching bills');
+      setResultsVisible(false);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleResetFilters = () => {
@@ -244,7 +373,7 @@ const MessBillsIndividualList = () => {
               <form id="searchForm" onSubmit={handleFetchBills}>
                 <div className="filters-grid">
                   <div className="form-group">
-                    <label className="form-label" htmlFor="month_year">Month Year *</label>
+                    <label className="form-label" htmlFor="month_year">Month-Year *</label>
                     <input type="month" className="form-input" id="month_year" value={selectedMonthYear} onChange={(e) => setSelectedMonthYear(e.target.value)} required />
                   </div>
                   <div className="form-group">
@@ -297,14 +426,16 @@ const MessBillsIndividualList = () => {
                             checked={selectedStudents.length === bills.length && bills.length > 0}
                           />
                         </th>
-                        <th>Name</th>
-                        <th>Room</th>
-                        <th>Status</th>
-                        <th>Days Present</th>
-                        <th>Meal Rate</th>
-                        <th>Extra Charges</th>
+                        <th>Student Name</th>
+                        <th>Reg No</th>
+                        <th>Days</th>
+                        <th>Meal Type</th>
+                        <th>Veg Days</th>
+                        <th>Non-Veg Days</th>
+                        <th>Verified</th>
                         <th>Total Amount</th>
-                        <th>Actions</th>
+                        <th>Payment Status</th>
+                        <th>Action</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -319,40 +450,60 @@ const MessBillsIndividualList = () => {
                           </td>
                           <td>{student.name}</td>
                           <td>{student.room}</td>
-                          <td>{student.status}</td>
                           <td>
-                            {student.isEditing ? (
-                              <input
-                                type="number"
-                                value={student.daysPresent}
-                                onChange={(e) => handleDaysPresentChange(student.id, e.target.value)}
-                                min="0"
-                                max="31"
-                              />
-                            ) : (
-                              student.daysPresent
-                            )}
+                            <input
+                              type="number"
+                              value={student.daysPresent || 0}
+                              onChange={(e) => handleDaysPresentChange(student.id, e.target.value)}
+                              min="0"
+                              max="31"
+                              style={{width: '80px', textAlign: 'center'}}
+                            />
                           </td>
-                          <td>₹{student.mealRate.toFixed(2)}</td>
-                          <td>₹{student.extraCharges.toFixed(2)}</td>
-                          <td>₹{student.totalAmount.toFixed(2)}</td>
                           <td>
-                            {student.isEditing ? (
-                              <>
-                                <button className="btn-save" onClick={() => handleSaveStudent(student.id)}>Save</button>
-                                <button className="btn-cancel" onClick={() => handleCancelEdit(student.id)}>Cancel</button>
-                              </>
-                            ) : (
-                              <>
-                                <button className="btn-edit" onClick={() => handleEditStudent(student.id)}>Edit</button>
-                                {student.status === 'Pending Verification' ? (
-                                  <button className="btn-verify" onClick={() => handleVerifyBill(student)}>Verify</button>
-                                ) : (
-                                  <button className="btn-verified" disabled>Verified</button>
-                                )}
-                                <button className="btn-download" onClick={() => handleDownloadBill(student)}>Download</button>
-                              </>
-                            )}
+                            <select
+                              value={student.isveg ? 'Veg' : 'Non-Veg'}
+                              onChange={(e) => handleMealTypeChange(student.id, e.target.value)}
+                              style={{width: '100px'}}
+                            >
+                              <option value="Veg">Veg</option>
+                              <option value="Non-Veg">Non-Veg</option>
+                            </select>
+                          </td>
+                          <td>
+                            <input
+                              type="number"
+                              value={student.vegDays || 0}
+                              onChange={(e) => handleVegDaysChange(student.id, e.target.value)}
+                              min="0"
+                              disabled={!student.isveg}
+                              style={{width: '80px', textAlign: 'center'}}
+                            />
+                          </td>
+                          <td>
+                            <input
+                              type="number"
+                              value={student.nonVegDays || 0}
+                              onChange={(e) => handleNonVegDaysChange(student.id, e.target.value)}
+                              min="0"
+                              disabled={student.isveg}
+                              style={{width: '80px', textAlign: 'center'}}
+                            />
+                          </td>
+                          <td>
+                            <select
+                              value={student.status === 'Verified' ? 'true' : 'false'}
+                              onChange={(e) => handleVerifiedChange(student.id, e.target.value)}
+                              style={{width: '90px'}}
+                            >
+                              <option value="true">Yes</option>
+                              <option value="false">No</option>
+                            </select>
+                          </td>
+                          <td>₹{student.totalAmount.toFixed(2)}</td>
+                          <td>{student.messStatus}</td>
+                          <td>
+                            <button className="update-btn" onClick={() => handleUpdateStudent(student)}>Update</button>
                           </td>
                         </tr>
                       ))}
@@ -373,6 +524,17 @@ const MessBillsIndividualList = () => {
             display: flex;
             flex-direction: column;
             gap: 15px;
+          }
+          .update-btn {
+            background-color: #16a34a;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+          }
+          .update-btn:hover {
+            background-color: #15803d;
           }
 
           .student-card {

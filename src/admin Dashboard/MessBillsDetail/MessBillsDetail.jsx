@@ -34,7 +34,7 @@ const MessBillsDetail = () => {
   };
 
   const handleBack = () => {
-    navigate('/admin-dashboard', { state: { activeSection: 'messbills' } });
+    navigate(-1);
   };
 
   const handleViewBill = (bill) => {

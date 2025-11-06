@@ -11,21 +11,49 @@ const MessBill = () => {
   const [success, setSuccess] = useState('');
   const [messBills, setMessBills] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [studentData, setStudentData] = useState(null);
 
   const API_BASE_URL = 'https://finalbackend1.vercel.app';
 
   useEffect(() => {
-    fetchMessBills();
+    // Load Cashfree SDK
+    const loadCashfreeSDK = () => {
+      if (!window.Cashfree) {
+        const script = document.createElement('script');
+        script.src = 'https://sdk.cashfree.com/js/v3/cashfree.js';
+        script.async = true;
+        document.head.appendChild(script);
+      }
+    };
+    loadCashfreeSDK();
+
+    // Load student data from localStorage
+    const token = localStorage.getItem('studentToken');
+    const userData = localStorage.getItem('userData');
+    const studentId = localStorage.getItem('studentId');
+
+    if (token && userData && studentId) {
+      setStudentData({
+        token,
+        ...JSON.parse(userData),
+        id: studentId
+      });
+      fetchMessBills(token, studentId);
+    } else {
+      setError('Authentication required. Please login again.');
+    }
   }, []);
 
-  const fetchMessBills = async () => {
+  const fetchMessBills = async (token, studentId) => {
     setLoading(true);
     try {
-      // Mock student ID - in real app, get from auth context
-      const studentId = 101; // Replace with actual student ID from auth
       const response = await axios.post(`${API_BASE_URL}/showmessbillbyid1`, {
         student_id: studentId,
       }, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         withCredentials: true,
       });
 
@@ -37,8 +65,65 @@ const MessBill = () => {
     } catch (err) {
       console.error('Error fetching mess bills:', err);
       setMessBills([]);
+      if (err.response?.status === 401) {
+        setError('Session expired. Please login again.');
+      }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const payNow = async (year_month) => {
+    if (!studentData) {
+      setError('Student data not available. Please login again.');
+      return;
+    }
+
+    if (!confirm(`Proceed to pay for ${year_month}?`)) return;
+
+    try {
+      const response = await axios.post(`${API_BASE_URL}/create-order`, {
+        student_id: studentData.id,
+        year_month,
+        student_name: studentData.name,
+        student_email: studentData.email,
+        student_phone: studentData.student_contact_number || '9999999999'
+      }, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${studentData.token}`
+        },
+        withCredentials: true,
+      });
+
+      const data = response.data;
+
+      if (response.status !== 200 || data.error) {
+        alert(data.error || data.message || "Payment request failed.");
+        console.error("Backend error:", data);
+        return;
+      }
+
+      const paymentSessionId = data.cashfree_response?.payment_session_id;
+      if (!paymentSessionId) {
+        alert("Failed to get payment session ID from backend.");
+        console.error(data);
+        return;
+      }
+
+      if (window.Cashfree) {
+        const cashfree = window.Cashfree({ mode: "sandbox" });
+        cashfree.checkout({
+          paymentSessionId: paymentSessionId,
+          redirectTarget: "_self"
+        });
+      } else {
+        alert('Payment system not loaded. Please try again.');
+      }
+
+    } catch (err) {
+      console.error(err);
+      alert('Payment failed. Please try again.');
     }
   };
 
@@ -76,16 +161,15 @@ const MessBill = () => {
     e.preventDefault();
     if (!validateForm()) return;
 
-    // Mock student info - in real app, get from auth context or localStorage
-    const studentInfo = {
-      id: 'STU004', // Mock ID
-      name: 'Current Student' // Mock name
-    };
+    if (!studentData) {
+      setError('Student data not available. Please login again.');
+      return;
+    }
 
     const application = {
       id: Date.now(), // Simple unique ID
-      studentId: studentInfo.id,
-      studentName: studentInfo.name,
+      studentId: studentData.id,
+      studentName: studentData.name || 'Unknown Student',
       fromDate,
       toDate,
       reason,
@@ -124,9 +208,6 @@ const MessBill = () => {
         <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
           <button className="btn-secondary text-white px-3 sm:px-4 py-2 rounded-lg font-medium text-sm sm:text-base w-full sm:w-auto">
             📄 Download Bill
-          </button>
-          <button className="btn-primary text-white px-3 sm:px-4 py-2 rounded-lg font-medium text-sm sm:text-base w-full sm:w-auto">
-            💳 Pay Now
           </button>
         </div>
       </div>
@@ -192,79 +273,71 @@ const MessBill = () => {
           <p className="text-slate-400">Loading mess bills...</p>
         </div>
       ) : messBills.length > 0 ? (
-        messBills.map((bill, index) => (
-          <div key={bill.mess_bill_id} className="glass-card rounded-xl p-4 sm:p-6 mb-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 gap-2">
-              <h3 className="text-lg sm:text-xl font-semibold text-white">{bill.month_year} Bill</h3>
-              <span className={`px-3 py-1 rounded-full text-xs sm:text-sm font-medium self-start sm:self-auto ${
-                bill.status === 'PAID' ? 'status-paid' : 'status-unpaid bg-red-500 bg-opacity-20'
-              }`}>
-                {bill.status}
-              </span>
-            </div>
+        <div className="glass-card rounded-xl p-4 sm:p-6">
+          <h3 className="text-lg font-semibold text-white mb-4">Mess Bills</h3>
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="border-b border-slate-600">
+                  <th className="text-left py-3 px-4 text-slate-400 font-medium">Month-Year</th>
+                  <th className="text-left py-3 px-4 text-slate-400 font-medium">Grocery Cost</th>
+                  <th className="text-left py-3 px-4 text-slate-400 font-medium">Vegetable Cost</th>
+                  <th className="text-left py-3 px-4 text-slate-400 font-medium">Gas Charges</th>
+                  <th className="text-left py-3 px-4 text-slate-400 font-medium">Milk Litres</th>
+                  <th className="text-left py-3 px-4 text-slate-400 font-medium">Milk Cost/Litre</th>
+                  <th className="text-left py-3 px-4 text-slate-400 font-medium">Milk Charges</th>
+                  <th className="text-left py-3 px-4 text-slate-400 font-medium">Other Cost</th>
+                  <th className="text-left py-3 px-4 text-slate-400 font-medium">Total Expenditure</th>
+                  <th className="text-left py-3 px-4 text-slate-400 font-medium">Expenditure After Income</th>
+                  <th className="text-left py-3 px-4 text-slate-400 font-medium">Mess Fee/Day</th>
+                  <th className="text-left py-3 px-4 text-slate-400 font-medium">Status</th>
+                  <th className="text-left py-3 px-4 text-slate-400 font-medium">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {messBills.map((bill) => {
+                  const status = bill.status ? bill.status.toUpperCase() : 'UNPAID';
+                  const isPaid = status === 'PAID' || status === 'SUCCESS';
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <h4 className="text-lg font-medium text-white mb-4">Bill Details</h4>
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Grocery Cost</span>
-                    <span className="text-white">₹{bill.grocery_cost}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Vegetable Cost</span>
-                    <span className="text-white">₹{bill.vegetable_cost}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Gas Charges</span>
-                    <span className="text-white">₹{bill.gas_charges}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Total Expenditure</span>
-                    <span className="text-white">₹{bill.total_expenditure}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Mess Fee per Day</span>
-                    <span className="text-white">₹{bill.mess_fee_per_day}</span>
-                  </div>
-                  <hr className="border-slate-600" />
-                  <div className="flex justify-between text-lg font-semibold">
-                    <span className="text-white">Total Amount</span>
-                    <span className="text-white">₹{bill.total_expenditure}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <h4 className="text-lg font-medium text-white mb-4">Payment Information</h4>
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Bill Generated</span>
-                    <span className="text-white">{new Date(bill.created_at).toLocaleDateString()}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Due Date</span>
-                    <span className="text-red-400">Last day of {bill.month_year}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Status</span>
-                    <span className={bill.status === 'PAID' ? 'text-green-400' : 'text-red-400'}>
-                      {bill.status}
-                    </span>
-                  </div>
-                </div>
-
-                {bill.status !== 'PAID' && (
-                  <div className="mt-6">
-                    <button className="w-full btn-primary text-white py-3 rounded-lg font-semibold text-lg">
-                      💳 Pay ₹{bill.total_expenditure} Now
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
+                  return (
+                    <tr key={bill.mess_bill_id || bill.month_year} className="border-b border-slate-700">
+                      <td className="py-3 px-4 text-white">{bill.month_year ?? '-'}</td>
+                      <td className="py-3 px-4 text-white">₹{bill.grocery_cost ?? 0}</td>
+                      <td className="py-3 px-4 text-white">₹{bill.vegetable_cost ?? 0}</td>
+                      <td className="py-3 px-4 text-white">₹{bill.gas_charges ?? 0}</td>
+                      <td className="py-3 px-4 text-white">{bill.total_milk_litres ?? 0}</td>
+                      <td className="py-3 px-4 text-white">₹{bill.milk_cost_per_litre ?? 0}</td>
+                      <td className="py-3 px-4 text-white">₹{bill.milk_charges_computed ?? 0}</td>
+                      <td className="py-3 px-4 text-white">₹{bill.other_costs ?? 0}</td>
+                      <td className="py-3 px-4 text-white">₹{bill.total_expenditure ?? 0}</td>
+                      <td className="py-3 px-4 text-white">₹{bill.expenditure_after_income ?? 0}</td>
+                      <td className="py-3 px-4 text-white">₹{bill.mess_fee_per_day ?? 0}</td>
+                      <td className="py-3 px-4">
+                        <span className={`px-2 py-1 rounded text-xs font-medium ${
+                          isPaid ? 'bg-green-500 bg-opacity-20 text-green-400' : 'bg-red-500 bg-opacity-20 text-red-400'
+                        }`}>
+                          {status}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4">
+                        {isPaid ? (
+                          <span className="text-green-400 font-medium">PAID</span>
+                        ) : (
+                          <button
+                            className="btn-primary text-white px-3 py-1 rounded text-sm hover:bg-blue-600"
+                            onClick={() => payNow(bill.month_year)}
+                          >
+                            Pay Now
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
-        ))
+        </div>
       ) : (
         <div className="text-center py-8">
           <p className="text-slate-400">No mess bills found.</p>

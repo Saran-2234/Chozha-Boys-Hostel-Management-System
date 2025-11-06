@@ -151,7 +151,7 @@ const StudentDashboard = () => {
         onLogoutClick={handleLogoutClick} // Pass click handler instead of direct logout
       />
 
-      <div className="flex-1 flex flex-col md:ml-64">
+      <div className="flex-1 flex flex-col md:ml-64 z-40">
         <Header
           onLogoutClick={handleLogoutClick} // Pass click handler instead of direct logout
           studentData={studentData}

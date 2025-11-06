@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import Modal from '../Common/Modal';
+import Modal from '../../admin Dashboard/Common/Modal';
 
 const MessBill = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -74,6 +74,7 @@ const MessBill = () => {
   };
 
   const payNow = async (year_month) => {
+    console.log('Pay Now button clicked for:', year_month);
     if (!studentData) {
       setError('Student data not available. Please login again.');
       return;
@@ -204,15 +205,15 @@ const MessBill = () => {
         </div>
       )}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 sm:mb-8 gap-4">
-        <h2 className="text-xl sm:text-2xl font-bold text-white">Mess Bill Management</h2>
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-800">Mess Bill Management</h2>
         <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
-          <button className="btn-secondary text-white px-3 sm:px-4 py-2 rounded-lg font-medium text-sm sm:text-base w-full sm:w-auto">
+          <button className="btn-secondary text-gray-800 px-3 sm:px-4 py-2 rounded-lg font-medium text-sm sm:text-base w-full sm:w-auto">
             📄 Download Bill
           </button>
         </div>
       </div>
       {isModalOpen && (
-        <Modal onClose={() => setIsModalOpen(false)}>
+        <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
           <div className="p-6">
             <h3 className="text-xl font-bold text-white mb-4">Apply for Mess Bill Reduction</h3>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -270,82 +271,119 @@ const MessBill = () => {
 
       {loading ? (
         <div className="text-center py-8">
-          <p className="text-slate-400">Loading mess bills...</p>
+          <p className="text-gray-600">Loading mess bills...</p>
         </div>
       ) : messBills.length > 0 ? (
-        <div className="glass-card rounded-xl p-4 sm:p-6">
-          <h3 className="text-lg font-semibold text-white mb-4">Mess Bills</h3>
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="border-b border-slate-600">
-                  <th className="text-left py-3 px-4 text-slate-400 font-medium">Month-Year</th>
-                  <th className="text-left py-3 px-4 text-slate-400 font-medium">Grocery Cost</th>
-                  <th className="text-left py-3 px-4 text-slate-400 font-medium">Vegetable Cost</th>
-                  <th className="text-left py-3 px-4 text-slate-400 font-medium">Gas Charges</th>
-                  <th className="text-left py-3 px-4 text-slate-400 font-medium">Milk Litres</th>
-                  <th className="text-left py-3 px-4 text-slate-400 font-medium">Milk Cost/Litre</th>
-                  <th className="text-left py-3 px-4 text-slate-400 font-medium">Milk Charges</th>
-                  <th className="text-left py-3 px-4 text-slate-400 font-medium">Other Cost</th>
-                  <th className="text-left py-3 px-4 text-slate-400 font-medium">Total Expenditure</th>
-                  <th className="text-left py-3 px-4 text-slate-400 font-medium">Expenditure After Income</th>
-                  <th className="text-left py-3 px-4 text-slate-400 font-medium">Mess Fee/Day</th>
-                  <th className="text-left py-3 px-4 text-slate-400 font-medium">Status</th>
-                  <th className="text-left py-3 px-4 text-slate-400 font-medium">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {messBills.map((bill) => {
-                  const status = bill.status ? bill.status.toUpperCase() : 'UNPAID';
-                  const isPaid = status === 'PAID' || status === 'SUCCESS';
+        <div className="bg-white rounded-xl p-4 sm:p-6 shadow-2xl border border-gray-300">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">Mess Bills</h3>
+          {messBills.map((bill) => {
+            const status = bill.status ? bill.status.toUpperCase() : 'UNPAID';
+            const isPaid = status === 'PAID' || status === 'SUCCESS';
+            const totalAmount = (parseFloat(bill.number_of_days || 0) * parseFloat(bill.mess_fee_per_day || 0)) +
+                                (parseFloat(bill.veg_days || 0) * parseFloat(bill.veg_extra_per_day || 0)) +
+                                (parseFloat(bill.non_veg_days || 0) * parseFloat(bill.nonveg_extra_per_day || 0));
 
-                  return (
-                    <tr key={bill.mess_bill_id || bill.month_year} className="border-b border-slate-700">
-                      <td className="py-3 px-4 text-white">{bill.month_year ?? '-'}</td>
-                      <td className="py-3 px-4 text-white">₹{bill.grocery_cost ?? 0}</td>
-                      <td className="py-3 px-4 text-white">₹{bill.vegetable_cost ?? 0}</td>
-                      <td className="py-3 px-4 text-white">₹{bill.gas_charges ?? 0}</td>
-                      <td className="py-3 px-4 text-white">{bill.total_milk_litres ?? 0}</td>
-                      <td className="py-3 px-4 text-white">₹{bill.milk_cost_per_litre ?? 0}</td>
-                      <td className="py-3 px-4 text-white">₹{bill.milk_charges_computed ?? 0}</td>
-                      <td className="py-3 px-4 text-white">₹{bill.other_costs ?? 0}</td>
-                      <td className="py-3 px-4 text-white">₹{bill.total_expenditure ?? 0}</td>
-                      <td className="py-3 px-4 text-white">₹{bill.expenditure_after_income ?? 0}</td>
-                      <td className="py-3 px-4 text-white">₹{bill.mess_fee_per_day ?? 0}</td>
-                      <td className="py-3 px-4">
-                        <span className={`px-2 py-1 rounded text-xs font-medium ${
-                          isPaid ? 'bg-green-500 bg-opacity-20 text-green-400' : 'bg-red-500 bg-opacity-20 text-red-400'
-                        }`}>
-                          {status}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4">
-                        {isPaid ? (
-                          <span className="text-green-400 font-medium">PAID</span>
-                        ) : (
-                          <button
-                            className="btn-primary text-white px-3 py-1 rounded text-sm hover:bg-blue-600"
-                            onClick={() => payNow(bill.month_year)}
-                          >
-                            Pay Now
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+            return (
+              <div key={bill.mess_bill_id || bill.month_year} className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div className="bg-white rounded-lg p-4 shadow-lg border border-gray-300 relative z-10">
+                  <h4 className="text-gray-800 font-semibold mb-3 flex items-center">
+                    <span className="mr-2">👤</span> Student Mess Details
+                  </h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Month Year:</span>
+                      <span className="text-gray-800">{bill.month_year ?? '-'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Number of Days Present:</span>
+                      <span className="text-gray-800">{bill.number_of_days ?? 0}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Mess Fee/Day:</span>
+                      <span className="text-gray-800">₹{bill.mess_fee_per_day ?? 0}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Veg Days:</span>
+                      <span className="text-gray-800">{bill.veg_days ?? 0}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Non Veg Days:</span>
+                      <span className="text-gray-800">{bill.non_veg_days ?? 0}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Total Amount:</span>
+                      <span className="text-gray-800">₹{totalAmount.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Status:</span>
+                      <span className={`px-2 py-1 rounded text-xs font-medium ${isPaid ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                        {status}
+                      </span>
+                    </div>
+                    {!isPaid && (
+                      <div className="pt-2">
+                        <button
+                          type="button"
+                          className="btn-primary text-white px-4 py-2 rounded text-sm hover:bg-blue-600 w-full cursor-pointer"
+                          onClick={() => payNow(bill.month_year)}
+                        >
+                          Pay Now
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="bg-white rounded-lg p-4 shadow-lg border border-gray-300">
+                  <h4 className="text-gray-800 font-semibold mb-3 flex items-center">
+                    <span className="mr-2">📊</span> Monthly Calculations
+                  </h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Grocery Cost:</span>
+                      <span className="text-gray-800">₹{bill.grocery_cost ?? 0}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Vegetable Cost:</span>
+                      <span className="text-gray-800">₹{bill.vegetable_cost ?? 0}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Gas Charges:</span>
+                      <span className="text-gray-800">₹{bill.gas_charges ?? 0}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Milk Litres:</span>
+                      <span className="text-gray-800">{bill.total_milk_litres ?? 0}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Milk Cost/Litre:</span>
+                      <span className="text-gray-800">₹{bill.milk_cost_per_litre ?? 0}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Milk Charges:</span>
+                      <span className="text-gray-800">₹{bill.milk_charges_computed ?? 0}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Other Cost:</span>
+                      <span className="text-gray-800">₹{bill.other_costs ?? 0}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Expenditure After Income:</span>
+                      <span className="text-gray-800">₹{bill.expenditure_after_income ?? 0}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       ) : (
         <div className="text-center py-8">
-          <p className="text-slate-400">No mess bills found.</p>
+          <p className="text-gray-600">No mess bills found.</p>
         </div>
       )}
 
-      <div className="glass-card rounded-xl p-4 sm:p-6">
-        <h3 className="text-lg font-semibold text-white mb-4 sm:mb-6">Payment History</h3>
+      <div className="bg-white rounded-xl p-4 sm:p-6 shadow-2xl border border-gray-300 mt-6">
+        <h3 className="text-lg font-semibold text-gray-800 mb-4 sm:mb-6">Payment History</h3>
 
         {messBills.length > 0 ? (
           <>
@@ -353,72 +391,80 @@ const MessBill = () => {
             <div className="hidden sm:block overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-slate-600">
-                    <th className="text-left py-3 px-4 text-slate-400 font-medium">Month</th>
-                    <th className="text-left py-3 px-4 text-slate-400 font-medium">Amount</th>
-                    <th className="text-left py-3 px-4 text-slate-400 font-medium">Status</th>
-                    <th className="text-left py-3 px-4 text-slate-400 font-medium">Payment Date</th>
-                    <th className="text-left py-3 px-4 text-slate-400 font-medium">Receipt</th>
+                  <tr className="border-b border-gray-300">
+                    <th className="text-left py-3 px-4 text-gray-600 font-medium">Month</th>
+                    <th className="text-left py-3 px-4 text-gray-600 font-medium">Amount</th>
+                    <th className="text-left py-3 px-4 text-gray-600 font-medium">Status</th>
+                    <th className="text-left py-3 px-4 text-gray-600 font-medium">Payment Date</th>
+                    <th className="text-left py-3 px-4 text-gray-600 font-medium">Receipt</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {messBills.map((bill) => (
-                    <tr key={bill.mess_bill_id} className="border-b border-slate-700">
-                      <td className="py-3 px-4 text-white">{bill.month_year}</td>
-                      <td className="py-3 px-4 text-white">₹{bill.total_expenditure}</td>
-                      <td className="py-3 px-4">
-                        <span className={bill.status === 'PAID' ? 'status-paid' : 'status-unpaid'}>
-                          {bill.status}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 text-slate-400">
-                        {bill.status === 'PAID' ? new Date(bill.created_at).toLocaleDateString() : 'N/A'}
-                      </td>
-                      <td className="py-3 px-4">
-                        {bill.status === 'PAID' && (
-                          <button className="text-blue-400 hover:text-blue-300 text-sm">📄 Download</button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
+                  {messBills.map((bill) => {
+                    const status = bill.status ? bill.status.toUpperCase() : 'UNPAID';
+                    const isPaid = status === 'PAID' || status === 'SUCCESS';
+                    return (
+                      <tr key={bill.mess_bill_id} className="border-b border-gray-200">
+                        <td className="py-3 px-4 text-gray-800">{bill.month_year}</td>
+                        <td className="py-3 px-4 text-gray-800">₹{bill.total_expenditure}</td>
+                        <td className="py-3 px-4">
+                          <span className={`px-2 py-1 rounded text-xs font-medium ${isPaid ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                            {bill.status}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-gray-600">
+                          {isPaid ? new Date(bill.paid_date).toLocaleDateString() : 'N/A'}
+                        </td>
+                        <td className="py-3 px-4">
+                          {isPaid && (
+                            <button className="text-blue-600 hover:text-blue-500 text-sm">📄 Download</button>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
 
             {/* Mobile Card Layout */}
             <div className="sm:hidden space-y-4">
-              {messBills.map((bill) => (
-                <div key={bill.mess_bill_id} className="p-4 bg-slate-900 bg-opacity-20 rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="text-white font-medium">{bill.month_year}</div>
-                    <span className={`text-xs ${bill.status === 'PAID' ? 'status-paid' : 'status-unpaid'}`}>
-                      {bill.status}
-                    </span>
-                  </div>
-                  <div className="space-y-1 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-slate-400">Amount</span>
-                      <span className="text-white">₹{bill.total_expenditure}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-400">Payment Date</span>
-                      <span className="text-slate-400">
-                        {bill.status === 'PAID' ? new Date(bill.created_at).toLocaleDateString() : 'N/A'}
+              {messBills.map((bill) => {
+                const status = bill.status ? bill.status.toUpperCase() : 'UNPAID';
+                const isPaid = status === 'PAID' || status === 'SUCCESS';
+                return (
+                  <div key={bill.mess_bill_id} className="p-4 bg-gray-100 rounded-lg border border-gray-300">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="text-gray-800 font-medium">{bill.month_year}</div>
+                      <span className={`px-2 py-1 rounded text-xs font-medium ${isPaid ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                        {bill.status}
                       </span>
                     </div>
-                    {bill.status === 'PAID' && (
-                      <div className="pt-2">
-                        <button className="text-blue-400 hover:text-blue-300 text-sm">📄 Download Receipt</button>
+                    <div className="space-y-1 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Amount</span>
+                        <span className="text-gray-800">₹{bill.total_expenditure}</span>
                       </div>
-                    )}
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Payment Date</span>
+                        <span className="text-gray-600">
+                          {isPaid ? new Date(bill.paid_date).toLocaleDateString() : 'N/A'}
+                        </span>
+                      </div>
+                      {isPaid && (
+                        <div className="pt-2">
+                          <button className="text-blue-600 hover:text-blue-500 text-sm">📄 Download Receipt</button>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </>
         ) : (
           <div className="text-center py-8">
-            <p className="text-slate-400">No payment history available.</p>
+            <p className="text-gray-600">No payment history available.</p>
           </div>
         )}
       </div>

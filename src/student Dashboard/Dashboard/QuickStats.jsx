@@ -1,9 +1,49 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import Card from '../Common/Card';
 import { getRoomInfo } from '../../Common/roomUtils';
 
 const QuickStats = ({ studentData, setActiveSection }) => {
   const { roomNumber, block, floor } = getRoomInfo(studentData);
+  const [messBillData, setMessBillData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  const API_BASE_URL = 'https://finalbackend1.vercel.app';
+
+  useEffect(() => {
+    const fetchMessBill = async () => {
+      if (!studentData) return;
+
+      const token = localStorage.getItem('studentToken');
+      const studentId = localStorage.getItem('studentId');
+
+      if (!token || !studentId) return;
+
+      try {
+        const response = await axios.post(`${API_BASE_URL}/showmessbillbyid1`, {
+          student_id: studentId,
+        }, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          withCredentials: true,
+        });
+
+        if (response.data && response.data.data && response.data.data.length > 0) {
+          // Get the latest bill (assuming sorted by date, take first)
+          const latestBill = response.data.data[0];
+          setMessBillData(latestBill);
+        }
+      } catch (err) {
+        console.error('Error fetching mess bill:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMessBill();
+  }, [studentData]);
 
   const handleCardClick = (section) => {
     if (setActiveSection) {
@@ -39,15 +79,21 @@ const QuickStats = ({ studentData, setActiveSection }) => {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-slate-400 text-sm font-medium">Mess Bill</p>
-            <p className="text-2xl font-bold text-white">₹2,450</p>
+            <p className="text-2xl font-bold text-white">
+              {loading ? '...' : messBillData ? `₹${(messBillData.number_of_days * messBillData.mess_fee_per_day + messBillData.veg_days * messBillData.veg_extra_per_day + messBillData.non_veg_days * messBillData.nonveg_extra_per_day).toFixed(0)}` : '₹0'}
+            </p>
           </div>
           <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center">
             <span className="text-xl">🍽️</span>
           </div>
         </div>
         <div className="mt-4 flex items-center text-sm">
-          <span className="text-red-400">Pending</span>
-          <span className="text-slate-400 ml-2">Due: Dec 30</span>
+          <span className={`font-medium ${messBillData && messBillData.status === 'SUCCESS' ? 'text-green-400' : 'text-red-400'}`}>
+            {loading ? 'Loading...' : messBillData ? (messBillData.status === 'SUCCESS' ? 'Paid' : 'Pending') : 'No Data'}
+          </span>
+          <span className="text-slate-400 ml-2">
+            {messBillData ? `Month: ${messBillData.month_year}` : ''}
+          </span>
         </div>
       </Card>
 

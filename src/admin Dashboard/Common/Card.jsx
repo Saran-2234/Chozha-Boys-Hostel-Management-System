@@ -1,13 +1,9 @@
 import React from 'react';
 
-const Card = ({ children, className = '', isDarkMode = true, ...props }) => {
-  const baseClasses = 'rounded-lg shadow-md transition-all duration-200';
+const Card = ({ children, className = '', ...props }) => {
+  const baseClasses = 'rounded-lg shadow-md transition-all duration-200 bg-white border border-gray-200 text-gray-900';
 
-  const themeClasses = isDarkMode
-    ? 'bg-gray-800 border border-gray-700 text-white'
-    : 'bg-white border border-gray-200 text-gray-900';
-
-  const classes = `${baseClasses} ${themeClasses} ${className}`;
+  const classes = `${baseClasses} ${className}`;
 
   return (
     <div className={classes} {...props}>
@@ -34,7 +30,7 @@ const CardContent = ({ children, className = '' }) => {
 
 const CardFooter = ({ children, className = '' }) => {
   return (
-    <div className={`p-6 pt-4 border-t border-gray-200 dark:border-gray-700 ${className}`}>
+    <div className={`p-6 pt-4 border-t border-gray-200 ${className}`}>
       {children}
     </div>
   );

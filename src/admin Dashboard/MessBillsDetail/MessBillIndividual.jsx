@@ -8,6 +8,11 @@ const MessBillIndividual = () => {
   const navigate = useNavigate();
   const [bill, setBill] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showStatusModal, setShowStatusModal] = useState(false);
+  const [statusData, setStatusData] = useState([]);
+  const [loadingStatus, setLoadingStatus] = useState(false);
+  const [departmentFilter, setDepartmentFilter] = useState('all');
+  const [departments, setDepartments] = useState([]);
 
   useEffect(() => {
     const billData = sessionStorage.getItem('billData');
@@ -15,7 +20,14 @@ const MessBillIndividual = () => {
       setBill(JSON.parse(billData));
       sessionStorage.removeItem('billData'); // Clean up after use
     }
+    fetchDepartments();
   }, []);
+
+  useEffect(() => {
+    if (showStatusModal && statusData.length === 0) {
+      fetchStatusData();
+    }
+  }, [showStatusModal]);
 
   const handleLogout = () => {
     localStorage.removeItem('accessToken');
@@ -26,6 +38,81 @@ const MessBillIndividual = () => {
 
   const handleBack = () => {
     navigate('/mess-bills-detail');
+  };
+
+  const fetchDepartments = async () => {
+    try {
+      const response = await fetch('https://finalbackend1.vercel.app/fetchdepartments');
+      const data = await response.json();
+      if (data.success && Array.isArray(data.result)) {
+        setDepartments(data.result);
+      } else {
+        console.error('Failed to fetch departments');
+      }
+    } catch (error) {
+      console.error('Error fetching departments:', error);
+    }
+  };
+
+  const fetchStatusData = async () => {
+    setLoadingStatus(true);
+    try {
+      // Use already fetched departments
+      const deptData = { success: true, departments: departments };
+
+      // For each department, check verification status for each year
+      const statusPromises = deptData.departments.map(async (dept) => {
+        const yearStatuses = {};
+
+        // Check for each year (1st, 2nd, 3rd, 4th)
+        for (let year = 1; year <= 4; year++) {
+          try {
+            // This is a simplified check - in reality you'd need an API endpoint
+            // that checks if there are verified bills for this department and year
+            const response = await fetch('https://finalbackend1.vercel.app/check-verification-status', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                department: dept.department,
+                year: year
+              })
+            });
+
+            if (response.ok) {
+              const data = await response.json();
+              yearStatuses[`${year}st year`] = data.verified ? '✓' : '✗';
+            } else {
+              yearStatuses[`${year}st year`] = '✗';
+            }
+          } catch (error) {
+            yearStatuses[`${year}st year`] = '✗';
+          }
+        }
+
+        return {
+          department: dept.department,
+          ...yearStatuses
+        };
+      });
+
+      const statusResults = await Promise.all(statusPromises);
+      setStatusData(statusResults);
+    } catch (error) {
+      console.error('Error fetching status data:', error);
+      // Create status data for all available departments with default values
+      const defaultStatusData = departments.map(dept => ({
+        department: dept.department,
+        '1st year': '✗',
+        '2nd year': '✗',
+        '3rd year': '✗',
+        '4th year': '✗'
+      }));
+      setStatusData(defaultStatusData);
+    } finally {
+      setLoadingStatus(false);
+    }
   };
 
   if (!bill) {
@@ -72,7 +159,10 @@ const MessBillIndividual = () => {
         />
         <MainContent>
           <div className="p-6">
-            <button onClick={handleBack} className="btn mb-4">Back to Mess Bills Detail</button>
+            <div className="flex gap-4 mb-4">
+              <button onClick={handleBack} className="btn">Back to Mess Bills Detail</button>
+              <button onClick={() => setShowStatusModal(true)} className="btn">Show Status</button>
+            </div>
             <h1 className="text-2xl font-bold mb-4">Individual Bill Details</h1>
 
             <div className="bill-card">
@@ -99,7 +189,7 @@ const MessBillIndividual = () => {
                 </div>
               </div>
               <div className="bill-actions">
-                <button className={`btn-verify ${bill.status === 'verified' ? 'disabled' : ''}`} onClick={() => console.log(`Verify bill`)} disabled={bill.status === 'verified'}>
+                <button className={`btn-verify ${bill.status === 'verified' ? 'disabled' : ''}`} onClick={() => console.log(`Messbill ID: ${bill.id}`)} disabled={bill.status === 'verified'}>
                   {bill.status === 'verified' ? 'Verified' : 'Verify Bill'}
                 </button>
                 <button className="btn-download">Download</button>
@@ -108,6 +198,112 @@ const MessBillIndividual = () => {
           </div>
         </MainContent>
       </div>
+
+      {/* Status Modal */}
+      {showStatusModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">Mess Bills Verification Status</h2>
+              <div className="flex items-center space-x-4">
+                <select
+                  value={departmentFilter}
+                  onChange={(e) => setDepartmentFilter(e.target.value)}
+                  className="px-3 py-2 border rounded-md text-sm bg-white border-gray-300 text-gray-900"
+                >
+                  <option value="all">All Departments</option>
+                  {departments.map((dept) => (
+                    <option key={dept.department_id || dept.id} value={dept.department}>
+                      {dept.department}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  onClick={() => setShowStatusModal(false)}
+                  className="text-gray-500 hover:text-gray-700 text-2xl"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+
+            {loadingStatus ? (
+              <div className="flex justify-center items-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                <span className="ml-2">Loading status data...</span>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse border border-gray-300">
+                  <thead>
+                    <tr className="bg-gray-100">
+                      <th className="border border-gray-300 px-4 py-2 text-left">Department</th>
+                      <th className="border border-gray-300 px-4 py-2 text-center">1st Year</th>
+                      <th className="border border-gray-300 px-4 py-2 text-center">2nd Year</th>
+                      <th className="border border-gray-300 px-4 py-2 text-center">3rd Year</th>
+                      <th className="border border-gray-300 px-4 py-2 text-center">4th Year</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {statusData
+                      .filter(row => departmentFilter === 'all' || row.department === departmentFilter)
+                      .map((row, index) => (
+                      <tr key={index} className="hover:bg-gray-50">
+                        <td className="border border-gray-300 px-4 py-2 font-medium">{row.department}</td>
+                        <td className="border border-gray-300 px-4 py-2 text-center text-lg">
+                          <button
+                            className={`px-2 py-1 rounded text-white text-sm ${
+                              row['1st year'] === '✓' ? 'bg-green-500' : 'bg-red-500'
+                            }`}
+                          >
+                            {row['1st year'] === '✓' ? 'Verified' : 'Pending'}
+                          </button>
+                        </td>
+                        <td className="border border-gray-300 px-4 py-2 text-center text-lg">
+                          <button
+                            className={`px-2 py-1 rounded text-white text-sm ${
+                              row['2nd year'] === '✓' ? 'bg-green-500' : 'bg-red-500'
+                            }`}
+                          >
+                            {row['2nd year'] === '✓' ? 'Verified' : 'Pending'}
+                          </button>
+                        </td>
+                        <td className="border border-gray-300 px-4 py-2 text-center text-lg">
+                          <button
+                            className={`px-2 py-1 rounded text-white text-sm ${
+                              row['3rd year'] === '✓' ? 'bg-green-500' : 'bg-red-500'
+                            }`}
+                          >
+                            {row['3rd year'] === '✓' ? 'Verified' : 'Pending'}
+                          </button>
+                        </td>
+                        <td className="border border-gray-300 px-4 py-2 text-center text-lg">
+                          <button
+                            className={`px-2 py-1 rounded text-white text-sm ${
+                              row['4th year'] === '✓' ? 'bg-green-500' : 'bg-red-500'
+                            }`}
+                          >
+                            {row['4th year'] === '✓' ? 'Verified' : 'Pending'}
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            <div className="flex justify-end mt-4">
+              <button
+                onClick={() => setShowStatusModal(false)}
+                className="btn"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <style>
         {`

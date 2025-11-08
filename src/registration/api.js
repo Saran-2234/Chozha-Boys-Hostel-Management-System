@@ -163,14 +163,29 @@ export const addDepartment = async (departmentName) => {
 // Fetch Departments
 export const fetchDepartments = async () => {
   try {
-    const token = localStorage.getItem("accessToken");
-    const response = await api.post(
-      "/fetchdepartments",
-      { token }, // ✅ token in body
-      { headers: { Authorization: `Bearer ${token}` } } // ✅ token in headers
-    );
+    console.log("Making API call to fetch departments...");
+    const response = await api.get("/fetchdepartments");
+    console.log("API Response:", response);
+    console.log("Response data:", response.data);
 
-    if (response.data.success && Array.isArray(response.data.result)) return response.data.result;
+    if (response.data.success && Array.isArray(response.data.result)) {
+      console.log("Returning departments:", response.data.result);
+      return response.data.result;
+    }
+
+    // Fallback: check if response.data is directly an array
+    if (Array.isArray(response.data)) {
+      console.log("Response data is directly an array:", response.data);
+      return response.data;
+    }
+
+    // Fallback: check if response.data.data is an array
+    if (response.data.data && Array.isArray(response.data.data)) {
+      console.log("Found departments in response.data.data:", response.data.data);
+      return response.data.data;
+    }
+
+    console.error("Unexpected response structure:", response.data);
     throw new Error("Invalid response format from API");
   } catch (error) {
     console.error("Error fetching departments:", error);

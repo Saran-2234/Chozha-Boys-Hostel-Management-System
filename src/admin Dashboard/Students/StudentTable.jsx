@@ -37,7 +37,7 @@ const styles = `
   }
 `;
 
-const StudentTable = ({ isDarkMode, searchTerm, filter, students, onApprove, onReject, onEdit, onRefresh }) => {
+const StudentTable = ({ searchTerm, filter, yearFilter, departmentFilter, students, onApprove, onReject, onEdit, onRefresh }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -49,7 +49,9 @@ const StudentTable = ({ isDarkMode, searchTerm, filter, students, onApprove, onR
                          student.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          student.registration_number?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = filter === 'all' || normalizedStatus === filter;
-    return matchesSearch && matchesFilter;
+    const matchesYear = yearFilter === 'all' || student.academic_year?.toString() === yearFilter;
+    const matchesDepartment = departmentFilter === 'all' || student.department === departmentFilter;
+    return matchesSearch && matchesFilter && matchesYear && matchesDepartment;
   });
 
   const totalPages = Math.ceil(filteredStudents.length / itemsPerPage);
@@ -177,14 +179,13 @@ const StudentTable = ({ isDarkMode, searchTerm, filter, students, onApprove, onR
       <style>{styles}</style>
       <div className="space-y-4 relative z-10">
       <div className="flex justify-between items-center">
-        <div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-700'}`}>
+        <div className="text-sm text-gray-700">
           Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredStudents.length)} of {filteredStudents.length} students
         </div>
         <Button
           onClick={onRefresh}
           variant="outline"
           size="small"
-          isDarkMode={isDarkMode}
         >
           Refresh
         </Button>
@@ -194,7 +195,7 @@ const StudentTable = ({ isDarkMode, searchTerm, filter, students, onApprove, onR
       <div className="space-y-3 sm:hidden">
         {paginatedStudents.length > 0 ? (
           paginatedStudents.map(student => (
-            <div key={student.id} className={`p-3 rounded-lg border ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'}`}>
+            <div key={student.id} className="p-3 rounded-lg border bg-white border-gray-200">
               <div className="flex items-start space-x-3">
                 <div className="flex-shrink-0">
                   {student.profile_photo ? (
@@ -206,12 +207,12 @@ const StudentTable = ({ isDarkMode, searchTerm, filter, students, onApprove, onR
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
                     <div>
-                      <div className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{student.name || 'N/A'}</div>
-                      <div className={`text-xs ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>{student.email || 'N/A'}</div>
+                      <div className="text-sm font-medium text-gray-900">{student.name || 'N/A'}</div>
+                      <div className="text-xs text-gray-500">{student.email || 'N/A'}</div>
                     </div>
                     <div className="text-right text-xs">
-                      <div className={`${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>{student.registration_number || 'N/A'}</div>
-                      <div className={`mt-1 ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>{getStatusLabel(student.status)}</div>
+                      <div className="text-gray-500">{student.registration_number || 'N/A'}</div>
+                      <div className="mt-1 text-gray-500">{getStatusLabel(student.status)}</div>
                     </div>
                   </div>
 
@@ -237,38 +238,38 @@ const StudentTable = ({ isDarkMode, searchTerm, filter, students, onApprove, onR
             </div>
           ))
         ) : (
-          <div className={`px-4 py-3 text-center ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>No students found matching your criteria</div>
+          <div className="px-4 py-3 text-center text-gray-500">No students found matching your criteria</div>
         )}
       </div>
 
       {/* Desktop/tablet: show table on sm+ */}
       <div className="hidden sm:block overflow-x-auto">
-        <table className={`data-table w-full ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+        <table className="data-table w-full text-gray-900">
           <thead>
-            <tr className={`border-b ${isDarkMode ? 'border-slate-600' : 'border-gray-200'}`}>
-              <th className={`text-left py-3 px-4 ${isDarkMode ? 'text-slate-400' : 'text-gray-500'} font-medium`}>
+            <tr className="border-b border-gray-200">
+              <th className="text-left py-3 px-4 text-gray-500 font-medium">
                 Student
               </th>
-              <th className={`text-left py-3 px-4 ${isDarkMode ? 'text-slate-400' : 'text-gray-500'} font-medium`}>
+              <th className="text-left py-3 px-4 text-gray-500 font-medium">
                 Reg. No.
               </th>
               {/* Hide less important columns on very small screens */}
-              <th className={`text-left py-3 px-4 hidden sm:table-cell ${isDarkMode ? 'text-slate-400' : 'text-gray-500'} font-medium`}>
+              <th className="text-left py-3 px-4 hidden sm:table-cell text-gray-500 font-medium">
                 Department
               </th>
-              <th className={`text-left py-3 px-4 hidden sm:table-cell ${isDarkMode ? 'text-slate-400' : 'text-gray-500'} font-medium`}>
+              <th className="text-left py-3 px-4 hidden sm:table-cell text-gray-500 font-medium">
                 Year
               </th>
-              <th className={`text-left py-3 px-4 hidden md:table-cell ${isDarkMode ? 'text-slate-400' : 'text-gray-500'} font-medium`}>
+              <th className="text-left py-3 px-4 hidden md:table-cell text-gray-500 font-medium">
                 Room
               </th>
-              <th className={`text-left py-3 px-4 hidden lg:table-cell ${isDarkMode ? 'text-slate-400' : 'text-gray-500'} font-medium`}>
+              <th className="text-left py-3 px-4 hidden lg:table-cell text-gray-500 font-medium">
                 createdat
               </th>
-              <th className={`text-left py-3 px-4 ${isDarkMode ? 'text-slate-400' : 'text-gray-500'} font-medium`}>
+              <th className="text-left py-3 px-4 text-gray-500 font-medium">
                 Status
               </th>
-              <th className={`text-left py-3 px-4 ${isDarkMode ? 'text-slate-400' : 'text-gray-500'} font-medium`}>
+              <th className="text-left py-3 px-4 text-gray-500 font-medium">
                 Actions
               </th>
             </tr>
@@ -276,7 +277,7 @@ const StudentTable = ({ isDarkMode, searchTerm, filter, students, onApprove, onR
           <tbody>
             {paginatedStudents.length > 0 ? (
               paginatedStudents.map((student) => (
-                <tr key={student.id} className={`border-b ${isDarkMode ? 'border-slate-700 hover:bg-white hover:bg-opacity-5' : 'border-gray-200 hover:bg-gray-50'}`}>
+                <tr key={student.id} className="border-b border-gray-200 hover:bg-gray-50">
                   <td className="py-3 px-4">
                     <div className="flex items-center space-x-3">
                       <div className="relative group">
@@ -335,28 +336,28 @@ const StudentTable = ({ isDarkMode, searchTerm, filter, students, onApprove, onR
                         )}
                       </div>
                       <div>
-                        <p className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                        <p className="text-sm font-medium text-gray-900">
                           {student.name || 'N/A'}
                         </p>
-                        <p className={`text-xs ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>
+                        <p className="text-xs text-gray-500">
                           {student.email || 'N/A'}
                         </p>
                       </div>
                     </div>
                   </td>
-                  <td className={`py-3 px-4 text-sm ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                  <td className="py-3 px-4 text-sm text-gray-900">
                     {student.registration_number || 'N/A'}
                   </td>
-                  <td className={`py-3 px-4 text-sm hidden sm:table-cell ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>
+                  <td className="py-3 px-4 text-sm hidden sm:table-cell text-gray-500">
                     {student.department || 'N/A'}
                   </td>
-                  <td className={`py-3 px-4 text-sm hidden sm:table-cell ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>
+                  <td className="py-3 px-4 text-sm hidden sm:table-cell text-gray-500">
                     {student.academic_year || 'N/A'}
                   </td>
-                  <td className={`py-3 px-4 text-sm hidden md:table-cell ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                  <td className="py-3 px-4 text-sm hidden md:table-cell text-gray-900">
                     {student.room_number || 'N/A'}
                   </td>
-                  <td className={`py-3 px-4 text-sm hidden lg:table-cell ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>
+                  <td className="py-3 px-4 text-sm hidden lg:table-cell text-gray-500">
                     {formatDate(student.created_at)}
                   </td>
                   <td className="py-3 px-4">
@@ -405,16 +406,16 @@ const StudentTable = ({ isDarkMode, searchTerm, filter, students, onApprove, onR
                       {/* Compact 'More' menu for small screens to show hidden data/actions */}
                       <div className="sm:hidden relative">
                         <details className="relative">
-                          <summary className={`list-none cursor-pointer action-btn bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-gray-200 p-2 rounded-md`}>
+                          <summary className="list-none cursor-pointer action-btn bg-gray-200 text-gray-700 p-2 rounded-md">
                             ⋯
                           </summary>
-                          <div className={`absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-200 dark:border-gray-700 p-3 z-50`}
+                          <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg border border-gray-200 p-3 z-50"
                                role="menu">
                             <div className="text-sm mb-2">
                               <div><strong>{student.name}</strong></div>
-                              <div className={`text-xs ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>{student.email}</div>
+                              <div className="text-xs text-gray-500">{student.email}</div>
                             </div>
-                            <div className="text-xs divide-y divide-gray-100 dark:divide-gray-700">
+                            <div className="text-xs divide-y divide-gray-100">
                               <div className="py-1">Reg: {student.registration_number || 'N/A'}</div>
                               <div className="py-1">Dept: {student.department || 'N/A'}</div>
                               <div className="py-1">Year: {student.academic_year || 'N/A'}</div>
@@ -441,7 +442,7 @@ const StudentTable = ({ isDarkMode, searchTerm, filter, students, onApprove, onR
             ) : (
               <tr>
                 <td colSpan="8" className="px-6 py-4 text-center">
-                  <div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                  <div className="text-sm text-gray-500">
                     No students found matching your criteria
                   </div>
                 </td>
@@ -454,7 +455,7 @@ const StudentTable = ({ isDarkMode, searchTerm, filter, students, onApprove, onR
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-between">
-          <div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-700'}`}>
+          <div className="text-sm text-gray-700">
             Page {currentPage} of {totalPages}
           </div>
           <div className="flex space-x-2">
@@ -463,7 +464,6 @@ const StudentTable = ({ isDarkMode, searchTerm, filter, students, onApprove, onR
               disabled={currentPage === 1}
               variant="outline"
               size="small"
-              isDarkMode={isDarkMode}
             >
               Previous
             </Button>
@@ -472,7 +472,6 @@ const StudentTable = ({ isDarkMode, searchTerm, filter, students, onApprove, onR
               disabled={currentPage === totalPages}
               variant="outline"
               size="small"
-              isDarkMode={isDarkMode}
             >
               Next
             </Button>
@@ -485,7 +484,6 @@ const StudentTable = ({ isDarkMode, searchTerm, filter, students, onApprove, onR
         student={selectedStudent}
         isOpen={isModalOpen}
         onClose={closeModal}
-        isDarkMode={isDarkMode}
       />
       </div>
     </>

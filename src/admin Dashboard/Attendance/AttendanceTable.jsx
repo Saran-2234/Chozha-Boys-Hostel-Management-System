@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Button from '../Common/Button';
 
-const AttendanceTable = ({ isDarkMode, selectedDate, selectedClass }) => {
+const AttendanceTable = ({ selectedDate, selectedClass }) => {
   const [attendanceData, setAttendanceData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [fetchLoading, setFetchLoading] = useState(false);

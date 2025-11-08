@@ -3,11 +3,14 @@ import { Card, CardHeader, CardContent } from '../Common/Card';
 import Button from '../Common/Button';
 import StudentTable from './StudentTable';
 import EditStudentModal from './EditStudentModal';
-import { fetchStudents as fetchStudentsAPI, approveStudent, rejectStudent, editStudentDetails } from '../../registration/api';
+import { fetchStudents as fetchStudentsAPI, approveStudent, rejectStudent, editStudentDetails, fetchDepartments } from '../../registration/api';
 
 const Students = ({ isDarkMode }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState('all');
+  const [yearFilter, setYearFilter] = useState('all');
+  const [departmentFilter, setDepartmentFilter] = useState('all');
+  const [departments, setDepartments] = useState([]);
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -26,6 +29,7 @@ const Students = ({ isDarkMode }) => {
 
   useEffect(() => {
     fetchStudents();
+    fetchDepartmentsData();
   }, []);
 
   const fetchStudents = async () => {
@@ -65,6 +69,33 @@ const Students = ({ isDarkMode }) => {
       ]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchDepartmentsData = async () => {
+    try {
+      const data = await fetchDepartments();
+      console.log('Departments fetched:', data);
+      if (Array.isArray(data) && data.length > 0) {
+        setDepartments(data);
+        console.log('Departments set successfully:', data.length, 'departments');
+      } else {
+        console.warn('No departments data received or invalid format, using fallback data');
+        // Temporary fallback data for testing
+        setDepartments([
+          { id: 1, name: 'Computer Science' },
+          { id: 2, name: 'Electrical Engineering' },
+          { id: 3, name: 'Mechanical Engineering' }
+        ]);
+      }
+    } catch (err) {
+      console.error('Error fetching departments:', err, 'using fallback data');
+      // Temporary fallback data for testing
+      setDepartments([
+        { id: 1, name: 'Computer Science' },
+        { id: 2, name: 'Electrical Engineering' },
+        { id: 3, name: 'Mechanical Engineering' }
+      ]);
     }
   };
 
@@ -349,7 +380,7 @@ const Students = ({ isDarkMode }) => {
                 Manage student information and approval status
               </p>
             </div>
-            <div className="flex items-center space-x-2 min-w-0">
+            <div className="flex items-center space-x-2 min-w-0 relative z-20">
               <input
                 type="text"
                 placeholder="Search students..."
@@ -362,6 +393,46 @@ const Students = ({ isDarkMode }) => {
                 }`}
               />
               <select
+                value={yearFilter}
+                onChange={(e) => setYearFilter(e.target.value)}
+                className={`w-auto px-3 py-2 border rounded-md text-sm ${
+                  isDarkMode
+                    ? 'bg-gray-700 border-gray-600 text-white'
+                    : 'bg-white border-gray-300 text-gray-900'
+                }`}
+              >
+                <option value="all">All Years</option>
+                <option value="1">Year 1</option>
+                <option value="2">Year 2</option>
+                <option value="3">Year 3</option>
+                <option value="4">Year 4</option>
+              </select>
+              <select
+                value={departmentFilter}
+                onChange={(e) => setDepartmentFilter(e.target.value)}
+                className={`w-auto px-3 py-2 border rounded-md text-sm ${
+                  isDarkMode
+                    ? 'bg-gray-700 border-gray-600 text-white'
+                    : 'bg-white border-gray-300 text-gray-900'
+                }`}
+                style={{
+                  minWidth: '180px',
+                  position: 'relative',
+                  zIndex: 30
+                }}
+              >
+                <option value="all">All Departments</option>
+                {departments && departments.length > 0 ? (
+                  departments.map((dept) => (
+                    <option key={dept.department_id || dept.id} value={dept.department}>
+                      {dept.department}
+                    </option>
+                  ))
+                ) : (
+                  <option disabled>No departments available</option>
+                )}
+              </select>
+              <select
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
                 className={`w-auto px-3 py-2 border rounded-md text-sm ${
@@ -370,7 +441,7 @@ const Students = ({ isDarkMode }) => {
                     : 'bg-white border-gray-300 text-gray-900'
                 }`}
               >
-                <option value="all">All Students</option>
+                <option value="all">All Status</option>
                 <option value="pending">Pending</option>
                 <option value="active">Active</option>
                 <option value="rejected">Rejected</option>
@@ -385,6 +456,8 @@ const Students = ({ isDarkMode }) => {
             isDarkMode={isDarkMode}
             searchTerm={searchTerm}
             filter={filter}
+            yearFilter={yearFilter}
+            departmentFilter={departmentFilter}
             students={students}
             onApprove={handleApproveClick}
             onReject={handleRejectClick}

@@ -7,7 +7,7 @@ const NavigationMenu = ({ setActiveSection, activeSection, setSidebarOpen }) => 
     { id: 'attendance', icon: '✅', label: 'Attendance' },
     { id: 'messbills', icon: '🍽️', label: 'Mess Bills' },
     { id: 'promotion', icon: '🚀', label: 'Promotion' },
-    { id: 'reduction', icon: '📉', label: 'Reduction' },
+
     { id: 'complaints', icon: '📝', label: 'Complaints' },
     { id: 'rooms', icon: '🏠', label: 'Rooms' },
     { id: 'messaging', icon: '📢', label: 'Messaging' },

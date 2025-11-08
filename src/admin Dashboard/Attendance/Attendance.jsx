@@ -4,7 +4,7 @@ import { showAttends, fetchDepartments } from '../../registration/api';
 import { changeAttendance } from './attendanceUtils';
 import Modal from '../Common/Modal'; // Assuming a Modal component exists for popup messages
 
-const Attendance = ({ isDarkMode }) => {
+const Attendance = () => {
   const [filters, setFilters] = useState({
     department: '',
     academic_year: '',
@@ -304,7 +304,7 @@ const Attendance = ({ isDarkMode }) => {
 
   return (
     <div className="space-y-6">
-      <Modal isOpen={!!popupData} onClose={() => setPopupData(null)} isDarkMode={isDarkMode}>
+      <Modal isOpen={!!popupData} onClose={() => setPopupData(null)}>
         <p>
           {popupData?.isBulk
             ? `Apply status "${popupData?.status}" to all ${attendanceRecords.length} filtered students on ${filters.date || 'the selected date'}?`
@@ -313,52 +313,48 @@ const Attendance = ({ isDarkMode }) => {
         <div className="flex justify-end space-x-4 mt-4">
           <button
             onClick={() => handlePopupAction(false)}
-            className={`px-4 py-2 rounded hover:opacity-80 ${
-              isDarkMode ? 'bg-gray-600 text-gray-200' : 'bg-gray-300 text-gray-800'
-            }`}
+            className="px-4 py-2 rounded hover:opacity-80 bg-gray-300 text-gray-800"
           >
             Cancel
           </button>
           <button
             onClick={() => handlePopupAction(true)}
-            className={`px-4 py-2 rounded hover:opacity-80 ${
-              isDarkMode ? 'bg-blue-600 text-white' : 'bg-blue-500 text-white'
-            }`}
+            className="px-4 py-2 rounded hover:opacity-80 bg-blue-500 text-white"
           >
             Okay
           </button>
         </div>
       </Modal>
 
-      <Modal isOpen={!!infoMessage} onClose={() => setInfoMessage(null)} isDarkMode={isDarkMode}>
+      <Modal isOpen={!!infoMessage} onClose={() => setInfoMessage(null)}>
         <p>{infoMessage}</p>
       </Modal>
 
       <div className="space-y-6">
         <div className="flex items-center justify-between select-none">
-          <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+          <h2 className="text-2xl font-bold text-gray-900">
             Attendance Records
           </h2>
           <div className="flex space-x-3">
-            <Button onClick={() => handleBulkMarkRequest('Present')} variant="success" isDarkMode={isDarkMode} disabled={isBulkProcessing}>
+            <Button onClick={() => handleBulkMarkRequest('Present')} variant="success" disabled={isBulkProcessing}>
               {isBulkProcessing && bulkAction === 'Present' ? 'Applying...' : 'Mark All Present'}
             </Button>
-            <Button onClick={() => handleBulkMarkRequest('Absent')} variant="danger" isDarkMode={isDarkMode} disabled={isBulkProcessing}>
+            <Button onClick={() => handleBulkMarkRequest('Absent')} variant="danger" disabled={isBulkProcessing}>
               {isBulkProcessing && bulkAction === 'Absent' ? 'Applying...' : 'Mark All Absent'}
             </Button>
-            <Button onClick={() => handleBulkMarkRequest('Not Marked')} variant="outline" isDarkMode={isDarkMode} disabled={isBulkProcessing}>
+            <Button onClick={() => handleBulkMarkRequest('Not Marked')} variant="outline" disabled={isBulkProcessing}>
               {isBulkProcessing && bulkAction === 'Not Marked' ? 'Applying...' : 'Reset All'}
             </Button>
-            <Button onClick={handleExport} variant="outline" isDarkMode={isDarkMode}>
+            <Button onClick={handleExport} variant="outline">
               Export CSV
             </Button>
           </div>
         </div>
 
-        <div className={`rounded-lg shadow-md p-6 ${isDarkMode ? 'bg-gray-800 border border-gray-700 text-white' : 'bg-white border border-gray-200 text-gray-900'}`}>
+        <div className="rounded-lg shadow-md p-6 bg-white border border-gray-200 text-gray-900">
           <div className="mb-6 select-none">
             <h3 className="text-lg font-semibold">Filter Attendance Records</h3>
-            <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+            <p className="text-sm text-gray-600">
               Search and filter attendance records by various criteria
             </p>
           </div>
@@ -366,7 +362,7 @@ const Attendance = ({ isDarkMode }) => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             {/* Department */}
             <div>
-              <label htmlFor="department" className={`block text-sm font-medium mb-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+              <label htmlFor="department" className="block text-sm font-medium mb-1 text-gray-700">
                 Department
               </label>
               <select
@@ -374,9 +370,7 @@ const Attendance = ({ isDarkMode }) => {
                 name="department"
                 value={filters.department}
                 onChange={handleFilterChange}
-                className={`w-full px-3 py-2 border rounded-md text-sm select-text ${
-                  isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'
-                }`}
+                className="w-full px-3 py-2 border rounded-md text-sm select-text bg-white border-gray-300 text-gray-900"
               >
                 <option value="">All Departments</option>
                 {departments.map((dept) => (
@@ -389,7 +383,7 @@ const Attendance = ({ isDarkMode }) => {
 
             {/* Academic Year */}
             <div>
-              <label htmlFor="academic_year" className={`block text-sm font-medium mb-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+              <label htmlFor="academic_year" className="block text-sm font-medium mb-1 text-gray-700">
                 Academic Year
               </label>
               <select
@@ -397,9 +391,7 @@ const Attendance = ({ isDarkMode }) => {
                 name="academic_year"
                 value={filters.academic_year}
                 onChange={handleFilterChange}
-                className={`w-full px-3 py-2 border rounded-md text-sm select-text ${
-                  isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'
-                }`}
+                className="w-full px-3 py-2 border rounded-md text-sm select-text bg-white border-gray-300 text-gray-900"
               >
                 <option value="">All Years</option>
                 <option value="1">1st Year</option>
@@ -411,7 +403,7 @@ const Attendance = ({ isDarkMode }) => {
 
             {/* Date */}
             <div>
-              <label htmlFor="date" className={`block text-sm font-medium mb-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+              <label htmlFor="date" className="block text-sm font-medium mb-1 text-gray-700">
                 Date
               </label>
               <input
@@ -420,15 +412,13 @@ const Attendance = ({ isDarkMode }) => {
                 name="date"
                 value={filters.date}
                 onChange={handleFilterChange}
-                className={`w-full px-3 py-2 border rounded-md text-sm select-text ${
-                  isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'
-                }`}
+                className="w-full px-3 py-2 border rounded-md text-sm select-text bg-white border-gray-300 text-gray-900"
               />
             </div>
 
             {/* Status */}
             <div>
-              <label htmlFor="status" className={`block text-sm font-medium mb-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+              <label htmlFor="status" className="block text-sm font-medium mb-1 text-gray-700">
                 Status
               </label>
               <select
@@ -436,9 +426,7 @@ const Attendance = ({ isDarkMode }) => {
                 name="status"
                 value={filters.status}
                 onChange={handleFilterChange}
-                className={`w-full px-3 py-2 border rounded-md text-sm select-text ${
-                  isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'
-                }`}
+                className="w-full px-3 py-2 border rounded-md text-sm select-text bg-white border-gray-300 text-gray-900"
               >
                 <option value="">All Status</option>
                 <option value="Present">Present</option>
@@ -450,65 +438,59 @@ const Attendance = ({ isDarkMode }) => {
 
           {/* Clear Filter Button */}
           <div className="mb-6 flex justify-end">
-            <Button onClick={handleClearFilters} variant="outline" isDarkMode={isDarkMode}>
+            <Button onClick={handleClearFilters} variant="outline">
               Clear Filters
             </Button>
           </div>
 
           {error && (
-            <div className={`p-4 rounded-md mb-4 select-none ${isDarkMode ? 'bg-red-900 text-red-200' : 'bg-red-100 text-red-700'}`}>
+            <div className="p-4 rounded-md mb-4 select-none bg-red-100 text-red-700">
               <p>Error: {error}</p>
             </div>
           )}
           {filters.date && new Date(filters.date) > new Date() && (
-            <div className={`p-3 mb-4 rounded-md text-sm ${isDarkMode ? 'bg-blue-900 text-blue-100' : 'bg-blue-100 text-blue-700'}`}>
+            <div className="p-3 mb-4 rounded-md text-sm bg-blue-100 text-blue-700">
               Attendance for future dates is displayed as <strong>Not Marked</strong> and cannot be edited.
             </div>
           )}
 
           <div className="mt-4 space-y-3 sm:hidden">
             {loading ? (
-              <div className={`p-4 rounded-lg text-center text-sm ${isDarkMode ? 'bg-gray-800 text-gray-300 border border-gray-700' : 'bg-gray-50 text-gray-600 border border-gray-200'}`}>
+              <div className="p-4 rounded-lg text-center text-sm bg-gray-50 text-gray-600 border border-gray-200">
                 Loading records...
               </div>
             ) : currentRecords.length === 0 ? (
-              <div className={`p-4 rounded-lg text-center text-sm ${isDarkMode ? 'bg-gray-800 text-gray-300 border border-gray-700' : 'bg-gray-50 text-gray-600 border border-gray-200'}`}>
+              <div className="p-4 rounded-lg text-center text-sm bg-gray-50 text-gray-600 border border-gray-200">
                 No attendance records found for the selected filters
               </div>
             ) : (
               currentRecords.map((record) => (
                 <div
                   key={record.attendance_id || `placeholder-card-${record.student_id}`}
-                  className={`p-4 rounded-xl border shadow-sm transition-all select-text ${
-                    isDarkMode
-                      ? 'bg-gray-800/80 border-gray-700 text-white hover:bg-gray-700/80'
-                      : 'bg-white border-gray-200 text-gray-900 hover:shadow-md'
-                  }`}
+                  className="p-4 rounded-xl border shadow-sm transition-all select-text bg-white border-gray-200 text-gray-900 hover:shadow-md"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold ${
-                          isDarkMode ? 'bg-blue-500/20 text-blue-300' : 'bg-blue-100 text-blue-600'
-                        }`}>
+                        <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold bg-blue-100 text-blue-600">
                           {(record.name || 'N').charAt(0).toUpperCase()}
                         </div>
                         <div>
                           <p className="text-sm font-semibold leading-tight">{record.name || 'Unknown Student'}</p>
-                          <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>{record.department || 'N/A'}</p>
+                          <p className="text-xs text-gray-500">{record.department || 'N/A'}</p>
                         </div>
                       </div>
                       <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
                         <div>
-                          <p className={`uppercase tracking-wide ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Year</p>
+                          <p className="uppercase tracking-wide text-gray-500">Year</p>
                           <p className="font-medium">{record.academic_year || 'N/A'}</p>
                         </div>
                         <div>
-                          <p className={`uppercase tracking-wide ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Date</p>
+                          <p className="uppercase tracking-wide text-gray-500">Date</p>
                           <p className="font-medium">{formatRecordDate(record.date)}</p>
                         </div>
                         <div>
-                          <p className={`uppercase tracking-wide ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Status</p>
+                          <p className="uppercase tracking-wide text-gray-500">Status</p>
                           <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full mt-1 ${getStatusColor(record.status)}`}>
                             {record.status || 'Not Marked'}
                           </span>
@@ -517,7 +499,7 @@ const Attendance = ({ isDarkMode }) => {
                     </div>
                     <div className="flex flex-col items-end gap-2">
                       {record.isPlaceholder || (filters.date && new Date(filters.date) > new Date()) ? (
-                        <span className={`text-xs font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                        <span className="text-xs font-medium text-gray-500">
                           Changes disabled for future dates
                         </span>
                       ) : !record.status ? (
@@ -525,7 +507,6 @@ const Attendance = ({ isDarkMode }) => {
                           <Button
                             onClick={() => confirmAttendanceChange(record.attendance_id, record.name, 'Present', record.student_id, record.date)}
                             variant="outline"
-                            isDarkMode={isDarkMode}
                             className="bg-green-500 text-white hover:bg-green-600"
                           >
                             Mark Present
@@ -533,7 +514,6 @@ const Attendance = ({ isDarkMode }) => {
                           <Button
                             onClick={() => confirmAttendanceChange(record.attendance_id, record.name, 'Absent', record.student_id, record.date)}
                             variant="outline"
-                            isDarkMode={isDarkMode}
                             className="bg-red-500 text-white hover:bg-red-600"
                           >
                             Mark Absent
@@ -543,7 +523,6 @@ const Attendance = ({ isDarkMode }) => {
                         <Button
                           onClick={() => confirmAttendanceChange(record.attendance_id, record.name, 'Absent', record.student_id, record.date)}
                           variant="outline"
-                          isDarkMode={isDarkMode}
                           className="bg-red-500 text-white hover:bg-red-600"
                         >
                           Mark Absent
@@ -552,7 +531,6 @@ const Attendance = ({ isDarkMode }) => {
                         <Button
                           onClick={() => confirmAttendanceChange(record.attendance_id, record.name, 'Present', record.student_id, record.date)}
                           variant="outline"
-                          isDarkMode={isDarkMode}
                           className="bg-green-500 text-white hover:bg-green-600"
                         >
                           Mark Present
@@ -566,39 +544,39 @@ const Attendance = ({ isDarkMode }) => {
           </div>
 
           <div className="hidden sm:block overflow-x-auto select-none">
-            <table className={`min-w-full divide-y ${isDarkMode ? 'divide-gray-700' : 'divide-gray-200'}`}>
-              <thead className={isDarkMode ? 'bg-gray-700' : 'bg-gray-50'}>
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
                 <tr>
                   {['Name','Department','Year','Date','Status', 'Change Attendance'].map((title) => (
                     <th
                       key={title}
-                      className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}
+                      className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
                     >
                       {title}
                     </th>
                   ))}
                 </tr>
               </thead>
-              <tbody className={`divide-y ${isDarkMode ? 'divide-gray-700 bg-gray-800' : 'divide-gray-200 bg-white'}`}>
+              <tbody className="divide-y divide-gray-200 bg-white">
                 {loading ? (
                   <tr>
-                    <td colSpan="6" className={`px-6 py-4 text-center text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                    <td colSpan="6" className="px-6 py-4 text-center text-sm text-gray-500">
                       Loading records...
                     </td>
                   </tr>
                 ) : currentRecords.length === 0 ? (
                   <tr>
-                    <td colSpan="6" className={`px-6 py-4 text-center text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                    <td colSpan="6" className="px-6 py-4 text-center text-sm text-gray-500">
                       No attendance records found for the selected filters
                     </td>
                   </tr>
                 ) : (
                   currentRecords.map((record) => (
-                    <tr key={record.attendance_id || `placeholder-row-${record.student_id}`} className={isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}>
-                      <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{record.name}</td>
-                      <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>{record.department}</td>
-                      <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>{record.academic_year}</td>
-                      <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>{formatRecordDate(record.date)}</td>
+                    <tr key={record.attendance_id || `placeholder-row-${record.student_id}`} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{record.name}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{record.department}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{record.academic_year}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{formatRecordDate(record.date)}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(record.status)}`}>
                           {record.status || 'Not Marked'}
@@ -606,7 +584,7 @@ const Attendance = ({ isDarkMode }) => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
                         {record.isPlaceholder || (filters.date && new Date(filters.date) > new Date()) ? (
-                          <span className={`text-xs font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                          <span className="text-xs font-medium text-gray-500">
                             Changes disabled for future dates
                           </span>
                         ) : !record.status ? (
@@ -614,7 +592,6 @@ const Attendance = ({ isDarkMode }) => {
                             <Button
                               onClick={() => confirmAttendanceChange(record.attendance_id, record.name, 'Present', record.student_id, record.date)}
                               variant="outline"
-                              isDarkMode={isDarkMode}
                               className="bg-green-500 text-white hover:bg-green-600"
                             >
                               Mark Present
@@ -622,7 +599,6 @@ const Attendance = ({ isDarkMode }) => {
                             <Button
                               onClick={() => confirmAttendanceChange(record.attendance_id, record.name, 'Absent', record.student_id, record.date)}
                               variant="outline"
-                              isDarkMode={isDarkMode}
                               className="bg-red-500 text-white hover:bg-red-600"
                             >
                               Mark Absent
@@ -632,7 +608,6 @@ const Attendance = ({ isDarkMode }) => {
                           <Button
                             onClick={() => confirmAttendanceChange(record.attendance_id, record.name, 'Absent', record.student_id, record.date)}
                             variant="outline"
-                            isDarkMode={isDarkMode}
                             className="bg-red-500 text-white hover:bg-red-600"
                           >
                             Mark Absent
@@ -641,7 +616,6 @@ const Attendance = ({ isDarkMode }) => {
                           <Button
                             onClick={() => confirmAttendanceChange(record.attendance_id, record.name, 'Present', record.student_id, record.date)}
                             variant="outline"
-                            isDarkMode={isDarkMode}
                             className="bg-green-500 text-white hover:bg-green-600"
                           >
                             Mark Present
@@ -660,12 +634,12 @@ const Attendance = ({ isDarkMode }) => {
             <div className="mt-6 space-y-4">
               {/* Statistics */}
               <div className="flex justify-between items-center text-sm select-none">
-                <div className={`flex space-x-4 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                <div className="flex space-x-4 text-gray-600">
                   <span>Present: {attendanceRecords.filter(r => r.status?.toLowerCase() === 'present').length}</span>
                   <span>Absent: {attendanceRecords.filter(r => r.status?.toLowerCase() === 'absent').length}</span>
                   <span>Not Marked: {attendanceRecords.filter(r => !r.status).length}</span>
                 </div>
-                <div className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>
+                <div className="text-gray-600">
                   Total Records: {attendanceRecords.length}
                 </div>
               </div>
@@ -674,22 +648,20 @@ const Attendance = ({ isDarkMode }) => {
               <div className="flex flex-col sm:flex-row justify-between items-center gap-4 select-none">
                 {/* Items per page selector */}
                 <div className="flex items-center space-x-2">
-                  <label className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  <label className="text-sm text-gray-600">
                     Show per page:
                   </label>
                   <select
                     value={itemsPerPage}
                     onChange={handleItemsPerPageChange}
-                    className={`px-3 py-1 border rounded-md text-sm ${
-                      isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'
-                    }`}
+                    className="px-3 py-1 border rounded-md text-sm bg-white border-gray-300 text-gray-900"
                   >
                     <option value={10}>10</option>
                     <option value={20}>20</option>
                     <option value={50}>50</option>
                     <option value={100}>100</option>
                   </select>
-                  <span className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  <span className="text-sm text-gray-600">
                     Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, attendanceRecords.length)} of {attendanceRecords.length}
                   </span>
                 </div>
@@ -701,8 +673,8 @@ const Attendance = ({ isDarkMode }) => {
                     disabled={currentPage === 1}
                     className={`px-3 py-1 rounded-md text-sm ${
                       currentPage === 1
-                        ? isDarkMode ? 'bg-gray-700 text-gray-500 cursor-not-allowed' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                        : isDarkMode ? 'bg-gray-700 text-white hover:bg-gray-600' : 'bg-white text-gray-900 hover:bg-gray-100 border border-gray-300'
+                        ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                        : 'bg-white text-gray-900 hover:bg-gray-100 border border-gray-300'
                     }`}
                   >
                     Previous
@@ -728,8 +700,8 @@ const Attendance = ({ isDarkMode }) => {
                           onClick={() => handlePageChange(pageNum)}
                           className={`px-3 py-1 rounded-md text-sm ${
                             currentPage === pageNum
-                              ? isDarkMode ? 'bg-blue-600 text-white' : 'bg-blue-500 text-white'
-                              : isDarkMode ? 'bg-gray-700 text-white hover:bg-gray-600' : 'bg-white text-gray-900 hover:bg-gray-100 border border-gray-300'
+                              ? 'bg-blue-500 text-white'
+                              : 'bg-white text-gray-900 hover:bg-gray-100 border border-gray-300'
                           }`}
                         >
                           {pageNum}
@@ -743,8 +715,8 @@ const Attendance = ({ isDarkMode }) => {
                     disabled={currentPage === totalPages}
                     className={`px-3 py-1 rounded-md text-sm ${
                       currentPage === totalPages
-                        ? isDarkMode ? 'bg-gray-700 text-gray-500 cursor-not-allowed' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                        : isDarkMode ? 'bg-gray-700 text-white hover:bg-gray-600' : 'bg-white text-gray-900 hover:bg-gray-100 border border-gray-300'
+                        ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                        : 'bg-white text-gray-900 hover:bg-gray-100 border border-gray-300'
                     }`}
                   >
                     Next

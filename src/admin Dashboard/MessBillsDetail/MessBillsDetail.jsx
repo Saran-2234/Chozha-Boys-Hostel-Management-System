@@ -10,6 +10,9 @@ const MessBillsDetail = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showPublishPopup, setShowPublishPopup] = useState(false);
   const [publishMessage, setPublishMessage] = useState('');
+  const [statusData, setStatusData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const [students, setStudents] = useState([
     { id: 1, name: 'John Doe', room: '101', paymentStatus: 'paid', department: 'CSE', year: '3rd' },
     { id: 2, name: 'Jane Smith', room: '205', paymentStatus: 'unpaid', department: 'ECE', year: '2nd' },
@@ -19,10 +22,43 @@ const MessBillsDetail = () => {
     // Add more mock data as needed
   ]);
 
+  const fetchStatus = async (monthYear) => {
+    setLoading(true);
+    setError('');
+    try {
+      const token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
+      const response = await fetch('https://finalbackend1.vercel.app/getmessbillstatus', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+        body: JSON.stringify({ month_year: monthYear }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setStatusData(data);
+      } else {
+        setError(data.error || data.message || 'Failed to fetch status');
+      }
+    } catch (err) {
+      setError('Network or server error.');
+      console.error('Error fetching status:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     const monthData = sessionStorage.getItem('monthData');
     if (monthData) {
-      setMonth(JSON.parse(monthData));
+      const parsedMonth = JSON.parse(monthData);
+      setMonth(parsedMonth);
+      if (parsedMonth.title) {
+        fetchStatus(parsedMonth.title);
+      }
     }
   }, []);
 
@@ -35,6 +71,10 @@ const MessBillsDetail = () => {
 
   const handleBack = () => {
     navigate('/admin-dashboard', { state: { activeSection: 'messbills' } });
+  };
+
+  const handleSetActiveSection = (section) => {
+    navigate('/admin-dashboard', { state: { activeSection: section } });
   };
 
   const handleViewBill = (bill) => {
@@ -50,10 +90,12 @@ const MessBillsDetail = () => {
     setShowPublishPopup(false);
     try {
       const monthYear = month.title; // Assuming month.title is in "MM-YYYY" format
+      const token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
       const response = await fetch('https://finalbackend1.vercel.app/showmessbilltoall', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` }),
         },
         body: JSON.stringify({ month_year: monthYear }),
       });
@@ -62,6 +104,8 @@ const MessBillsDetail = () => {
 
       if (response.ok) {
         setPublishMessage(data.message);
+        // Refetch status after successful publish
+        fetchStatus(monthYear);
       } else {
         setPublishMessage(data.error || 'An error occurred while publishing bills');
       }
@@ -75,19 +119,21 @@ const MessBillsDetail = () => {
     setShowPublishPopup(false);
   };
 
-  const handleShowPaidStudents = () => {
-    navigate('/paid-students', { state: { students: students.filter(s => s.paymentStatus === 'paid') } });
+  const handleShowVerifiedStudents = () => {
+    // Navigate to a page showing verified students; assuming a route exists or use existing
+    navigate('/verified-students', { state: { month: month.title } });
   };
 
-  const handleShowUnpaidStudents = () => {
-    navigate('/unpaid-students', { state: { students: students.filter(s => s.paymentStatus === 'unpaid') } });
+  const handleShowPublishedStudents = () => {
+    // Navigate to a page showing published students; assuming a route exists or use existing
+    navigate('/published-students', { state: { month: month.title } });
   };
 
   if (!month) {
     return (
       <div className="light-mode flex min-h-screen text-gray-900">
         <Sidebar
-          setActiveSection={() => {}}
+          setActiveSection={handleSetActiveSection}
           activeSection="messbills"
           onLogout={handleLogout}
           sidebarOpen={sidebarOpen}
@@ -113,7 +159,7 @@ const MessBillsDetail = () => {
   return (
     <div className="light-mode flex min-h-screen text-gray-900">
       <Sidebar
-        setActiveSection={() => {}}
+        setActiveSection={handleSetActiveSection}
         activeSection="messbills"
         onLogout={handleLogout}
         sidebarOpen={sidebarOpen}
@@ -139,48 +185,83 @@ const MessBillsDetail = () => {
                 <div style={{textAlign: 'right'}}>
                   <div style={{fontSize: '0.9rem', opacity: 0.9}}>Total Bills: {month.totalBills}</div>
                   <div style={{fontSize: '0.9rem', opacity: 0.9}}>Total Amount: ₹{month.totalAmount.toFixed(2)}</div>
+                  {statusData && (
+                    <div style={{fontSize: '0.9rem', opacity: 0.9}}>Total Students: {statusData.total_students}</div>
+                  )}
                 </div>
               </div>
 
               <div className="actions-section" style={{display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '20px'}}>
-                <div className="student-cards">
-                  <div className="student-card paid-card" onClick={handleShowPaidStudents}>
-                    <div className="card-icon">✓</div>
-                    <div className="card-content">
-                      <div className="card-title">Paid Students</div>
-                      <div className="card-count">{students.filter(s => s.paymentStatus === 'paid').length}</div>
+                {loading ? (
+                  <div>Loading status...</div>
+                ) : error ? (
+                  <div style={{color: 'red'}}>{error}</div>
+                ) : statusData ? (
+                  <>
+                    <div className="student-cards">
+                      <div className="student-card verified-card" onClick={handleShowVerifiedStudents}>
+                        <div className="card-icon">✓</div>
+                        <div className="card-content">
+                          <div className="card-title">Verified Students</div>
+                          <div className="card-count">{statusData.verified_count}</div>
+                        </div>
+                      </div>
+                      <div className="student-card published-card" onClick={handleShowPublishedStudents}>
+                        <div className="card-icon">📢</div>
+                        <div className="card-content">
+                          <div className="card-title">Published Students</div>
+                          <div className="card-count">{statusData.show_count}</div>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  <div className="student-card unpaid-card" onClick={handleShowUnpaidStudents}>
-                    <div className="card-icon">⚠</div>
-                    <div className="card-content">
-                      <div className="card-title">Unpaid Students</div>
-                      <div className="card-count">{students.filter(s => s.paymentStatus === 'unpaid').length}</div>
-                    </div>
-                  </div>
-                </div>
-                <button className="btn" onClick={handlePublishClick}>Publish Bills</button>
-                {publishMessage && <div className="success-message">{publishMessage}</div>}
+                    <button className="btn" onClick={handlePublishClick}>Publish Bills</button>
+                    {publishMessage && <div className="success-message">{publishMessage}</div>}
+                  </>
+                ) : null}
               </div>
 
               <div className="order-tracker">
-                <div className={`step ${['created', 'verified', 'published'].indexOf((month.status || 'created').toLowerCase()) >= 0 ? 'completed' : 'pending'}`}>
-                  <div className="circle"></div>
-                  <p>Created</p>
-                  <span className="date">{month.createdDate || 'N/A'}</span>
-                </div>
-                <div className={`bar ${['verified', 'published'].indexOf((month.status || 'created').toLowerCase()) >= 0 ? 'completed' : 'pending'}`}></div>
-                <div className={`step ${['verified', 'published'].indexOf((month.status || 'created').toLowerCase()) >= 0 ? 'completed' : 'pending'}`}>
-                  <div className="circle"></div>
-                  <p>Verified</p>
-                  <span className="date">{month.verifiedDate || 'N/A'}</span>
-                </div>
-                <div className={`bar ${(month.status || 'created').toLowerCase() === 'published' ? 'completed' : 'pending'}`}></div>
-                <div className={`step ${(month.status || 'created').toLowerCase() === 'published' ? 'completed' : 'pending'}`}>
-                  <div className="circle"></div>
-                  <p>Published</p>
-                  <span className="date">{month.publishedDate || 'N/A'}</span>
-                </div>
+                {statusData ? (
+                  <>
+                    <div className={`step ${statusData.status.includes('created') ? 'completed' : 'pending'}`}>
+                      <div className="circle"></div>
+                      <p>Created</p>
+                      <span className="date">{month.createdDate || 'N/A'}</span>
+                    </div>
+                    <div className={`bar ${statusData.status.includes('verified') ? 'completed' : 'pending'}`}></div>
+                    <div className={`step ${statusData.status.includes('verified') ? 'completed' : 'pending'}`}>
+                      <div className="circle"></div>
+                      <p>Verified</p>
+                      <span className="date">{month.verifiedDate || 'N/A'}</span>
+                    </div>
+                    <div className={`bar ${statusData.status.includes('published') ? 'completed' : 'pending'}`}></div>
+                    <div className={`step ${statusData.status.includes('published') ? 'completed' : 'pending'}`}>
+                      <div className="circle"></div>
+                      <p>Published</p>
+                      <span className="date">{month.publishedDate || 'N/A'}</span>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="step pending">
+                      <div className="circle"></div>
+                      <p>Created</p>
+                      <span className="date">N/A</span>
+                    </div>
+                    <div className="bar pending"></div>
+                    <div className="step pending">
+                      <div className="circle"></div>
+                      <p>Verified</p>
+                      <span className="date">N/A</span>
+                    </div>
+                    <div className="bar pending"></div>
+                    <div className="step pending">
+                      <div className="circle"></div>
+                      <p>Published</p>
+                      <span className="date">N/A</span>
+                    </div>
+                  </>
+                )}
               </div>
 
               <div className="month-content">
@@ -210,6 +291,25 @@ const MessBillsDetail = () => {
                     ))}
                   </tbody>
                 </table>
+
+                <div className="costs-cards">
+                  {month.costs.map((cost, i) => (
+                    i % 2 === 0 ? (
+                      <div key={i} className="cost-card">
+                        <div className="cost-item">
+                          <span className="cost-label">{cost.label}:</span>
+                          <span className="cost-value">{typeof cost.value === 'number' && cost.value > 100 ? `₹${cost.value.toFixed(2)}` : cost.value}</span>
+                        </div>
+                        {month.costs[i+1] && (
+                          <div className="cost-item">
+                            <span className="cost-label">{month.costs[i+1].label}:</span>
+                            <span className="cost-value">{typeof month.costs[i+1].value === 'number' && month.costs[i+1].value > 100 ? `₹${month.costs[i+1].value.toFixed(2)}` : month.costs[i+1].value}</span>
+                          </div>
+                        )}
+                      </div>
+                    ) : null
+                  ))}
+                </div>
 
                 <div className="years-section">
                   <h3>Department-wise Breakdown</h3>
@@ -739,12 +839,12 @@ const MessBillsDetail = () => {
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
           }
 
-          .paid-card {
+          .verified-card {
             border-left: 4px solid #28a745;
           }
 
-          .unpaid-card {
-            border-left: 4px solid #ffc107;
+          .published-card {
+            border-left: 4px solid #007bff;
           }
 
           .card-icon {
@@ -788,6 +888,193 @@ const MessBillsDetail = () => {
           .filter-select:focus {
             outline: none;
             border-color: #2575fc;
+          }
+
+          /* Mobile Responsiveness */
+          @media (max-width: 768px) {
+            .month-header {
+              flex-direction: column;
+              align-items: flex-start;
+              gap: 10px;
+            }
+
+            .month-header > div:last-child {
+              text-align: left !important;
+            }
+
+            .actions-section {
+              flex-direction: column;
+              gap: 15px;
+            }
+
+            .student-cards {
+              flex-direction: column;
+              gap: 15px;
+            }
+
+            .student-card {
+              min-width: unset;
+              padding: 15px;
+            }
+
+            .order-tracker {
+              flex-direction: row;
+              gap: 5px;
+              width: 100%;
+              flex-wrap: wrap;
+            }
+
+            .bar {
+              width: 4px;
+              height: 20px;
+              margin: 0 auto;
+            }
+
+            .step {
+              width: auto;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              gap: 5px;
+              flex: 1;
+              min-width: 60px;
+            }
+
+            .circle {
+              flex-shrink: 0;
+            }
+
+            .order-tracker p {
+              font-size: 0.8rem;
+              margin: 2px 0;
+            }
+
+            .date {
+              font-size: 10px;
+            }
+
+            .costs-table {
+              overflow-x: auto;
+              display: block;
+              white-space: nowrap;
+            }
+
+            .costs-table th,
+            .costs-table td {
+              padding: 8px 10px;
+              min-width: 120px;
+            }
+
+            .years-grid {
+              grid-template-columns: 1fr;
+            }
+
+            .year-card {
+              padding: 12px;
+            }
+
+            .year-stats {
+              flex-direction: column;
+              gap: 10px;
+            }
+
+            .stat {
+              text-align: left;
+            }
+
+            .btn-individual-bills {
+              width: 100%;
+            }
+
+            .popup {
+              margin: 20px;
+              width: calc(100% - 40px);
+            }
+
+            .popup-buttons {
+              flex-direction: column;
+            }
+
+            .btn-cancel,
+            .btn-confirm {
+              width: 100%;
+            }
+          }
+
+          @media (max-width: 480px) {
+            .month-content {
+              padding: 15px;
+            }
+
+            .month-title {
+              font-size: 1.1rem;
+            }
+
+            .card-title {
+              font-size: 1rem;
+            }
+
+            .card-count {
+              font-size: 1.3rem;
+            }
+
+            .stat-value {
+              font-size: 1rem;
+            }
+
+          .btn {
+            padding: 8px 16px;
+            font-size: 0.9rem;
+          }
+
+          .costs-cards {
+            display: none;
+          }
+
+          .costs-table {
+            display: table;
+          }
+          }
+
+          @media (max-width: 768px) {
+            .costs-cards {
+              display: block;
+            }
+
+            .costs-table {
+              display: none;
+            }
+
+            .cost-card {
+              background: #f8faff;
+              border-radius: 8px;
+              padding: 15px;
+              margin-bottom: 10px;
+              border-left: 4px solid #2575fc;
+            }
+
+            .cost-item {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 8px;
+            }
+
+            .cost-item:last-child {
+              margin-bottom: 0;
+            }
+
+            .cost-label {
+              font-weight: 600;
+              color: #333;
+              font-size: 0.9rem;
+            }
+
+            .cost-value {
+              font-weight: 600;
+              color: #2575fc;
+              font-size: 0.9rem;
+            }
           }
         `}
       </style>

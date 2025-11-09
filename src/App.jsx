@@ -3,6 +3,7 @@ import Home from './Home.jsx'
 import Login from './Login.jsx'
 import Dashboard from './student Dashboard/StudentDashboard.jsx'
 import AdminDashboard from './admin Dashboard/AdminDashboard.jsx'
+import MessBills from './admin Dashboard/MessBills/MessBills.jsx'
 import MessBillsDetail from './admin Dashboard/MessBillsDetail/MessBillsDetail.jsx'
 import MessBillIndividual from './admin Dashboard/MessBillsDetail/MessBillIndividual.jsx'
 import MessBillsIndividualList from './admin Dashboard/MessBillsDetail/MessBillsIndividualList.jsx'
@@ -47,6 +48,11 @@ function App() {
   {
     path: "/admin-dashboard",
     element: <AdminDashboard/>,
+    loader: adminDashboardLoader,
+  },
+  {
+    path: "/mess-bills",
+    element: <MessBills/>,
     loader: adminDashboardLoader,
   },
   {

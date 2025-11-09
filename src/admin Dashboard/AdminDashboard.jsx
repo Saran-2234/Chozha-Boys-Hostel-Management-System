@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar/Sidebar';
 import Header from './Header/Header';
 import MainContent from './Header/MainContent';
@@ -17,6 +18,7 @@ import RefreshConfirmationModal from './components/RefreshConfirmationModal'; //
 import './styles/adminDashboard.css';
 
 const AdminDashboard = () => {
+  const location = useLocation();
   const [activeSection, setActiveSection] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -33,6 +35,11 @@ const AdminDashboard = () => {
   };
 
   useEffect(() => {
+    // Set active section based on location state
+    if (location.state && location.state.activeSection) {
+      setActiveSection(location.state.activeSection);
+    }
+
     const handleBeforeUnload = (e) => {
       // Suppress native dialog if confirmed via custom modal
       if (window.adminRefreshConfirmed) {

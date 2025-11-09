@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 
 const MessBills = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [activeSection, setActiveSection] = useState('new-bill');
   const [formData, setFormData] = useState({
     // Basic Information
@@ -358,10 +359,7 @@ const MessBills = () => {
 
   return (
     <div className="container">
-      <header>
-        <h1>Mess Bill Management</h1>
-        <p className="subtitle">Manage your new and existing mess bills in one place</p>
-      </header>
+      
 
       <div className="navigation">
         <button className={`nav-btn ${activeSection === 'new-bill' ? 'active' : ''}`} onClick={() => handleNavClick('new-bill')}>New Mess Bill</button>

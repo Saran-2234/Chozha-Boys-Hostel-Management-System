@@ -34,7 +34,7 @@ const MessBillsDetail = () => {
   };
 
   const handleBack = () => {
-    navigate(-1);
+    navigate('/admin-dashboard', { state: { activeSection: 'messbills' } });
   };
 
   const handleViewBill = (bill) => {
@@ -46,9 +46,29 @@ const MessBillsDetail = () => {
     setShowPublishPopup(true);
   };
 
-  const handleConfirmPublish = () => {
+  const handleConfirmPublish = async () => {
     setShowPublishPopup(false);
-    setPublishMessage('Your bills have been published');
+    try {
+      const monthYear = month.title; // Assuming month.title is in "MM-YYYY" format
+      const response = await fetch('https://finalbackend1.vercel.app/showmessbilltoall', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ month_year: monthYear }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setPublishMessage(data.message);
+      } else {
+        setPublishMessage(data.error || 'An error occurred while publishing bills');
+      }
+    } catch (error) {
+      setPublishMessage('Network or server error.');
+      console.error('Error publishing bills:', error);
+    }
   };
 
   const handleCancelPublish = () => {

@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 
 // Small picker that emits dob as YYYY-MM-DD
-const DateOfBirthPicker = ({ dobValue, onChange, onBlur, isLight }) => {
+const DateOfBirthPicker = ({ dobValue, onChange, onBlur }) => {
   const [day, setDay] = React.useState('');
   const [month, setMonth] = React.useState('');
   const [year, setYear] = React.useState('');
@@ -48,30 +48,30 @@ const DateOfBirthPicker = ({ dobValue, onChange, onBlur, isLight }) => {
         value={day}
         onChange={(e) => { setDay(e.target.value); emit(year, month, e.target.value); }}
         onBlur={onBlur}
-        className={`w-1/3 px-3 py-2 glass-effect rounded-lg focus:ring-2 focus:ring-emerald-500 border-0 ${isLight ? 'text-black' : 'text-white'}`}
+        className="w-1/3 px-3 py-2 glass-effect rounded-lg focus:ring-2 focus:ring-emerald-500 border-0 text-black"
       >
         <option value="">Day</option>
-        {days.map(d => <option key={d} value={d} style={{ backgroundColor: isLight ? 'white' : '#1e293b', color: isLight ? 'black' : 'white' }}>{d}</option>)}
+        {days.map(d => <option key={d} value={d} style={{ backgroundColor: 'white', color: 'black' }}>{d}</option>)}
       </select>
 
       <select
         value={month}
         onChange={(e) => { setMonth(e.target.value); emit(year, e.target.value, day); }}
         onBlur={onBlur}
-        className={`w-1/3 px-3 py-2 glass-effect rounded-lg focus:ring-2 focus:ring-emerald-500 border-0 ${isLight ? 'text-black' : 'text-white'}`}
+        className="w-1/3 px-3 py-2 glass-effect rounded-lg focus:ring-2 focus:ring-emerald-500 border-0 text-black"
       >
         <option value="">Month</option>
-        {months.map(m => <option key={m.value} value={m.value} style={{ backgroundColor: isLight ? 'white' : '#1e293b', color: isLight ? 'black' : 'white' }}>{m.label}</option>)}
+        {months.map(m => <option key={m.value} value={m.value} style={{ backgroundColor: 'white', color: 'black' }}>{m.label}</option>)}
       </select>
 
       <select
         value={year}
         onChange={(e) => { setYear(e.target.value); emit(e.target.value, month, day); }}
         onBlur={onBlur}
-        className={`w-1/3 px-3 py-2 glass-effect rounded-lg focus:ring-2 focus:ring-emerald-500 border-0 ${isLight ? 'text-black' : 'text-white'}`}
+        className="w-1/3 px-3 py-2 glass-effect rounded-lg focus:ring-2 focus:ring-emerald-500 border-0 text-black"
       >
         <option value="">Year</option>
-        {years.map(y => <option key={y} value={y} style={{ backgroundColor: isLight ? 'white' : '#1e293b', color: isLight ? 'black' : 'white' }}>{y}</option>)}
+        {years.map(y => <option key={y} value={y} style={{ backgroundColor: 'white', color: 'black' }}>{y}</option>)}
       </select>
     </div>
   );
@@ -82,8 +82,7 @@ const PersonalDetailsStep = ({
   errors,
   touched,
   handleInputChange,
-  handleBlur,
-  isLight
+  handleBlur
 }) => {
   return (
     <div className="registration-step">
@@ -102,14 +101,14 @@ const PersonalDetailsStep = ({
             id="fullName"
             name="fullName"
             className={`w-full px-4 py-3 glass-effect rounded-lg placeholder-slate-400 focus:ring-2 focus:ring-emerald-500 focus:border-transparent border-0
-              ${errors.fullName ? 'border-red-500' : ''} ${isLight ? 'text-black' : 'text-white'}`}
+              ${errors.fullName ? 'border-red-500' : ''} text-black`}
             placeholder="Enter your full name"
             value={formData.fullName}
             onChange={handleInputChange}
             onBlur={handleBlur}
           />
           {touched.fullName && errors.fullName && (
-            <p className={`${isLight ? 'text-red-600' : 'text-red-400'} text-xs mt-1`}>{errors.fullName}</p>
+            <p className={`text-red-600 text-xs mt-1`}>{errors.fullName}</p>
           )}
         </div>
 
@@ -120,14 +119,14 @@ const PersonalDetailsStep = ({
             id="fatherName"
             name="fatherName"
             className={`w-full px-4 py-3 glass-effect rounded-lg placeholder-slate-400 focus:ring-2 focus:ring-emerald-500 focus:border-transparent border-0
-              ${errors.fatherName ? 'border-red-500' : ''} ${isLight ? 'text-black' : 'text-white'}`}
+              ${errors.fatherName ? 'border-red-500' : ''} text-black`}
             placeholder="Enter father/guardian name"
             value={formData.fatherName}
             onChange={handleInputChange}
             onBlur={handleBlur}
           />
           {touched.fatherName && errors.fatherName && (
-            <p className={`${isLight ? 'text-red-600' : 'text-red-400'} text-xs mt-1`}>{errors.fatherName}</p>
+            <p className={`text-red-600 text-xs mt-1`}>{errors.fatherName}</p>
           )}
         </div>
 
@@ -139,11 +138,11 @@ const PersonalDetailsStep = ({
               dobValue={formData.dob}
               onChange={(dob) => handleInputChange({ target: { id: 'dob', value: dob } })}
               onBlur={() => handleBlur({ target: { id: 'dob', value: formData.dob } })}
-              isLight={isLight}
+
             />
           </div>
           {touched.dob && errors.dob && (
-            <p className={`${isLight ? 'text-red-600' : 'text-red-400'} text-xs mt-1`}>{errors.dob}</p>
+            <p className={`text-red-600 text-xs mt-1`}>{errors.dob}</p>
           )}
         </div>
 
@@ -155,25 +154,25 @@ const PersonalDetailsStep = ({
             className={`w-full px-4 py-3 glass-effect rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent border-0
               ${errors.bloodGroup ? 'border-red-500' : ''}`}
             style={{
-              backgroundColor: isLight ? 'white' : 'rgba(51, 65, 85, 0.8)',
-              color: isLight ? 'black' : 'white'
+              backgroundColor: 'white',
+              color: 'black'
             }}
             value={formData.bloodGroup}
             onChange={handleInputChange}
             onBlur={handleBlur}
           >
-            <option value="" style={{ backgroundColor: isLight ? 'white' : '#1e293b', color: isLight ? 'black' : 'white' }}>Select Blood Group</option>
-            <option value="A+" style={{ backgroundColor: isLight ? 'white' : '#1e293b', color: isLight ? 'black' : 'white' }}>A+</option>
-            <option value="A-" style={{ backgroundColor: isLight ? 'white' : '#1e293b', color: isLight ? 'black' : 'white' }}>A-</option>
-            <option value="B+" style={{ backgroundColor: isLight ? 'white' : '#1e293b', color: isLight ? 'black' : 'white' }}>B+</option>
-            <option value="B-" style={{ backgroundColor: isLight ? 'white' : '#1e293b', color: isLight ? 'black' : 'white' }}>B-</option>
-            <option value="AB+" style={{ backgroundColor: isLight ? 'white' : '#1e293b', color: isLight ? 'black' : 'white' }}>AB+</option>
-            <option value="AB-" style={{ backgroundColor: isLight ? 'white' : '#1e293b', color: isLight ? 'black' : 'white' }}>AB-</option>
-            <option value="O+" style={{ backgroundColor: isLight ? 'white' : '#1e293b', color: isLight ? 'black' : 'white' }}>O+</option>
-            <option value="O-" style={{ backgroundColor: isLight ? 'white' : '#1e293b', color: isLight ? 'black' : 'white' }}>O-</option>
+            <option value="" style={{ backgroundColor: 'white', color: 'black' }}>Select Blood Group</option>
+            <option value="A+" style={{ backgroundColor: 'white', color: 'black' }}>A+</option>
+            <option value="A-" style={{ backgroundColor: 'white', color: 'black' }}>A-</option>
+            <option value="B+" style={{ backgroundColor: 'white', color: 'black' }}>B+</option>
+            <option value="B-" style={{ backgroundColor: 'white', color: 'black' }}>B-</option>
+            <option value="AB+" style={{ backgroundColor: 'white', color: 'black' }}>AB+</option>
+            <option value="AB-" style={{ backgroundColor: 'white', color: 'black' }}>AB-</option>
+            <option value="O+" style={{ backgroundColor: 'white', color: 'black' }}>O+</option>
+            <option value="O-" style={{ backgroundColor: 'white', color: 'black' }}>O-</option>
           </select>
           {touched.bloodGroup && errors.bloodGroup && (
-            <p className={`${isLight ? 'text-red-600' : 'text-red-400'} text-xs mt-1`}>{errors.bloodGroup}</p>
+            <p className={`text-red-600 text-xs mt-1`}>{errors.bloodGroup}</p>
           )}
         </div>
 
@@ -184,7 +183,7 @@ const PersonalDetailsStep = ({
             id="studentContact"
             name="studentContact"
             className={`w-full px-4 py-3 glass-effect rounded-lg placeholder-slate-400 focus:ring-2 focus:ring-emerald-500 focus:border-transparent border-0
-              ${errors.studentContact ? 'border-red-500' : ''} ${isLight ? 'text-black' : 'text-white'}`}
+              ${errors.studentContact ? 'border-red-500' : ''} text-black`}
             placeholder="Enter student contact number"
             value={formData.studentContact}
             onChange={handleInputChange}
@@ -192,7 +191,7 @@ const PersonalDetailsStep = ({
             maxLength="10"
           />
           {touched.studentContact && errors.studentContact && (
-            <p className={`${isLight ? 'text-red-600' : 'text-red-400'} text-xs mt-1`}>{errors.studentContact}</p>
+            <p className={`text-red-600 text-xs mt-1`}>{errors.studentContact}</p>
           )}
         </div>
 
@@ -203,7 +202,7 @@ const PersonalDetailsStep = ({
             id="parentContact"
             name="parentContact"
             className={`w-full px-4 py-3 glass-effect rounded-lg placeholder-slate-400 focus:ring-2 focus:ring-emerald-500 focus:border-transparent border-0
-              ${errors.parentContact ? 'border-red-500' : ''} ${isLight ? 'text-black' : 'text-white'}`}
+              ${errors.parentContact ? 'border-red-500' : ''} text-black`}
             placeholder="Enter parent contact number"
             value={formData.parentContact}
             onChange={handleInputChange}
@@ -211,7 +210,7 @@ const PersonalDetailsStep = ({
             maxLength="10"
           />
           {touched.parentContact && errors.parentContact && (
-            <p className={`${isLight ? 'text-red-600' : 'text-red-400'} text-xs mt-1`}>{errors.parentContact}</p>
+            <p className={`text-red-600 text-xs mt-1`}>{errors.parentContact}</p>
           )}
         </div>
 
@@ -222,14 +221,14 @@ const PersonalDetailsStep = ({
             name="address"
             rows="3"
             className={`w-full px-4 py-3 glass-effect rounded-lg placeholder-slate-400 focus:ring-2 focus:ring-emerald-500 focus:border-transparent border-0
-              ${errors.address ? 'border-red-500' : ''} ${isLight ? 'text-black' : 'text-white'}`}
+              ${errors.address ? 'border-red-500' : ''} text-black`}
             placeholder="Enter your full address"
             value={formData.address}
             onChange={handleInputChange}
             onBlur={handleBlur}
           />
           {touched.address && errors.address && (
-            <p className={`${isLight ? 'text-red-600' : 'text-red-400'} text-xs mt-1`}>{errors.address}</p>
+            <p className={`text-red-600 text-xs mt-1`}>{errors.address}</p>
           )}
         </div>
       </div>

@@ -6,8 +6,7 @@ const AcademicDetailsStep = ({
   errors,
   touched,
   handleInputChange,
-  handleBlur,
-  isLight
+  handleBlur
 }) => {
   const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -50,28 +49,28 @@ const AcademicDetailsStep = ({
             style={{
               zIndex: 50,
               position: 'relative',
-              backgroundColor: isLight ? 'white' : 'rgba(51, 65, 85, 0.8)',
-              color: isLight ? 'black' : 'white'
+              backgroundColor: 'white',
+              color: 'black'
             }}
             value={formData.department}
             onChange={handleInputChange}
             onBlur={handleBlur}
             disabled={loading}
           >
-            <option value="" style={{ backgroundColor: isLight ? 'white' : '#1e293b', color: isLight ? 'black' : 'white' }}>
+            <option value="" style={{ backgroundColor: 'white', color: 'black' }}>
               {loading ? 'Loading...' : 'Select Department'}
             </option>
             {departments.map((dept, index) => (
-              <option key={dept.id || index} value={dept.department} style={{ backgroundColor: isLight ? 'white' : '#1e293b', color: isLight ? 'black' : 'white' }}>
+              <option key={dept.id || index} value={dept.department} style={{ backgroundColor: 'white', color: 'black' }}>
                 {dept.department}
               </option>
             ))}
           </select>
           {touched.department && errors.department && (
-            <p className={`${isLight ? 'text-red-600' : 'text-red-400'} text-xs mt-1`}>{errors.department}</p>
+            <p className={`text-red-600 text-xs mt-1`}>{errors.department}</p>
           )}
           {error && (
-            <p className={`${isLight ? 'text-red-600' : 'text-red-400'} text-xs mt-1`}>{error}</p>
+            <p className={`text-red-600 text-xs mt-1`}>{error}</p>
           )}
         </div>
 
@@ -85,21 +84,21 @@ const AcademicDetailsStep = ({
             style={{
               zIndex: 50,
               position: 'relative',
-              backgroundColor: isLight ? 'white' : 'rgba(51, 65, 85, 0.8)',
-              color: isLight ? 'black' : 'white'
+              backgroundColor: 'white',
+              color: 'black'
             }}
             value={formData.academicYear}
             onChange={handleInputChange}
             onBlur={handleBlur}
           >
-            <option value="" style={{ backgroundColor: isLight ? 'white' : '#1e293b', color: isLight ? 'black' : 'white' }}>Select Academic Year</option>
-            <option value="1" style={{ backgroundColor: isLight ? 'white' : '#1e293b', color: isLight ? 'black' : 'white' }}>1st Year</option>
-            <option value="2" style={{ backgroundColor: isLight ? 'white' : '#1e293b', color: isLight ? 'black' : 'white' }}>2nd Year</option>
-            <option value="3" style={{ backgroundColor: isLight ? 'white' : '#1e293b', color: isLight ? 'black' : 'white' }}>3rd Year</option>
-            <option value="4" style={{ backgroundColor: isLight ? 'white' : '#1e293b', color: isLight ? 'black' : 'white' }}>4th Year</option>
+            <option value="" style={{ backgroundColor: 'white', color: 'black' }}>Select Academic Year</option>
+            <option value="1" style={{ backgroundColor: 'white', color: 'black' }}>1st Year</option>
+            <option value="2" style={{ backgroundColor: 'white', color: 'black' }}>2nd Year</option>
+            <option value="3" style={{ backgroundColor: 'white', color: 'black' }}>3rd Year</option>
+            <option value="4" style={{ backgroundColor: 'white', color: 'black' }}>4th Year</option>
           </select>
           {touched.academicYear && errors.academicYear && (
-            <p className={`${isLight ? 'text-red-600' : 'text-red-400'} text-xs mt-1`}>{errors.academicYear}</p>
+            <p className={`text-red-600 text-xs mt-1`}>{errors.academicYear}</p>
           )}
         </div>
 
@@ -110,7 +109,7 @@ const AcademicDetailsStep = ({
             id="registrationNumber"
             name="registrationNumber"
             className={`w-full px-4 py-3 glass-effect rounded-lg placeholder-slate-400 focus:ring-2 focus:ring-emerald-500 focus:border-transparent border-0
-              ${errors.registrationNumber ? 'border-red-500' : ''} ${isLight ? 'text-black' : 'text-white'}`}
+              ${errors.registrationNumber ? 'border-red-500' : ''} text-black`}
             placeholder="Enter registration number"
             value={formData.registrationNumber}
             onChange={handleInputChange}
@@ -118,7 +117,7 @@ const AcademicDetailsStep = ({
             maxLength="15"
           />
           {touched.registrationNumber && errors.registrationNumber && (
-            <p className={`${isLight ? 'text-red-600' : 'text-red-400'} text-xs mt-1`}>{errors.registrationNumber}</p>
+            <p className={`text-red-600 text-xs mt-1`}>{errors.registrationNumber}</p>
           )}
         </div>
 
@@ -129,7 +128,7 @@ const AcademicDetailsStep = ({
             id="rollNumber"
             name="rollNumber"
             className={`w-full px-4 py-3 glass-effect rounded-lg placeholder-slate-400 focus:ring-2 focus:ring-emerald-500 focus:border-transparent border-0
-              ${errors.rollNumber ? 'border-red-500' : ''} ${isLight ? 'text-black' : 'text-white'}`}
+              ${errors.rollNumber ? 'border-red-500' : ''} text-black`}
             placeholder="Enter roll number"
             value={formData.rollNumber}
             onChange={handleInputChange}
@@ -137,7 +136,7 @@ const AcademicDetailsStep = ({
             maxLength="12"
           />
           {touched.rollNumber && errors.rollNumber && (
-            <p className={`${isLight ? 'text-red-600' : 'text-red-400'} text-xs mt-1`}>{errors.rollNumber}</p>
+            <p className={`text-red-600 text-xs mt-1`}>{errors.rollNumber}</p>
           )}
         </div>
 
@@ -148,7 +147,7 @@ const AcademicDetailsStep = ({
             id="roomNumber"
             name="roomNumber"
             className={`w-full px-4 py-3 glass-effect rounded-lg placeholder-slate-400 focus:ring-2 focus:ring-emerald-500 focus:border-transparent border-0
-              ${errors.roomNumber ? 'border-red-500' : ''} ${isLight ? 'text-black' : 'text-white'}`}
+              ${errors.roomNumber ? 'border-red-500' : ''} text-black`}
             placeholder="Enter room number (3 digits)"
             value={formData.roomNumber}
             onChange={handleInputChange}
@@ -156,7 +155,7 @@ const AcademicDetailsStep = ({
             maxLength="3"
           />
           {touched.roomNumber && errors.roomNumber && (
-            <p className={`${isLight ? 'text-red-600' : 'text-red-400'} text-xs mt-1`}>{errors.roomNumber}</p>
+            <p className={`text-red-600 text-xs mt-1`}>{errors.roomNumber}</p>
           )}
         </div>
       </div>

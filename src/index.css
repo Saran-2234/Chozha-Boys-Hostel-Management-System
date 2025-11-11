@@ -192,10 +192,11 @@
             color: #1e293b;
         }
 
-        /* Notification bar stays white text */
+        /* Notification bar student portal button colors */
         .notification-bar *,
+        .notification-bar .marquee *,
         .marquee * {
-            color: #FFFFFF;
+            color: #FFFFFF !important;
         }
 
         .border-slate-600 {

@@ -4,8 +4,7 @@ const TermsConfirmationStep = ({
   formData,
   errors,
   touched,
-  handleInputChange,
-  isLight
+  handleInputChange
 }) => {
   return (
     <div className="registration-step">
@@ -63,7 +62,7 @@ const TermsConfirmationStep = ({
               <span className="text-sm text-slate-300">I have read and agree to the <strong>Terms & Conditions</strong> of Chozha Boys Hostel</span>
             </label>
             {touched.agreeTerms && errors.agreeTerms && (
-              <p className={`${isLight ? 'text-red-600' : 'text-red-400'} text-xs mt-1`}>{errors.agreeTerms}</p>
+              <p className={`text-red-600 text-xs mt-1`}>{errors.agreeTerms}</p>
             )}
 
             <label className="flex items-start space-x-3">
@@ -78,7 +77,7 @@ const TermsConfirmationStep = ({
               <span className="text-sm text-slate-300">I consent to the collection and processing of my personal data as per the <strong>Privacy Policy</strong></span>
             </label>
             {touched.agreePrivacy && errors.agreePrivacy && (
-              <p className={`${isLight ? 'text-red-600' : 'text-red-400'} text-xs mt-1`}>{errors.agreePrivacy}</p>
+              <p className={`text-red-600 text-xs mt-1`}>{errors.agreePrivacy}</p>
             )}
 
             <label className="flex items-start space-x-3">
@@ -93,7 +92,7 @@ const TermsConfirmationStep = ({
               <span className="text-sm text-slate-300">I agree to abide by all <strong>Hostel Rules and Regulations</strong></span>
             </label>
             {touched.agreeRules && errors.agreeRules && (
-              <p className={`${isLight ? 'text-red-600' : 'text-red-400'} text-xs mt-1`}>{errors.agreeRules}</p>
+              <p className={`text-red-600 text-xs mt-1`}>{errors.agreeRules}</p>
             )}
           </div>
         </div>

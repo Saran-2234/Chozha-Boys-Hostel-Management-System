@@ -12,8 +12,7 @@ const EmailOtpStep = ({
   handleInputChange,
   sendOTP,
   verifyOTP,
-  emailSendMessage,
-  isLight
+  emailSendMessage
 }) => {
   return (
     <div className="registration-step">
@@ -33,8 +32,8 @@ const EmailOtpStep = ({
               id="emailId"
               name="emailId"
               disabled={otpVerified}
-              className={`flex-1 min-w-0 px-4 py-3 glass-effect rounded-lg placeholder-slate-400 focus:ring-2 focus:ring-emerald-500 focus:border-transparent border-0
-                ${errors.emailId ? 'border-red-500' : ''} ${isLight ? 'text-black' : 'text-white'}`}
+              className={`flex-1 min-w-0 px-4 py-3 glass-effect rounded-lg placeholder-slate-400 focus:ring-2 focus:ring-emerald-500 focus:border-transparent border-0 text-black
+                ${errors.emailId ? 'border-red-500' : ''}`}
               placeholder="Enter your email address"
               value={formData.emailId}
               onChange={handleInputChange}
@@ -50,7 +49,7 @@ const EmailOtpStep = ({
           </div>
           <div className="mt-1">
             {touched.emailId && errors.emailId && (
-              <p className={`${isLight ? 'text-red-600' : 'text-red-400'} text-xs`}>{errors.emailId}</p>
+              <p className="text-red-600 text-xs">{errors.emailId}</p>
             )}
             {/* Inline OTP sent message */}
             {otpSent && emailSendMessage && !otpVerified && (
@@ -59,7 +58,7 @@ const EmailOtpStep = ({
             {/* Show verified tick next to email when verified */}
             {otpVerified && (
               <div className="flex items-center gap-2 mt-1">
-                <p className={`text-xs ${isLight ? 'text-green-700' : 'text-green-400'}`}>Email verified</p>
+                <p className="text-xs text-green-700">Email verified</p>
                 <span className="inline-flex items-center justify-center w-5 h-5 bg-green-600 text-white rounded-full">✓</span>
               </div>
             )}
@@ -79,8 +78,8 @@ const EmailOtpStep = ({
                     type="text"
                     maxLength="1"
                     pattern="[0-9]"
-                    className={`w-9 h-9 sm:w-12 sm:h-12 text-center glass-effect rounded-lg placeholder-slate-400 focus:ring-2 focus:ring-emerald-500 focus:border-transparent border-0 text-sm sm:text-lg font-semibold
-                      ${errors.otpCode ? 'border-red-500' : ''} ${isLight ? 'text-black' : 'text-white'}`}
+                    className={`w-9 h-9 sm:w-12 sm:h-12 text-center glass-effect rounded-lg placeholder-slate-400 focus:ring-2 focus:ring-emerald-500 focus:border-transparent border-0 text-sm sm:text-lg font-semibold text-black
+                      ${errors.otpCode ? 'border-red-500' : ''}`}
                     value={formData.otpCode[index] || ''}
                     onChange={(e) => {
                       const value = e.target.value;
@@ -159,7 +158,7 @@ const EmailOtpStep = ({
             )}
           </div>
           {touched.otpCode && errors.otpCode && (
-            <p className={`${isLight ? 'text-red-600' : 'text-red-400'} text-xs mt-1`}>{errors.otpCode}</p>
+            <p className="text-red-600 text-xs mt-1">{errors.otpCode}</p>
           )}
         </div>
       </div>

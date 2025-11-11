@@ -1,7 +1,7 @@
 function Notification() {
 
     return(
-        <div className={"notification-bar bg-gradient-to-r from-slate-800 to-slate-700 text-white py-3 overflow-hidden relative border-b border-slate-600"}>
+        <div className={"notification-bar bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3 overflow-hidden relative border-b border-slate-300"}>
         <div className={"marquee whitespace-nowrap"}>
             <span className={"inline-block px-8 text-sm font-medium"}>
                 🏛️ Chozha Boys Hostel - Government College of Engineering, Thanjavur | 

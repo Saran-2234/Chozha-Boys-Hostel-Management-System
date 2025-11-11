@@ -7,7 +7,7 @@ import AcademicDetailsStep from './steps/AcademicDetailsStep.jsx';
 import PasswordPhotoStep from './steps/PasswordPhotoStep.jsx';
 import TermsConfirmationStep from './steps/TermsConfirmationStep.jsx';
 
-function Register({ onClose, onOpenLogin, isLight }) {
+function Register({ onClose, onOpenLogin }) {
   const [currentStep, setCurrentStep] = useState(1);
   const [completedSteps, setCompletedSteps] = useState([]);
 
@@ -412,7 +412,7 @@ function Register({ onClose, onOpenLogin, isLight }) {
 
   return (
     <div id="registerModal" className="fixed inset-0 bg-black bg-opacity-60 login-modal z-50 flex items-center justify-center p-4">
-  <div className="glass-card rounded-2xl shadow-2xl max-w-2xl w-full mx-4 transform transition-all professional-shadow max-h-[90vh] overflow-y-auto overflow-x-visible">
+  <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full mx-4 transform transition-all max-h-[90vh] overflow-y-auto overflow-x-visible">
         <div className="p-6 sm:p-8">
           {/* Progress Bar */}
           <div className="mb-6 sm:mb-8">
@@ -421,7 +421,7 @@ function Register({ onClose, onOpenLogin, isLight }) {
                 <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center shadow-lg">
                   <span className="text-sm font-bold text-white">{currentStep}</span>
                 </div>
-                <h2 className="text-xl sm:text-2xl font-bold text-white">
+                <h2 className="text-xl sm:text-2xl font-bold text-slate-800">
                   {currentStep === 1 && 'Email & OTP'}
                   {currentStep === 2 && 'Personal Details'}
                   {currentStep === 3 && 'Academic Details'}
@@ -430,8 +430,8 @@ function Register({ onClose, onOpenLogin, isLight }) {
                 </h2>
               </div>
               <div className="flex items-center gap-3">
-                <span className="text-sm text-slate-400">Step {currentStep} of 5</span>
-                <button onClick={() => setShowCancelConfirm(true)} aria-label="Cancel registration" className="text-slate-300 hover:text-white transition-colors bg-slate-800 hover:bg-slate-700 px-2 py-1 rounded-full">
+                <span className="text-sm text-slate-600">Step {currentStep} of 5</span>
+                <button onClick={() => setShowCancelConfirm(true)} aria-label="Cancel registration" className="text-slate-600 hover:text-slate-800 transition-colors bg-slate-200 hover:bg-slate-300 px-2 py-1 rounded-full">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
                   </svg>
@@ -439,7 +439,7 @@ function Register({ onClose, onOpenLogin, isLight }) {
               </div>
             </div>
 
-            <div className="w-full bg-slate-700 rounded-full h-2">
+            <div className="w-full bg-slate-200 rounded-full h-2">
               <div
                 className="bg-gradient-to-r from-emerald-500 to-teal-600 h-2 rounded-full transition-all duration-500"
                 style={{ width: `${progressPercentage}%` }}
@@ -474,7 +474,6 @@ function Register({ onClose, onOpenLogin, isLight }) {
                 sendOTP={handleSendOTP}
                 verifyOTP={handleVerifyOTP}
                 emailSendMessage={emailSendMessage}
-                isLight={isLight}
               />
             )}
 
@@ -485,7 +484,6 @@ function Register({ onClose, onOpenLogin, isLight }) {
                 touched={touched}
                 handleInputChange={handleInputChange}
                 handleBlur={handleBlur}
-                isLight={isLight}
               />
             )}
 
@@ -496,7 +494,6 @@ function Register({ onClose, onOpenLogin, isLight }) {
                 touched={touched}
                 handleInputChange={handleInputChange}
                 handleBlur={handleBlur}
-                isLight={isLight}
               />
             )}
 
@@ -507,7 +504,6 @@ function Register({ onClose, onOpenLogin, isLight }) {
                 touched={touched}
                 handleInputChange={handleInputChange}
                 handleBlur={handleBlur}
-                isLight={isLight}
                 photoPreview={photoPreview}
                 handlePhotoUpload={handlePhotoUpload}
                 fileInputRef={fileInputRef}
@@ -521,19 +517,18 @@ function Register({ onClose, onOpenLogin, isLight }) {
                 errors={errors}
                 touched={touched}
                 handleInputChange={handleInputChange}
-                isLight={isLight}
               />
             )}
 
             {/* Navigation Buttons (responsive) */}
-            <div className="mt-8 pt-6 border-t border-slate-600">
+            <div className="mt-8 pt-6 border-t border-slate-300">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div className="flex w-full sm:w-auto gap-3">
                   {currentStep > 1 && (
                     <button
                       type="button"
                       onClick={previousStep}
-                      className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-md font-semibold transition-all text-sm sm:text-base ${isLight ? 'bg-blue-600 border-2 border-blue-500 text-white hover:bg-blue-700' : 'bg-slate-700 text-white'} px-3 py-3`}
+                      className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-md font-semibold transition-all text-sm sm:text-base bg-blue-600 border-2 border-blue-500 text-white hover:bg-blue-700 px-3 py-3"
                     >
                       ← Previous
                     </button>
@@ -542,7 +537,7 @@ function Register({ onClose, onOpenLogin, isLight }) {
                   <button
                     type="button"
                     onClick={() => setShowCancelConfirm(true)}
-                    className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-md font-semibold transition-all text-sm sm:text-base ${isLight ? 'bg-red-600 border-2 border-red-500 text-white hover:bg-red-700' : 'bg-slate-700 text-white'} px-3 py-3`}
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-md font-semibold transition-all text-sm sm:text-base bg-red-600 border-2 border-red-500 text-white hover:bg-red-700 px-3 py-3"
                   >
                     Cancel
                   </button>

@@ -1,79 +1,17 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 
-// Small picker that emits dob as YYYY-MM-DD
+// Modern date input that emits dob as YYYY-MM-DD
 const DateOfBirthPicker = ({ dobValue, onChange, onBlur }) => {
-  const [day, setDay] = React.useState('');
-  const [month, setMonth] = React.useState('');
-  const [year, setYear] = React.useState('');
-
-  // sync with external dobValue when it changes
-  React.useEffect(() => {
-    if (dobValue) {
-      const parts = (dobValue || '').split('-');
-      setYear(parts[0] || '');
-      setMonth(parts[1] || '');
-      setDay(parts[2] || '');
-    } else {
-      setYear(''); setMonth(''); setDay('');
-    }
-  }, [dobValue]);
-
-  const currentYear = new Date().getFullYear();
-  const years = useMemo(() => {
-    const list = [];
-    for (let y = currentYear; y >= 1900; y--) list.push(y);
-    return list;
-  }, [currentYear]);
-
-  const months = [
-    { value: '01', label: 'Jan' },{ value: '02', label: 'Feb' },{ value: '03', label: 'Mar' },{ value: '04', label: 'Apr' },{ value: '05', label: 'May' },{ value: '06', label: 'Jun' },{ value: '07', label: 'Jul' },{ value: '08', label: 'Aug' },{ value: '09', label: 'Sep' },{ value: '10', label: 'Oct' },{ value: '11', label: 'Nov' },{ value: '12', label: 'Dec' }
-  ];
-
-  const daysInMonth = (y, m) => {
-    if (!y || !m) return 31;
-    return new Date(parseInt(y,10), parseInt(m,10), 0).getDate();
-  };
-
-  const maxDays = daysInMonth(year || currentYear, month || '01');
-  const days = Array.from({ length: maxDays }, (_, i) => (i + 1).toString().padStart(2, '0'));
-
-  const emit = (y, m, d) => {
-    if (y && m && d) onChange(`${y}-${m}-${d}`);
-    else onChange('');
-  };
-
   return (
-    <div className="flex w-full gap-2">
-      <select
-        value={day}
-        onChange={(e) => { setDay(e.target.value); emit(year, month, e.target.value); }}
-        onBlur={onBlur}
-        className="w-1/3 px-3 py-2 glass-effect rounded-lg focus:ring-2 focus:ring-emerald-500 border-0 text-black"
-      >
-        <option value="">Day</option>
-        {days.map(d => <option key={d} value={d} style={{ backgroundColor: 'white', color: 'black' }}>{d}</option>)}
-      </select>
-
-      <select
-        value={month}
-        onChange={(e) => { setMonth(e.target.value); emit(year, e.target.value, day); }}
-        onBlur={onBlur}
-        className="w-1/3 px-3 py-2 glass-effect rounded-lg focus:ring-2 focus:ring-emerald-500 border-0 text-black"
-      >
-        <option value="">Month</option>
-        {months.map(m => <option key={m.value} value={m.value} style={{ backgroundColor: 'white', color: 'black' }}>{m.label}</option>)}
-      </select>
-
-      <select
-        value={year}
-        onChange={(e) => { setYear(e.target.value); emit(e.target.value, month, day); }}
-        onBlur={onBlur}
-        className="w-1/3 px-3 py-2 glass-effect rounded-lg focus:ring-2 focus:ring-emerald-500 border-0 text-black"
-      >
-        <option value="">Year</option>
-        {years.map(y => <option key={y} value={y} style={{ backgroundColor: 'white', color: 'black' }}>{y}</option>)}
-      </select>
-    </div>
+    <input
+      type="date"
+      value={dobValue || ''}
+      onChange={(e) => onChange(e.target.value)}
+      onBlur={onBlur}
+      className="w-full px-4 py-3 glass-effect rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent border-0 text-black"
+      max={new Date().toISOString().split('T')[0]} // Prevent future dates
+      min="1900-01-01" // Set minimum date
+    />
   );
 };
 
@@ -132,15 +70,11 @@ const PersonalDetailsStep = ({
 
         <div>
           <label className="block text-sm font-semibold text-slate-300 mb-2">Date of Birth *</label>
-          <div className="flex gap-2">
-            {/* Day / Month / Year selects */}
-            <DateOfBirthPicker
-              dobValue={formData.dob}
-              onChange={(dob) => handleInputChange({ target: { id: 'dob', value: dob } })}
-              onBlur={() => handleBlur({ target: { id: 'dob', value: formData.dob } })}
-
-            />
-          </div>
+          <DateOfBirthPicker
+            dobValue={formData.dob}
+            onChange={(dob) => handleInputChange({ target: { id: 'dob', value: dob } })}
+            onBlur={() => handleBlur({ target: { id: 'dob', value: formData.dob } })}
+          />
           {touched.dob && errors.dob && (
             <p className={`text-red-600 text-xs mt-1`}>{errors.dob}</p>
           )}

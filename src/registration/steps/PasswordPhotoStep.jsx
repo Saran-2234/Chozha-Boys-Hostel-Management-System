@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 const PasswordPhotoStep = ({
   formData,
@@ -11,6 +11,8 @@ const PasswordPhotoStep = ({
   fileInputRef,
   confirmPasswordSuccess,
 }) => {
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   return (
     <div className="registration-step">
       <div className="text-center mb-6">
@@ -23,18 +25,28 @@ const PasswordPhotoStep = ({
       <div className="space-y-6">
         <div>
           <label className="block text-sm font-semibold text-slate-300 mb-2">Password *</label>
-          <input
-            type="password"
-            id="password"
-            name="password"
-            className={`w-full px-4 py-3 glass-effect rounded-lg placeholder-slate-400 focus:ring-2 focus:ring-emerald-500 focus:border-transparent border-0 ${
-              errors.password ? 'border-red-500' : ''
-            } text-black`}
-            placeholder="Enter your password"
-            value={formData.password}
-            onChange={handleInputChange}
-            onBlur={handleBlur}
-          />
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              id="password"
+              name="password"
+              className={`w-full px-4 py-3 pr-12 glass-effect rounded-lg placeholder-slate-400 focus:ring-2 focus:ring-emerald-500 focus:border-transparent border-0 ${
+                errors.password ? 'border-red-500' : ''
+              } text-black`}
+              placeholder="Enter your password"
+              value={formData.password}
+              onChange={handleInputChange}
+              onBlur={handleBlur}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none"
+              title={showPassword ? "Hide password" : "Show password"}
+            >
+              {showPassword ? "👁️" : "👁️‍🗨️"}
+            </button>
+          </div>
           {touched.password && errors.password && (
             <p className={`text-red-600 text-xs mt-1`}>{errors.password}</p>
           )}
@@ -42,18 +54,28 @@ const PasswordPhotoStep = ({
 
         <div>
           <label className="block text-sm font-semibold text-slate-300 mb-2">Confirm Password *</label>
-          <input
-            type="password"
-            id="confirmPassword"
-            name="confirmPassword"
-            className={`w-full px-4 py-3 glass-effect rounded-lg placeholder-slate-400 focus:ring-2 focus:ring-emerald-500 focus:border-transparent border-0 ${
-              errors.confirmPassword ? 'border-red-500' : ''
-            } text-black`}
-            placeholder="Confirm your password"
-            value={formData.confirmPassword}
-            onChange={handleInputChange}
-            onBlur={handleBlur}
-          />
+          <div className="relative">
+            <input
+              type={showConfirmPassword ? "text" : "password"}
+              id="confirmPassword"
+              name="confirmPassword"
+              className={`w-full px-4 py-3 pr-12 glass-effect rounded-lg placeholder-slate-400 focus:ring-2 focus:ring-emerald-500 focus:border-transparent border-0 ${
+                errors.confirmPassword ? 'border-red-500' : ''
+              } text-black`}
+              placeholder="Confirm your password"
+              value={formData.confirmPassword}
+              onChange={handleInputChange}
+              onBlur={handleBlur}
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none"
+              title={showConfirmPassword ? "Hide password" : "Show password"}
+            >
+              {showConfirmPassword ? "👁️" : "👁️‍🗨️"}
+            </button>
+          </div>
           {touched.confirmPassword && errors.confirmPassword && (
             <p className={`text-red-600 text-xs mt-1`}>{errors.confirmPassword}</p>
           )}
@@ -101,7 +123,7 @@ const PasswordPhotoStep = ({
                 </button>
               </div>
             ) : (
-              <div className="w-32 h-32 rounded-full bg-slate-800 flex items-center justify-center text-slate-500">Preview</div>
+              <div className="w-32 h-32 rounded-full flex items-center justify-center text-slate-500">Preview</div>
             )}
 
             {touched.photo && errors.photo && (

@@ -27,9 +27,9 @@ const QuickActions = ({ setActiveSection }) => {
       color: 'from-blue-500 to-indigo-600'
     },
     {
-      icon: '📉',
-      label: 'Apply Reduction',
-      section: 'reduction',
+      icon: '👤',
+      label: 'View Profile',
+      section: 'profile',
       color: 'from-green-500 to-lime-600'
     },
   ];

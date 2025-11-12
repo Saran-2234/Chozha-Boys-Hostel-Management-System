@@ -26,27 +26,56 @@ const Complaints = () => {
     }
   };
 
+  const isTokenExpired = (token) => {
+    try {
+      const decoded = decodeJWT(token);
+      if (!decoded || !decoded.exp) {
+        return true; // Consider invalid tokens as expired
+      }
+      const currentTime = Date.now() / 1000;
+      return decoded.exp < currentTime;
+    } catch (e) {
+      console.error('Error checking token expiration:', e);
+      return true; // Consider invalid tokens as expired
+    }
+  };
+
   const fetchComplaints = async () => {
     try {
       setLoading(true);
       setError(null);
 
       // Get token from storage
-      const token = localStorage.getItem('studentToken') || 
+      const token = localStorage.getItem('studentToken') ||
                    localStorage.getItem('accessToken') ||
                    sessionStorage.getItem('studentToken');
-      
+
       if (!token) {
-        throw new Error('No authentication token found. Please log in again.');
+        console.log('No token found, redirecting to login');
+        window.location.href = '/';
+        return;
+      }
+
+      // Check if token is expired
+      if (isTokenExpired(token)) {
+        console.log('Token expired, clearing storage and redirecting to login');
+        // Clear expired token
+        localStorage.removeItem('studentToken');
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('userData');
+        sessionStorage.removeItem('studentToken');
+        window.location.href = '/';
+        return;
       }
 
       // Debug: Check what's in the JWT token
       const decodedToken = decodeJWT(token);
       console.log('Decoded JWT token:', decodedToken);
-      
+
       if (decodedToken) {
         console.log('Token role:', decodedToken.role);
         console.log('Token student ID:', decodedToken.id);
+        console.log('Token expires:', new Date(decodedToken.exp * 1000).toLocaleString());
       }
 
       // Try both request formats as per API documentation
@@ -116,19 +145,47 @@ const Complaints = () => {
           }
         } catch (err) {
           // Handle axios errors
-          if (err.response && err.response.status === 403) {
+          let errorToThrow = err;
+          if (err.response) {
+            const status = err.response.status;
             const errorData = err.response.data;
-            if (errorData && errorData.error === 'Forbidden: not student') {
-              err = new Error('Your account does not have student permissions. Please contact administration.');
-            } else {
-              err = new Error(errorData?.error || 'Access forbidden');
+
+            // Handle authentication/authorization errors
+            if (status === 401 || status === 403) {
+              console.log('Authentication error, clearing tokens and redirecting to login');
+              // Clear invalid tokens
+              localStorage.removeItem('studentToken');
+              localStorage.removeItem('accessToken');
+              localStorage.removeItem('userData');
+              sessionStorage.removeItem('studentToken');
+              window.location.href = '/';
+              return; // Don't continue with other request formats
             }
-          } else if (err.response) {
-            err = new Error('Failed to fetch complaints');
-          } // else keep err as is for network error
+
+            // Handle other API errors
+            if (errorData && errorData.error) {
+              if (errorData.error.includes('refresh token') || errorData.error.includes('token')) {
+                // Token-related error, redirect to login
+                console.log('Token error from API, redirecting to login');
+                localStorage.removeItem('studentToken');
+                localStorage.removeItem('accessToken');
+                localStorage.removeItem('userData');
+                sessionStorage.removeItem('studentToken');
+                window.location.href = '/';
+                return;
+              }
+              errorToThrow = new Error(errorData.error);
+            } else {
+              errorToThrow = new Error(`Failed to fetch complaints (${status})`);
+            }
+          } else if (err.request) {
+            // Network error
+            errorToThrow = new Error('Network error. Please check your internet connection.');
+          } // else keep err as is
+
           // If this is the last approach, re-throw the error
           if (body === requestBodies[requestBodies.length - 1]) {
-            throw err;
+            throw errorToThrow;
           }
           console.log('Request approach failed, trying next one...');
         }
@@ -144,7 +201,7 @@ const Complaints = () => {
 
   useEffect(() => {
     fetchComplaints();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Filter complaints based on active filter
   useEffect(() => {
@@ -176,53 +233,7 @@ const Complaints = () => {
     fetchComplaints();
   };
 
-  const debugAuth = () => {
-    console.log('=== AUTH DEBUG INFO ===');
-    
-    // Check all possible token locations
-    const tokenLocations = {
-      'localStorage studentToken': localStorage.getItem('studentToken'),
-      'localStorage accessToken': localStorage.getItem('accessToken'),
-      'sessionStorage studentToken': sessionStorage.getItem('studentToken')
-    };
-    
-    Object.entries(tokenLocations).forEach(([location, token]) => {
-      console.log(`${location}:`, token ? 'Present' : 'Missing');
-      if (token) {
-        const decoded = decodeJWT(token);
-        console.log(`  Decoded ${location}:`, decoded);
-        if (decoded) {
-          console.log(`  Role: ${decoded.role}`);
-          console.log(`  ID: ${decoded.id}`);
-          console.log(`  Exp: ${new Date(decoded.exp * 1000).toLocaleString()}`);
-        }
-      }
-    });
 
-    // Check student data
-    const studentDataStr = localStorage.getItem('studentData') || 
-                          sessionStorage.getItem('studentData');
-    if (studentDataStr) {
-      try {
-        const studentData = JSON.parse(studentDataStr);
-        console.log('Student data:', studentData);
-      } catch (e) {
-        console.log('Error parsing student data:', e);
-      }
-    }
-  };
-
-  const handleLogout = () => {
-    // Clear all auth data
-    localStorage.removeItem('studentToken');
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('studentData');
-    sessionStorage.removeItem('studentToken');
-    sessionStorage.removeItem('studentData');
-    
-    // Redirect to login (you might need to adjust this based on your routing)
-    window.location.href = '/login';
-  };
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -305,7 +316,7 @@ const Complaints = () => {
               <ul className="text-sm text-yellow-300 list-disc pl-5 space-y-1">
                 <li>Your account might not have the correct student role assigned</li>
                 <li>Your authentication token might be corrupted or expired</li>
-                <li>Try logging out and back in using the button above</li>
+                <li>Try logging out and back in using the logout button</li>
                 <li>Contact your administrator if the issue persists</li>
               </ul>
             </div>
@@ -317,13 +328,14 @@ const Complaints = () => {
             </button>
           </div>
         ) : complaints.length === 0 ? (
-          <div className="text-center text-slate-400">
-            No complaints found. Ready to submit your first complaint!
+          <div className="text-center text-slate-400 py-8">
+            <div className="text-lg mb-2">📝 No complaints found</div>
+            <div className="text-sm mb-4">Ready to submit your first complaint!</div>
             <button
               onClick={fetchComplaints}
-              className="ml-4 bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded"
+              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium"
             >
-              Refresh
+              🔄 Refresh
             </button>
           </div>
         ) : filteredComplaints.length === 0 ? (
@@ -355,7 +367,6 @@ const Complaints = () => {
                     }</span>
                     <div>
                       <h4 className="text-white font-medium">{complaint.title}</h4>
-                      <p className="text-slate-400 text-sm">ID: #{complaint.complaint_id}</p>
                     </div>
                   </div>
                   <span className={`px-3 py-1 rounded-full text-sm font-medium text-white ${

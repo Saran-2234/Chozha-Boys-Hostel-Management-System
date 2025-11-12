@@ -6,12 +6,13 @@ import { getRoomInfo } from '../../Common/roomUtils';
 const QuickStats = ({ studentData, setActiveSection }) => {
   const { roomNumber, block, floor } = getRoomInfo(studentData);
   const [messBillData, setMessBillData] = useState(null);
+  const [attendanceData, setAttendanceData] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const API_BASE_URL = 'https://finalbackend1.vercel.app';
 
   useEffect(() => {
-    const fetchMessBill = async () => {
+    const fetchData = async () => {
       if (!studentData) return;
 
       const token = localStorage.getItem('studentToken');
@@ -20,7 +21,8 @@ const QuickStats = ({ studentData, setActiveSection }) => {
       if (!token || !studentId) return;
 
       try {
-        const response = await axios.post(`${API_BASE_URL}/showmessbillbyid1`, {
+        // Fetch mess bill data
+        const messBillResponse = await axios.post(`${API_BASE_URL}/showmessbillbyid1`, {
           student_id: studentId,
         }, {
           headers: {
@@ -30,19 +32,53 @@ const QuickStats = ({ studentData, setActiveSection }) => {
           withCredentials: true,
         });
 
-        if (response.data && response.data.data && response.data.data.length > 0) {
-          // Get the latest bill (assuming sorted by date, take first)
-          const latestBill = response.data.data[0];
+        if (messBillResponse.data && messBillResponse.data.data && messBillResponse.data.data.length > 0) {
+          const latestBill = messBillResponse.data.data[0];
           setMessBillData(latestBill);
         }
+
+        // Fetch attendance data
+        const attendanceResponse = await axios.post(`${API_BASE_URL}/attendance`, {
+          id: studentId,
+          token: token,
+        }, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          withCredentials: true,
+        });
+
+        if (attendanceResponse.data && attendanceResponse.data.success) {
+          const attendanceRecords = Array.isArray(attendanceResponse.data.data)
+            ? attendanceResponse.data.data
+            : [attendanceResponse.data.data];
+
+          // Calculate attendance percentage
+          const totalDays = attendanceRecords.length;
+          const presentDays = attendanceRecords.filter(record => {
+            const status = record.status || record.present;
+            return status === 'present' || status === true || status === 1;
+          }).length;
+
+          const attendancePercentage = totalDays > 0 ? ((presentDays / totalDays) * 100).toFixed(1) : 0;
+
+          setAttendanceData({
+            percentage: attendancePercentage,
+            presentDays: presentDays,
+            totalDays: totalDays,
+            records: attendanceRecords
+          });
+        }
+
       } catch (err) {
-        console.error('Error fetching mess bill:', err);
+        console.error('Error fetching data:', err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchMessBill();
+    fetchData();
   }, [studentData]);
 
   const handleCardClick = (section) => {
@@ -60,7 +96,9 @@ const QuickStats = ({ studentData, setActiveSection }) => {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-slate-400 text-sm font-medium">Attendance</p>
-            <p className="text-2xl font-bold text-white">87.5%</p>
+            <p className="text-2xl font-bold text-white">
+              {loading ? '...' : attendanceData ? `${attendanceData.percentage}%` : '0%'}
+            </p>
           </div>
           <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center">
             <span className="text-xl">✅</span>

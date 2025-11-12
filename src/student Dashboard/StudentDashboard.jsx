@@ -18,24 +18,53 @@ import { useLocation, useNavigate } from 'react-router-dom';
 
 const StudentDashboard = () => {
   const location = useLocation();
-  const studentData = location.state?.studentData || location.state?.data;
+  const navigate = useNavigate();
+
+  // Get student data from location.state (programmatic navigation) or localStorage (direct URL access)
+  const getStudentData = () => {
+    // First try location.state (for programmatic navigation)
+    let studentData = location.state?.studentData || location.state?.data;
+
+    // If not found in location.state, try localStorage (for direct URL access)
+    if (!studentData) {
+      const storedData = localStorage.getItem('userData');
+      if (storedData) {
+        try {
+          studentData = JSON.parse(storedData);
+        } catch (e) {
+          console.error('Error parsing stored user data:', e);
+        }
+      }
+    }
+
+    return studentData;
+  };
+
+  const studentData = getStudentData();
   console.log('Student data:', studentData);
-  
+
   const [activeSection, setActiveSection] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [showLogoutModal, setShowLogoutModal] = useState(false); // Centralized modal state
   const [showRefreshModal, setShowRefreshModal] = useState(false); // Refresh modal state
-  
-  const navigate = useNavigate();
+
+  // Check authentication on component mount
+  useEffect(() => {
+    const token = localStorage.getItem('studentToken') || localStorage.getItem('accessToken') || sessionStorage.getItem('studentToken');
+
+    // If no student data and no token, redirect to login
+    if (!studentData && !token) {
+      console.log('No authentication data found, redirecting to login');
+      navigate('/', { replace: true });
+      return;
+    }
+
+    // If we have a token but no student data, we might need to fetch it
+    // For now, we'll proceed and let components handle missing data gracefully
+  }, [studentData, navigate]);
 
   useEffect(() => {
-    const handleBeforeUnload = (e) => {
-      // No returnValue to avoid native alert; custom modal for keyboard only
-      e.preventDefault();
-      e.returnValue = '';
-    };
-
     const handleKeyDown = (e) => {
       // Detect F5 or Ctrl+R
       if (e.key === 'F5' || (e.ctrlKey && e.key === 'r') || (e.ctrlKey && e.key === 'R')) {
@@ -44,22 +73,10 @@ const StudentDashboard = () => {
       }
     };
 
-    const handleUnload = () => {
-      localStorage.removeItem('studentToken');
-      localStorage.removeItem('studentData');
-      sessionStorage.removeItem('studentToken');
-      sessionStorage.removeItem('studentData');
-      document.cookie = 'token=; path=/; max-age=0';
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
     window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('unload', handleUnload);
 
     return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
       window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('unload', handleUnload);
     };
   }, []);
 

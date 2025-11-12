@@ -8,7 +8,7 @@ const Dashboard = ({ studentData, setActiveSection }) => {
     <div className="content-section">
       <QuickStats studentData={studentData} setActiveSection={setActiveSection} />
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
-        <RecentActivities setActiveSection={setActiveSection} />
+        <RecentActivities setActiveSection={setActiveSection} studentData={studentData} />
         <QuickActions setActiveSection={setActiveSection} />
       </div>
     </div>

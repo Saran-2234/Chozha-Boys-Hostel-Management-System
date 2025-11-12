@@ -29,6 +29,15 @@ const Attendance = () => {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [isMobileDevice, setIsMobileDevice] = useState(() => getIsMobile());
+  const [attendanceData, setAttendanceData] = useState([]);
+  const [todaysRecord, setTodaysRecord] = useState(null);
+  const [attendanceStats, setAttendanceStats] = useState({
+    totalDays: 0,
+    presentDays: 0,
+    absentDays: 0,
+    lateEntries: 0,
+    percentage: 0
+  });
 
   useEffect(() => {
     const handleResize = () => {
@@ -47,6 +56,82 @@ const Attendance = () => {
       }
     };
   }, []);
+
+  useEffect(() => {
+    fetchAttendanceData();
+  }, []);
+
+  const fetchAttendanceData = async () => {
+    try {
+      const token = localStorage.getItem('studentToken') || localStorage.getItem('accessToken');
+      const studentId = localStorage.getItem('studentId');
+
+      if (!token || !studentId) {
+        setError('Authentication required. Please log in again.');
+        return;
+      }
+
+      const response = await axios.post('https://finalbackend1.vercel.app/attendance', {
+        id: studentId,
+        token: token,
+      }, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        withCredentials: true
+      });
+
+      if (response.data && response.data.success) {
+        const records = Array.isArray(response.data.data)
+          ? response.data.data
+          : [response.data.data];
+
+        setAttendanceData(records);
+
+        // Check if attendance is already marked for today
+        const today = new Date().toDateString();
+        const todaysRecord = records.find(record => {
+          const recordDate = new Date(record.date).toDateString();
+          return recordDate === today;
+        });
+
+        if (todaysRecord) {
+          const status = todaysRecord.status || todaysRecord.present;
+          const isPresent = status === 'present' || status === true || status === 1;
+          setAttendanceStatus(isPresent ? 'present' : 'absent');
+          setTodaysRecord(todaysRecord);
+          // Store today's record for time display
+          setAttendanceMarked(true);
+        } else {
+          setAttendanceStatus(null); // Not marked yet
+          setTodaysRecord(null);
+          setAttendanceMarked(false);
+        }
+
+        // Calculate statistics
+        const totalDays = records.length;
+        const presentDays = records.filter(record => {
+          const status = record.status || record.present;
+          return status === 'present' || status === true || status === 1;
+        }).length;
+        const absentDays = totalDays - presentDays;
+        const lateEntries = records.filter(record => record.late === true || record.late === 1).length;
+        const percentage = totalDays > 0 ? ((presentDays / totalDays) * 100).toFixed(1) : 0;
+
+        setAttendanceStats({
+          totalDays,
+          presentDays,
+          absentDays,
+          lateEntries,
+          percentage
+        });
+      }
+    } catch (err) {
+      console.error('Error fetching attendance data:', err);
+      setError('Failed to load attendance data');
+    }
+  };
 
   const markAttendance = async () => {
     if (!isMobileDevice) {
@@ -97,8 +182,15 @@ const Attendance = () => {
           if (response.data.success) {
             setMessage('Attendance marked as present successfully!');
             setAttendanceStatus('present');
+            setAttendanceMarked(true);
+            // Refresh attendance data to update statistics
+            fetchAttendanceData();
           } else {
             setMessage(response.data.message || 'Attendance already marked for today.');
+            // If attendance was already marked, refresh data to show current status
+            if (response.data.message && response.data.message.includes('already marked')) {
+              fetchAttendanceData();
+            }
           }
         } catch (err) {
           if (err.response) {
@@ -166,8 +258,15 @@ const Attendance = () => {
           if (response.data.success) {
             setMessage('Attendance marked as absent successfully!');
             setAttendanceStatus('absent');
+            setAttendanceMarked(true);
+            // Refresh attendance data to update statistics
+            fetchAttendanceData();
           } else {
             setMessage(response.data.message || 'Attendance already marked for today.');
+            // If attendance was already marked, refresh data to show current status
+            if (response.data.message && response.data.message.includes('already marked')) {
+              fetchAttendanceData();
+            }
           }
         } catch (err) {
           if (err.response) {
@@ -232,17 +331,17 @@ const Attendance = () => {
             <svg className="progress-circle w-full h-full" viewBox="0 0 120 120">
               <circle cx="60" cy="60" r="50" stroke="rgba(255,255,255,0.1)" strokeWidth="8" fill="none"/>
               <circle cx="60" cy="60" r="50" stroke="#10b981" strokeWidth="8" fill="none"
-                      strokeDasharray="314" strokeDashoffset="39.25"/>
+                      strokeDasharray="314" strokeDashoffset={314 - (314 * attendanceStats.percentage / 100)}/>
             </svg>
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="text-center">
-                <div className="text-2xl font-bold text-white">87.5%</div>
+                <div className="text-2xl font-bold text-white">{attendanceStats.percentage}%</div>
                 <div className="text-xs text-slate-400">Overall</div>
               </div>
             </div>
           </div>
           <h3 className="text-lg font-semibold text-white mb-2">Attendance Percentage</h3>
-          <p className="text-slate-400 text-sm">175 out of 200 days</p>
+          <p className="text-slate-400 text-sm">{attendanceStats.presentDays} out of {attendanceStats.totalDays} days</p>
         </div>
 
         <div className="glass-card rounded-xl p-6">
@@ -250,19 +349,19 @@ const Attendance = () => {
           <div className="space-y-3">
             <div className="flex justify-between items-center">
               <span className="text-slate-400">Present Days</span>
-              <span className="text-emerald-400 font-semibold">28</span>
+              <span className="text-emerald-400 font-semibold">{attendanceStats.presentDays}</span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-slate-400">Absent Days</span>
-              <span className="text-red-400 font-semibold">2</span>
+              <span className="text-red-400 font-semibold">{attendanceStats.absentDays}</span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-slate-400">Late Entries</span>
-              <span className="text-yellow-400 font-semibold">3</span>
+              <span className="text-yellow-400 font-semibold">{attendanceStats.lateEntries}</span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-slate-400">Total Days</span>
-              <span className="text-white font-semibold">30</span>
+              <span className="text-white font-semibold">{attendanceStats.totalDays}</span>
             </div>
           </div>
         </div>
@@ -276,7 +375,9 @@ const Attendance = () => {
             <p className={`${attendanceStatus === 'present' ? 'text-emerald-400' : attendanceStatus === 'absent' ? 'text-red-400' : 'text-gray-400'} font-semibold mb-2`}>
               {attendanceStatus === 'present' ? 'Present' : attendanceStatus === 'absent' ? 'Absent' : 'Not Marked'}
             </p>
-            <p className="text-slate-400 text-sm">Marked at {attendanceStatus ? new Date().toLocaleTimeString() : '-'}</p>
+            <p className="text-slate-400 text-sm">
+              Marked at {attendanceMarked && todaysRecord ? (todaysRecord.time || new Date(todaysRecord.date).toLocaleTimeString()) : '-'}
+            </p>
             <p className="text-slate-400 text-sm">Status: {attendanceStatus ? 'Confirmed' : 'Pending'}</p>
           </div>
         </div>
@@ -291,47 +392,78 @@ const Attendance = () => {
             <thead>
               <tr className="border-b border-slate-600">
                 <th className="text-left py-3 px-4 text-slate-400 font-medium">Date</th>
-                <th className="text-left py-3 px-4 text-slate-400 font-medium">Self Marked</th>
+                <th className="text-left py-3 px-4 text-slate-400 font-medium">Status</th>
                 <th className="text-left py-3 px-4 text-slate-400 font-medium">Admin Status</th>
                 <th className="text-left py-3 px-4 text-slate-400 font-medium">Time</th>
-                <th className="text-left py-3 px-4 text-slate-400 font-medium">Remarks</th>
               </tr>
             </thead>
             <tbody>
-              {attendanceHistory.map((row, idx) => (
-                <tr key={idx} className="border-b border-slate-700">
-                  <td className="py-3 px-4 text-white">{row.date}</td>
-                  <td className="py-3 px-4"><span className={row.self === 'Present' ? 'status-paid' : 'status-unpaid'}>{row.self}</span></td>
-                  <td className="py-3 px-4"><span className={row.admin === 'Confirmed' ? 'status-paid' : 'status-unpaid'}>{row.admin}</span></td>
-                  <td className="py-3 px-4 text-slate-400">{row.time}</td>
-                  <td className="py-3 px-4 text-slate-400">{row.remarks}</td>
-                </tr>
-              ))}
+              {attendanceData.slice(0, 10).map((record, idx) => {
+                const status = record.status || record.present;
+                const isPresent = status === 'present' || status === true || status === 1;
+                const statusText = isPresent ? 'Present' : 'Absent';
+                const adminStatus = record.admin_status || record.confirmed || 'Pending';
+
+                return (
+                  <tr key={idx} className="border-b border-slate-700">
+                    <td className="py-3 px-4 text-white">
+                      {record.date ? new Date(record.date).toLocaleDateString() : 'N/A'}
+                    </td>
+                    <td className="py-3 px-4">
+                      <span className={isPresent ? 'text-emerald-400 font-semibold' : 'text-red-400 font-semibold'}>
+                        {statusText}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4">
+                      <span className={adminStatus === 'Confirmed' || adminStatus === true ? 'text-emerald-400 font-semibold' : 'text-yellow-400 font-semibold'}>
+                        {adminStatus === 'Confirmed' || adminStatus === true ? 'Confirmed' : 'Pending'}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 text-slate-400">
+                      {record.time ? record.time : (record.date ? new Date(record.date).toLocaleTimeString() : 'N/A')}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
 
         {/* Mobile stacked list */}
         <div className="md:hidden space-y-4">
-          {attendanceHistory.map((row, idx) => (
-            <div key={idx} className="p-4 bg-slate-900 bg-opacity-20 rounded-lg">
-              <div className="flex items-center justify-between mb-2">
-                <div className="text-white font-medium">{row.date}</div>
-                <div className="text-sm text-slate-400">{row.time}</div>
-              </div>
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-slate-400 text-sm">Self</div>
-                  <div className={row.self === 'Present' ? 'text-emerald-400 font-semibold' : 'text-red-400 font-semibold'}>{row.self}</div>
+          {attendanceData.slice(0, 10).map((record, idx) => {
+            const status = record.status || record.present;
+            const isPresent = status === 'present' || status === true || status === 1;
+            const statusText = isPresent ? 'Present' : 'Absent';
+            const adminStatus = record.admin_status || record.confirmed || 'Pending';
+
+            return (
+              <div key={idx} className="p-4 bg-slate-900 bg-opacity-20 rounded-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="text-white font-medium">
+                    {record.date ? new Date(record.date).toLocaleDateString() : 'N/A'}
+                  </div>
+                  <div className="text-sm text-slate-400">
+                    {record.time ? record.time : (record.date ? new Date(record.date).toLocaleTimeString() : 'N/A')}
+                  </div>
                 </div>
-                <div>
-                  <div className="text-slate-400 text-sm">Admin</div>
-                  <div className={row.admin === 'Confirmed' ? 'text-emerald-400 font-semibold' : 'text-red-400 font-semibold'}>{row.admin}</div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-slate-400 text-sm">Status</div>
+                    <div className={isPresent ? 'text-emerald-400 font-semibold' : 'text-red-400 font-semibold'}>
+                      {statusText}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-slate-400 text-sm">Admin</div>
+                    <div className={adminStatus === 'Confirmed' || adminStatus === true ? 'text-emerald-400 font-semibold' : 'text-yellow-400 font-semibold'}>
+                      {adminStatus === 'Confirmed' || adminStatus === true ? 'Confirmed' : 'Pending'}
+                    </div>
+                  </div>
                 </div>
               </div>
-              {row.remarks && <div className="text-slate-400 text-sm mt-2">Remarks: {row.remarks}</div>}
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>

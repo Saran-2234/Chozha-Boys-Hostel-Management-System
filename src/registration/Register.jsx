@@ -593,9 +593,9 @@ function Register({ onClose, onOpenLogin }) {
       {/* Cancel confirmation dialog */}
       {showCancelConfirm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[70]">
-          <div className="bg-white dark:bg-slate-900 rounded-lg p-6 w-[90%] max-w-md">
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-3">Cancel registration?</h3>
-            <p className="text-sm text-slate-700 dark:text-slate-300 mb-4">Your registration is not complete. Are you sure you want to cancel?</p>
+          <div className="bg-white rounded-lg p-6 w-[90%] max-w-md">
+            <h3 className="text-lg font-semibold text-slate-900 mb-3">Cancel registration?</h3>
+            <p className="text-sm text-slate-700 mb-4">Your registration is not complete. Are you sure you want to cancel?</p>
             <div className="flex justify-end gap-3">
               <button className="px-4 py-2 rounded-md bg-gray-200 text-gray-800" onClick={() => setShowCancelConfirm(false)}>Continue registration</button>
               <button className="px-4 py-2 rounded-md bg-red-600 text-white" onClick={() => { setShowCancelConfirm(false); onClose(); }}>Yes, cancel</button>
@@ -607,9 +607,9 @@ function Register({ onClose, onOpenLogin }) {
       {/* Success popup shown after registration */}
       {showSuccessModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[80]">
-          <div className="bg-white dark:bg-slate-900 rounded-lg p-6 w-[90%] max-w-md text-center">
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-3">Registration submitted</h3>
-            <p className="text-sm text-slate-700 dark:text-slate-300 mb-6">You have registered successfully. Please wait until the warden confirms your registration. Once approved you will be able to login.</p>
+          <div className="bg-white rounded-lg p-6 w-[90%] max-w-md text-center">
+            <h3 className="text-lg font-semibold text-slate-900 mb-3">Registration submitted</h3>
+            <p className="text-sm text-slate-700 mb-6">You have registered successfully. Please wait until the warden confirms your registration. Once approved you will be able to login.</p>
             <button
               className="px-5 py-2 rounded-md bg-emerald-600 text-white"
               onClick={() => {

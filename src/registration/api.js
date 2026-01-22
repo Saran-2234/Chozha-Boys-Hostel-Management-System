@@ -96,25 +96,42 @@ export const registerUser = async (payload) => {
 };
 
 // Fetch Students
-export const fetchStudents = async () => {
+export const fetchStudents = async ({ department, academic_year, status, page = 1, limit = 10 } = {}) => {
   try {
     const token = localStorage.getItem("accessToken");
+
+    // Construct payload with only defined values to avoid sending undefined
+    const payload = { token, page, limit };
+    if (department) payload.department = department;
+    if (academic_year) payload.academic_year = academic_year;
+    if (status !== undefined) payload.status = status;
+
     const response = await api.post(
       "/admin/fetchstudents",
-      { token }, // ✅ send in body
-      { headers: { Authorization: `Bearer ${token}` } } // ✅ send in headers
+      payload,
+      { headers: { Authorization: `Bearer ${token}` } }
     );
 
     const data = response.data;
-    if (data.success && Array.isArray(data.data)) return data.data;
-    if (Array.isArray(data)) return data;
-    if (data.students) return data.students;
-    if (data.studentsdata) return data.studentsdata;
+    // The new backend returns { success: true, students: [...] }
+    if (data.success) {
+      return {
+        students: data.students || [],
+        fetched: data.fetched,
+        hasMore: data.hasMore,
+        page: data.page
+      };
+    }
 
-    return [];
+    // Fallback for older responses or other formats
+    if (Array.isArray(data.data)) return { students: data.data };
+    if (Array.isArray(data)) return { students: data };
+    if (data.students) return { students: data.students };
+
+    return { students: [] };
   } catch (err) {
     console.error("Error fetching students:", err);
-    return [];
+    throw err; // Re-throw so the component can handle the error (e.g. 400 Bad Request)
   }
 };
 

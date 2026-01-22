@@ -22,7 +22,7 @@ const AttendanceTable = ({ selectedDate, selectedClass }) => {
 
       try {
         const response = await axios.post(
-          'https://finalbackend1.vercel.app/showattends',
+          'https://finalbackend1.vercel.app/admin/showattends',
           {
             accessToken: token,
             date: selectedDate,
@@ -30,10 +30,10 @@ const AttendanceTable = ({ selectedDate, selectedClass }) => {
           },
           {
             headers:
-              {
-                Authorization: `Bearer ${token}`,
-                'Content-Type': 'application/json',
-              },
+            {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
             withCredentials: true,
           }
         );
@@ -117,7 +117,7 @@ const AttendanceTable = ({ selectedDate, selectedClass }) => {
     try {
       // Update each attendance record
       for (const record of attendanceData) {
-        await axios.post('https://finalbackend1.vercel.app/changeattendanceforadmin', {
+        await axios.post('https://finalbackend1.vercel.app/admin/changeattendanceforadmin', {
           attendance_id: record.id ?? '',
           student_id: record.student?.id ?? record.student_id ?? null,
           update: record.status,

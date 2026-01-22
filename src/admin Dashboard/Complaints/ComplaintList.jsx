@@ -1,91 +1,67 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { useState } from 'react';
 import Button from '../Common/Button';
 import Modal from '../Common/Modal';
-import { fetchStudents } from '../../registration/api';
+import { resolveComplaint, changeComplaintStatus } from '../../registration/api';
 
-const ComplaintList = ({ isDarkMode, searchTerm, filter }) => {
+const ComplaintList = ({ isDarkMode, searchTerm, filter, complaints = [], onRefresh }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
-
-  const [complaints, setComplaints] = useState(() => {
-    // Load complaints from localStorage on initial render
-    const storedComplaints = localStorage.getItem('complaints');
-    return storedComplaints ? JSON.parse(storedComplaints) : [];
-  });
-  const [students, setStudents] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [selectedComplaint, setSelectedComplaint] = useState(null);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const token = localStorage.getItem('accessToken') || localStorage.getItem('studentToken');
-        if (!token) {
-          throw new Error('No access token found. Please login again.');
-        }
+  // Filter complaints based on search term and filter prop
+  const filteredComplaints = complaints.filter((complaint) => {
+    const matchesSearch =
+      complaint.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      complaint.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      complaint.description.toLowerCase().includes(searchTerm.toLowerCase());
 
-        // Fetch complaints
-        const complaintsResponse = await axios.post(
-          'https://finalbackend1.vercel.app/fetchcomplaintforadmins',
-          { token },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/json',
-            },
-          }
-        );
+    // Normalize status for comparison
+    const status = complaint.status.toLowerCase();
+    const filterLower = filter.toLowerCase();
 
-        // Fetch students
-        const studentsData = await fetchStudents();
+    const matchesFilter =
+      filter === 'all' ||
+      status === filterLower ||
+      (filterLower === 'pending' && (status === 'open' || status === 'pending')) ||
+      complaint.priority.toLowerCase() === filterLower;
 
-        if (complaintsResponse.data.success) {
-          const mappedComplaints = complaintsResponse.data.data.map((item, index) => {
-            const student = studentsData.find(s => s.id === item.student_id);
-            return {
-              id: item.id,
-              studentName: student ? student.name : `Student ID: ${item.student_id}`,
-              room: student ? student.room_number : 'N/A',
-              title: item.title,
-              description: item.description,
-              category: item.category,
-              priority: item.priority,
-              status: item.status,
-              dateSubmitted: item.created_at,
-              lastUpdated: item.created_at,
-              key: index, // Added key prop
-            };
-          });
-          setComplaints(mappedComplaints);
-        } else {
-          setComplaints([]);
-          setError(complaintsResponse.data.message || 'Failed to fetch complaints');
-        }
-      } catch (err) {
-        setError(err.message || 'Error fetching complaints');
-      } finally {
-        setLoading(false);
+    return matchesSearch && matchesFilter;
+  });
+
+  const handleUpdateStatus = async (complaintId, newStatus) => {
+    try {
+      const response = await changeComplaintStatus(complaintId, newStatus);
+      if (response && response.success) {
+        alert(response.message || 'Updated successfully');
+        if (onRefresh) onRefresh();
+      } else {
+        alert(response?.message || 'Failed to update status');
       }
-    };
+    } catch (err) {
+      console.error('Error updating complaint status:', err);
+      alert(err.message || 'Internal Server Error');
+    }
+  };
 
-    fetchData();
-  }, []);
+  const handleResolve = async (complaintId) => {
+    try {
+      const response = await resolveComplaint(complaintId);
+      if (response && response.success) {
+        alert('Complaint resolved!');
+        if (onRefresh) onRefresh();
+      } else {
+        alert(response.message || 'Failed to resolve complaint');
+      }
+    } catch (error) {
+      console.error('Error resolving complaint:', error);
+      alert(error.message || 'Internal Server Error');
+    }
+  };
 
   const handleRegisterComplaint = (newComplaint) => {
-    // Update local state
-    setComplaints((prevComplaints) => {
-      const updatedComplaints = [newComplaint, ...prevComplaints];
-
-      // Update localStorage
-      localStorage.setItem('complaints', JSON.stringify(updatedComplaints));
-
-      return updatedComplaints;
-    });
+    // This logic seems misplaced or unused in current flow, leaving it empty or logging
+    console.log("Register complaint called (not fully implemented in list view):", newComplaint);
   };
 
   const handleViewComplaint = (complaint) => {
@@ -96,80 +72,6 @@ const ComplaintList = ({ isDarkMode, searchTerm, filter }) => {
   const handleCloseModal = () => {
     setIsViewModalOpen(false);
     setSelectedComplaint(null);
-  };
-
-  const handleResolve = async (complaintId) => {
-    try {
-      const accessToken = localStorage.getItem('accessToken');
-      const payload = {
-        complaint_id: complaintId,
-        token: accessToken || '',
-      };
-      const response = await axios.post(
-        'https://finalbackend1.vercel.app/resolvecomplaints',
-        payload,
-        { withCredentials: true }
-      );
-      if (response.data.success) {
-        setComplaints((prev) => {
-          const updatedComplaints = prev.map((c) =>
-            c.id === complaintId ? { ...c, status: 'resolved' } : c
-          );
-          localStorage.setItem('complaints', JSON.stringify(updatedComplaints));
-          return updatedComplaints;
-        });
-        alert('Complaint resolved!');
-      } else {
-        alert(response.data.message || 'Failed to resolve complaint');
-      }
-    } catch (error) {
-      console.error('Error resolving complaint:', error);
-      alert(error.response?.data?.message || error.message || 'Internal Server Error');
-    }
-  };
-
-  const handleUpdateStatus = (complaintId, newStatus) => {
-    (async () => {
-      try {
-        const accessToken = localStorage.getItem('accessToken');
-        const payload = {
-          complaint_id: String(complaintId),
-          status: newStatus,
-        };
-
-        const headers = {
-          'Content-Type': 'application/json',
-        };
-        if (accessToken) headers['Authorization'] = `Bearer ${accessToken}`;
-
-        const resp = await axios.post(
-          'https://finalbackend1.vercel.app/complaintstatuschangeforadmin',
-          accessToken ? payload : { ...payload, token: '' },
-          { headers }
-        );
-
-        if (resp && resp.data && resp.data.success) {
-          setComplaints((prev) => {
-            const updatedComplaints = prev.map((c) =>
-              c.id === complaintId ? { ...c, status: resp.data.status || newStatus } : c
-            );
-
-            // Update localStorage
-            localStorage.setItem('complaints', JSON.stringify(updatedComplaints));
-
-            return updatedComplaints;
-          });
-          alert(resp.data.message || 'Updated successfully');
-        } else {
-          const message = resp?.data?.message || resp?.data?.error || 'Failed to update status';
-          alert(message);
-        }
-      } catch (err) {
-        console.error('Error updating complaint status:', err);
-        const msg = err?.response?.data?.message || err?.message || 'Internal Server Error';
-        alert(msg);
-      }
-    })();
   };
 
   const getStatusColor = (status) => {
@@ -198,17 +100,7 @@ const ComplaintList = ({ isDarkMode, searchTerm, filter }) => {
     }
   };
 
-  const filteredComplaints = complaints.filter((complaint) => {
-    const matchesSearch =
-      complaint.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      complaint.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      complaint.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter =
-      filter === 'all' ||
-      complaint.status.toLowerCase().replace(' ', '-') === filter ||
-      complaint.priority.toLowerCase() === filter;
-    return matchesSearch && matchesFilter;
-  });
+
 
   const totalPages = Math.ceil(filteredComplaints.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;

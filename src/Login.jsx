@@ -65,7 +65,7 @@ function Login({ onClose, onOpenRegister, loginType }) {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    
+
     // Custom validation instead of HTML5 validation
     if (!validateForm()) {
       return;
@@ -81,7 +81,7 @@ function Login({ onClose, onOpenRegister, loginType }) {
         userType: loginType // Add this if your backend distinguishes between student/admin
       };
 
-      const endpoint = loginType === "admin" ? "adminslogin" : "studentslogin";
+      const endpoint = loginType === "admin" ? "admin/adminslogin" : "students/studentslogin";
 
       const response = await axios.post(
         `https://finalbackend1.vercel.app/${endpoint}`,
@@ -315,8 +315,8 @@ function Login({ onClose, onOpenRegister, loginType }) {
                 type="submit"
                 disabled={isLoading}
                 className={`w-full text-white py-2.5 sm:py-3 rounded-lg font-semibold text-sm sm:text-base transition-all ${isLoading
-                    ? 'bg-blue-600 cursor-not-allowed opacity-75'
-                    : 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700'
+                  ? 'bg-blue-600 cursor-not-allowed opacity-75'
+                  : 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700'
                   }`}
               >
                 {isLoading ? (

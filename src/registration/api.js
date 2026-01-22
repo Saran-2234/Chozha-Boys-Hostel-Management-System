@@ -18,7 +18,7 @@ export const sendOTP = async (email) => {
   if (!email) return { success: false, message: "Email is required" };
 
   try {
-    const { data: emailPushData } = await api.post("emailpush", { email });
+    const { data: emailPushData } = await api.post("students/emailpush", { email });
 
     if (!emailPushData?.success) {
       return { success: false, message: emailPushData?.message || "Unable to start verification" };
@@ -30,7 +30,7 @@ export const sendOTP = async (email) => {
       return { success: false, message: "Verification token missing" };
     }
 
-    const { data: sendCodeData } = await api.post("sendcode", { email, token: emailToken });
+    const { data: sendCodeData } = await api.post("students/sendcode", { email, token: emailToken });
 
     if (!sendCodeData?.success) {
       return { success: false, message: sendCodeData?.message || "Unable to send verification code" };
@@ -55,7 +55,7 @@ export const verifyOTP = async (email, code, token) => {
   if (!email || !code || !token) return { success: false, message: "Email, code, and token are required" };
 
   try {
-    const { data } = await api.post("emailverify", { email, code, token });
+    const { data } = await api.post("students/emailverify", { email, code, token });
 
     if (!data?.success) {
       return { success: false, message: data?.message || "OTP verification failed" };
@@ -78,7 +78,7 @@ export const registerUser = async (payload) => {
   }
 
   try {
-    const { data } = await api.post("register", payload);
+    const { data } = await api.post("students/register", payload);
 
     if (!data?.success) {
       return { success: false, message: data?.message || "Registration failed" };
@@ -100,7 +100,7 @@ export const fetchStudents = async () => {
   try {
     const token = localStorage.getItem("accessToken");
     const response = await api.post(
-      "/fetchstudents",
+      "/admin/fetchstudents",
       { token }, // ✅ send in body
       { headers: { Authorization: `Bearer ${token}` } } // ✅ send in headers
     );
@@ -131,7 +131,7 @@ export const approveStudent = async (registrationNumber) => {
     }
 
     const response = await api.post(
-      "/approve",
+      "/admin/approve",
       { registerno: registrationNumber },
       { headers: { Authorization: `Bearer ${token}` } }
     );
@@ -148,7 +148,7 @@ export const addDepartment = async (departmentName) => {
   try {
     const token = localStorage.getItem("accessToken");
     const response = await api.post(
-      "/adddepartments",
+      "/admin/adddepartments",
       { department: departmentName, token }, // ✅ token in body
       { headers: { Authorization: `Bearer ${token}` } } // ✅ token in headers
     );
@@ -164,7 +164,7 @@ export const addDepartment = async (departmentName) => {
 export const fetchDepartments = async () => {
   try {
     console.log("Making API call to fetch departments...");
-    const response = await api.get("/fetchdepartments");
+    const response = await api.get("/students/fetchdepartments");
     console.log("API Response:", response);
     console.log("Response data:", response.data);
 
@@ -198,7 +198,7 @@ export const editDepartment = async (oldDepartment, newDepartment) => {
   try {
     const token = localStorage.getItem("accessToken");
     const response = await api.put(
-      "/editdepartment",
+      "/admin/editdepartment",
       { oldDepartment, newDepartment, token },
       { headers: { Authorization: `Bearer ${token}` } }
     );
@@ -219,7 +219,7 @@ export const deleteDepartment = async (departmentId) => {
     }
 
     const response = await api.post(
-      "deletedepartment",
+      "/admin/deletedepartment",
       { department_id: departmentId, token },
       { headers: { Authorization: `Bearer ${token}` } }
     );
@@ -252,7 +252,7 @@ export const rejectStudent = async (registrationNumber, reason) => {
     }
 
     const response = await api.post(
-      "/adminreject",
+      "/admin/adminreject",
       { registerno: registrationNumber, reason },
       { headers: { Authorization: `Bearer ${authToken}` } }
     );
@@ -273,7 +273,7 @@ export const editStudentDetails = async (studentId, studentData) => {
     }
 
     const response = await api.put(
-      "/editstudentsdetails",
+      "/admin/editstudentsdetails",
       { id: studentId, token: authToken, ...studentData },
       { headers: { Authorization: `Bearer ${authToken}` }, withCredentials: true }
     );
@@ -299,7 +299,7 @@ export const showAttends = async (filters = {}) => {
     }
 
     const response = await api.post(
-      "/showattends",
+      "/admin/showattends",
       {
         accessToken, // required
         registration_number: filters.registration_number,
@@ -388,7 +388,7 @@ export const promoteStudents = async (email, isdeletefinalyear) => {
     }
 
     const response = await axios.post(
-      "https://finalbackend1.vercel.app/promotion",
+      "https://finalbackend1.vercel.app/admin/promotion",
       {
         email,
         isdeletefinalyear,
@@ -407,5 +407,69 @@ export const promoteStudents = async (email, isdeletefinalyear) => {
   } catch (error) {
     console.error("Error calling promotion API:", error.response?.data || error.message);
     return error.response?.data || { success: false, error: "Unknown error" };
+  }
+};
+
+// Fetch Complaints for Admin
+export const fetchComplaintsForAdmin = async (filters = {}) => {
+  try {
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      throw new Error("No access token found");
+    }
+
+    const response = await api.post(
+      "/admin/fetchcomplaintforadmins",
+      { token, ...filters },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+
+    if (response.data.success) {
+      return response.data;
+    } else {
+      throw new Error(response.data.message || "Failed to fetch complaints");
+    }
+  } catch (error) {
+    console.error("Error fetching complaints:", error);
+    throw error;
+  }
+};
+
+// Resolve Complaint
+export const resolveComplaint = async (complaintId) => {
+  try {
+    const token = localStorage.getItem("accessToken");
+    if (!token) throw new Error("No access token found");
+
+    const response = await api.post(
+      "/admin/resolvecomplaints",
+      { complaint_id: complaintId, token },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Error resolving complaint:", error);
+    throw error;
+  }
+};
+
+// Change Complaint Status
+export const changeComplaintStatus = async (complaintId, status) => {
+  try {
+    const token = localStorage.getItem("accessToken");
+    if (!token) throw new Error("No access token found");
+
+    // The backend expects key 'status'
+    const response = await api.post(
+      "/admin/complaintstatuschangeforadmin",
+      { complaint_id: String(complaintId), status, token },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Error updating complaint status:", error);
+    throw error;
   }
 };

@@ -27,7 +27,7 @@ const MessBillsDetail = () => {
     setError('');
     try {
       const token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
-      const response = await fetch('https://finalbackend1.vercel.app/getmessbillstatus', {
+      const response = await fetch('https://finalbackend1.vercel.app/admin/getmessbillstatus', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -91,7 +91,7 @@ const MessBillsDetail = () => {
     try {
       const monthYear = month.title; // Assuming month.title is in "MM-YYYY" format
       const token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
-      const response = await fetch('https://finalbackend1.vercel.app/showmessbilltoall', {
+      const response = await fetch('https://finalbackend1.vercel.app/admin/showmessbilltoall', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -182,20 +182,20 @@ const MessBillsDetail = () => {
                   <div className="month-title">{month.title}</div>
                   <div className="month-date">{month.date}</div>
                 </div>
-                <div style={{textAlign: 'right'}}>
-                  <div style={{fontSize: '0.9rem', opacity: 0.9}}>Total Bills: {month.totalBills}</div>
-                  <div style={{fontSize: '0.9rem', opacity: 0.9}}>Total Amount: ₹{month.totalAmount.toFixed(2)}</div>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>Total Bills: {month.totalBills}</div>
+                  <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>Total Amount: ₹{month.totalAmount.toFixed(2)}</div>
                   {statusData && (
-                    <div style={{fontSize: '0.9rem', opacity: 0.9}}>Total Students: {statusData.total_students}</div>
+                    <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>Total Students: {statusData.total_students}</div>
                   )}
                 </div>
               </div>
 
-              <div className="actions-section" style={{display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '20px'}}>
+              <div className="actions-section" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '20px' }}>
                 {loading ? (
                   <div>Loading status...</div>
                 ) : error ? (
-                  <div style={{color: 'red'}}>{error}</div>
+                  <div style={{ color: 'red' }}>{error}</div>
                 ) : statusData ? (
                   <>
                     <div className="student-cards">
@@ -280,10 +280,10 @@ const MessBillsDetail = () => {
                         <tr key={i}>
                           <td>{cost.label}</td>
                           <td className="cost-value">{typeof cost.value === 'number' && cost.value > 100 ? `₹${cost.value.toFixed(2)}` : cost.value}</td>
-                          {month.costs[i+1] && (
+                          {month.costs[i + 1] && (
                             <>
-                              <td>{month.costs[i+1].label}</td>
-                              <td className="cost-value">{typeof month.costs[i+1].value === 'number' && month.costs[i+1].value > 100 ? `₹${month.costs[i+1].value.toFixed(2)}` : month.costs[i+1].value}</td>
+                              <td>{month.costs[i + 1].label}</td>
+                              <td className="cost-value">{typeof month.costs[i + 1].value === 'number' && month.costs[i + 1].value > 100 ? `₹${month.costs[i + 1].value.toFixed(2)}` : month.costs[i + 1].value}</td>
                             </>
                           )}
                         </tr>
@@ -300,10 +300,10 @@ const MessBillsDetail = () => {
                           <span className="cost-label">{cost.label}:</span>
                           <span className="cost-value">{typeof cost.value === 'number' && cost.value > 100 ? `₹${cost.value.toFixed(2)}` : cost.value}</span>
                         </div>
-                        {month.costs[i+1] && (
+                        {month.costs[i + 1] && (
                           <div className="cost-item">
-                            <span className="cost-label">{month.costs[i+1].label}:</span>
-                            <span className="cost-value">{typeof month.costs[i+1].value === 'number' && month.costs[i+1].value > 100 ? `₹${month.costs[i+1].value.toFixed(2)}` : month.costs[i+1].value}</span>
+                            <span className="cost-label">{month.costs[i + 1].label}:</span>
+                            <span className="cost-value">{typeof month.costs[i + 1].value === 'number' && month.costs[i + 1].value > 100 ? `₹${month.costs[i + 1].value.toFixed(2)}` : month.costs[i + 1].value}</span>
                           </div>
                         )}
                       </div>

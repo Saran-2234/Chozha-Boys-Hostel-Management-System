@@ -42,7 +42,7 @@ const MessBillIndividual = () => {
 
   const fetchDepartments = async () => {
     try {
-      const response = await fetch('https://finalbackend1.vercel.app/fetchdepartments');
+      const response = await fetch('https://finalbackend1.vercel.app/students/fetchdepartments');
       const data = await response.json();
       if (data.success && Array.isArray(data.result)) {
         setDepartments(data.result);
@@ -69,7 +69,7 @@ const MessBillIndividual = () => {
           try {
             // This is a simplified check - in reality you'd need an API endpoint
             // that checks if there are verified bills for this department and year
-            const response = await fetch('https://finalbackend1.vercel.app/check-verification-status', {
+            const response = await fetch('https://finalbackend1.vercel.app/admin/check-verification-status', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -119,7 +119,7 @@ const MessBillIndividual = () => {
     return (
       <div className="light-mode flex min-h-screen text-gray-900">
         <Sidebar
-          setActiveSection={() => {}}
+          setActiveSection={() => { }}
           activeSection="messbills"
           onLogout={handleLogout}
           sidebarOpen={sidebarOpen}
@@ -145,7 +145,7 @@ const MessBillIndividual = () => {
   return (
     <div className="light-mode flex min-h-screen text-gray-900">
       <Sidebar
-        setActiveSection={() => {}}
+        setActiveSection={() => { }}
         activeSection="messbills"
         onLogout={handleLogout}
         sidebarOpen={sidebarOpen}
@@ -248,46 +248,42 @@ const MessBillIndividual = () => {
                     {statusData
                       .filter(row => departmentFilter === 'all' || row.department === departmentFilter)
                       .map((row, index) => (
-                      <tr key={index} className="hover:bg-gray-50">
-                        <td className="border border-gray-300 px-4 py-2 font-medium">{row.department}</td>
-                        <td className="border border-gray-300 px-4 py-2 text-center text-lg">
-                          <button
-                            className={`px-2 py-1 rounded text-white text-sm ${
-                              row['1st year'] === '✓' ? 'bg-green-500' : 'bg-red-500'
-                            }`}
-                          >
-                            {row['1st year'] === '✓' ? 'Verified' : 'Pending'}
-                          </button>
-                        </td>
-                        <td className="border border-gray-300 px-4 py-2 text-center text-lg">
-                          <button
-                            className={`px-2 py-1 rounded text-white text-sm ${
-                              row['2nd year'] === '✓' ? 'bg-green-500' : 'bg-red-500'
-                            }`}
-                          >
-                            {row['2nd year'] === '✓' ? 'Verified' : 'Pending'}
-                          </button>
-                        </td>
-                        <td className="border border-gray-300 px-4 py-2 text-center text-lg">
-                          <button
-                            className={`px-2 py-1 rounded text-white text-sm ${
-                              row['3rd year'] === '✓' ? 'bg-green-500' : 'bg-red-500'
-                            }`}
-                          >
-                            {row['3rd year'] === '✓' ? 'Verified' : 'Pending'}
-                          </button>
-                        </td>
-                        <td className="border border-gray-300 px-4 py-2 text-center text-lg">
-                          <button
-                            className={`px-2 py-1 rounded text-white text-sm ${
-                              row['4th year'] === '✓' ? 'bg-green-500' : 'bg-red-500'
-                            }`}
-                          >
-                            {row['4th year'] === '✓' ? 'Verified' : 'Pending'}
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
+                        <tr key={index} className="hover:bg-gray-50">
+                          <td className="border border-gray-300 px-4 py-2 font-medium">{row.department}</td>
+                          <td className="border border-gray-300 px-4 py-2 text-center text-lg">
+                            <button
+                              className={`px-2 py-1 rounded text-white text-sm ${row['1st year'] === '✓' ? 'bg-green-500' : 'bg-red-500'
+                                }`}
+                            >
+                              {row['1st year'] === '✓' ? 'Verified' : 'Pending'}
+                            </button>
+                          </td>
+                          <td className="border border-gray-300 px-4 py-2 text-center text-lg">
+                            <button
+                              className={`px-2 py-1 rounded text-white text-sm ${row['2nd year'] === '✓' ? 'bg-green-500' : 'bg-red-500'
+                                }`}
+                            >
+                              {row['2nd year'] === '✓' ? 'Verified' : 'Pending'}
+                            </button>
+                          </td>
+                          <td className="border border-gray-300 px-4 py-2 text-center text-lg">
+                            <button
+                              className={`px-2 py-1 rounded text-white text-sm ${row['3rd year'] === '✓' ? 'bg-green-500' : 'bg-red-500'
+                                }`}
+                            >
+                              {row['3rd year'] === '✓' ? 'Verified' : 'Pending'}
+                            </button>
+                          </td>
+                          <td className="border border-gray-300 px-4 py-2 text-center text-lg">
+                            <button
+                              className={`px-2 py-1 rounded text-white text-sm ${row['4th year'] === '✓' ? 'bg-green-500' : 'bg-red-500'
+                                }`}
+                            >
+                              {row['4th year'] === '✓' ? 'Verified' : 'Pending'}
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
                   </tbody>
                 </table>
               </div>

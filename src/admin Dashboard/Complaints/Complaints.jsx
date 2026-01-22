@@ -1,35 +1,82 @@
-import axios from 'axios';
 import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardContent } from '../Common/Card';
 import Button from '../Common/Button';
 import ComplaintList from './ComplaintList';
+import { fetchComplaintsForAdmin, fetchStudents } from '../../registration/api';
 
 const Complaints = ({ isDarkMode }) => {
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [complaints, setComplaints] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [stats, setStats] = useState({
+    open: 0,
+    inProgress: 0,
+    resolved: 0,
+    total: 0
+  });
 
-  const fetchComplaints = async (token, filters) => {
+  const loadData = async () => {
+    setLoading(true);
+    setError(null);
     try {
-      const response = await axios.post(
-        'https://finalbackend1.vercel.app/fetchcomplaintforadmins',
-        { token, ...filters },
-        { withCredentials: true }
-      );
-      setComplaints(response.data.data);
+      // Fetch both complaints and students
+      const [complaintsData, studentsData] = await Promise.all([
+        fetchComplaintsForAdmin({ status: 'all' }), // Fetch all initially so we can filter locally or calculate stats
+        fetchStudents()
+      ]);
+
+      const rawComplaints = complaintsData.data || [];
+      const students = studentsData || [];
+
+      // Map complaints to include student details
+      const enrichedComplaints = rawComplaints.map((item, index) => {
+        const student = students.find(s => s.id === item.student_id);
+        return {
+          id: item.id,
+          studentName: student ? student.name : `Student ID: ${item.student_id}`,
+          room: student ? student.room_number : 'N/A',
+          title: item.title,
+          description: item.description,
+          category: item.category,
+          priority: item.priority || 'Normal', // Default if missing
+          status: item.status || 'Pending',
+          dateSubmitted: item.created_at,
+          lastUpdated: item.created_at, // or updated_at if available
+          student_id: item.student_id,
+          key: index,
+        };
+      });
+
+      // Calculate stats
+      const newStats = {
+        open: enrichedComplaints.filter(c => c.status.toLowerCase() === 'pending' || c.status.toLowerCase() === 'open').length,
+        inProgress: enrichedComplaints.filter(c => c.status.toLowerCase() === 'in progress').length,
+        resolved: enrichedComplaints.filter(c => c.status.toLowerCase() === 'resolved').length,
+        total: enrichedComplaints.length
+      };
+
+      setStats(newStats);
+      setComplaints(enrichedComplaints);
     } catch (err) {
-      setError(err.response?.data || 'Error fetching complaints');
+      console.error(err);
+      setError(err.message || 'Error loading data');
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    const token = 'jwt_access_token_here'; // Replace with actual token retrieval logic
-    fetchComplaints(token, { status: filter });
-  }, [filter]);
+    loadData();
+  }, []);
 
   const handleNewComplaint = () => {
     console.log('New complaint clicked');
+  };
+
+  const refreshData = () => {
+    loadData();
   };
 
   return (
@@ -38,11 +85,12 @@ const Complaints = ({ isDarkMode }) => {
         <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
           Complaint Management
         </h2>
-        <Button onClick={handleNewComplaint} variant="primary" isDarkMode={isDarkMode}>
+        {/* <Button onClick={handleNewComplaint} variant="primary" isDarkMode={isDarkMode}>
           New Complaint
-        </Button>
+        </Button> */}
       </div>
 
+      {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         <Card isDarkMode={isDarkMode}>
           <CardContent>
@@ -53,8 +101,8 @@ const Complaints = ({ isDarkMode }) => {
                 </svg>
               </div>
               <div className="ml-4">
-                <p className={`text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Open</p>
-                <p className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>12</p>
+                <p className={`text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Open / Pending</p>
+                <p className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{stats.open}</p>
               </div>
             </div>
           </CardContent>
@@ -70,7 +118,7 @@ const Complaints = ({ isDarkMode }) => {
               </div>
               <div className="ml-4">
                 <p className={`text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>In Progress</p>
-                <p className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>8</p>
+                <p className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{stats.inProgress}</p>
               </div>
             </div>
           </CardContent>
@@ -86,7 +134,7 @@ const Complaints = ({ isDarkMode }) => {
               </div>
               <div className="ml-4">
                 <p className={`text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Resolved</p>
-                <p className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>45</p>
+                <p className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{stats.resolved}</p>
               </div>
             </div>
           </CardContent>
@@ -102,7 +150,7 @@ const Complaints = ({ isDarkMode }) => {
               </div>
               <div className="ml-4">
                 <p className={`text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Total</p>
-                <p className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>65</p>
+                <p className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{stats.total}</p>
               </div>
             </div>
           </CardContent>
@@ -124,24 +172,22 @@ const Complaints = ({ isDarkMode }) => {
                 placeholder="Search complaints..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className={`px-3 py-2 border rounded-md text-sm ${
-                  isDarkMode
-                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
-                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-                }`}
+                className={`px-3 py-2 border rounded-md text-sm ${isDarkMode
+                  ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                  : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                  }`}
               />
               <select
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
-                className={`px-3 py-2 border rounded-md text-sm ${
-                  isDarkMode
-                    ? 'bg-gray-700 border-gray-600 text-white'
-                    : 'bg-white border-gray-300 text-gray-900'
-                }`}
+                className={`px-3 py-2 border rounded-md text-sm ${isDarkMode
+                  ? 'bg-gray-700 border-gray-600 text-white'
+                  : 'bg-white border-gray-300 text-gray-900'
+                  }`}
               >
                 <option value="all">All Complaints</option>
-                <option value="open">Open</option>
-                <option value="in-progress">In Progress</option>
+                <option value="pending">Pending/Open</option>
+                <option value="in progress">In Progress</option>
                 <option value="resolved">Resolved</option>
                 <option value="urgent">Urgent</option>
               </select>
@@ -149,7 +195,12 @@ const Complaints = ({ isDarkMode }) => {
           </div>
         </CardHeader>
         <CardContent>
-          {error ? (
+          {loading ? (
+            <div className="flex justify-center items-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+              <span className="ml-2">Loading data...</span>
+            </div>
+          ) : error ? (
             <p className="text-red-500">{error}</p>
           ) : (
             <ComplaintList
@@ -157,6 +208,7 @@ const Complaints = ({ isDarkMode }) => {
               searchTerm={searchTerm}
               filter={filter}
               complaints={complaints}
+              onRefresh={refreshData}
             />
           )}
         </CardContent>

@@ -26,7 +26,7 @@ export async function changeAttendance(attendanceId, newStatus, token, studentId
     }
 
     const response = await axios.post(
-      "https://finalbackend1.vercel.app/changeattendanceforadmin",
+      "https://finalbackend1.vercel.app/admin/changeattendanceforadmin",
       payload,
       {
         headers: {

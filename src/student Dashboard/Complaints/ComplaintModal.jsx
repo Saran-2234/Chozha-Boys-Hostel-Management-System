@@ -41,7 +41,7 @@ const ComplaintModal = ({ onClose }) => {
 
     try {
       const response = await axios.post(
-        'https://finalbackend1.vercel.app/registercomplaints',
+        'https://finalbackend1.vercel.app/students/registercomplaints',
         {
           id: parseInt(studentId),
           title,

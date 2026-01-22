@@ -47,8 +47,8 @@ const Complaints = () => {
 
       // Get token from storage
       const token = localStorage.getItem('studentToken') ||
-                   localStorage.getItem('accessToken') ||
-                   sessionStorage.getItem('studentToken');
+        localStorage.getItem('accessToken') ||
+        sessionStorage.getItem('studentToken');
 
       if (!token) {
         console.log('No token found, redirecting to login');
@@ -88,7 +88,7 @@ const Complaints = () => {
         try {
           console.log('Trying request with body:', body);
 
-          const response = await axios.post('https://finalbackend1.vercel.app/fetchcomplaintsforstudents', body,token, {
+          const response = await axios.post('https://finalbackend1.vercel.app/students/fetchcomplaintsforstudents', body, token, {
             headers: {
               'Content-Type': 'application/json',
               'Authorization': `Bearer ${token}`
@@ -190,7 +190,7 @@ const Complaints = () => {
           console.log('Request approach failed, trying next one...');
         }
       }
-      
+
     } catch (err) {
       console.error('Error fetching complaints:', err);
       setError(err.message);
@@ -252,36 +252,32 @@ const Complaints = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div
-          className={`glass-card rounded-xl p-6 text-center cursor-pointer transition-all duration-200 hover:scale-105 ${
-            activeFilter === 'all' ? 'ring-2 ring-blue-400 bg-blue-900 bg-opacity-20' : ''
-          }`}
+          className={`glass-card rounded-xl p-6 text-center cursor-pointer transition-all duration-200 hover:scale-105 ${activeFilter === 'all' ? 'ring-2 ring-blue-400 bg-blue-900 bg-opacity-20' : ''
+            }`}
           onClick={() => handleFilterClick('all')}
         >
           <div className="text-2xl font-bold text-white mb-2">{stats.total}</div>
           <div className="text-slate-400 text-sm">Total Complaints</div>
         </div>
         <div
-          className={`glass-card rounded-xl p-6 text-center cursor-pointer transition-all duration-200 hover:scale-105 ${
-            activeFilter === 'pending' ? 'ring-2 ring-yellow-400 bg-yellow-900 bg-opacity-20' : ''
-          }`}
+          className={`glass-card rounded-xl p-6 text-center cursor-pointer transition-all duration-200 hover:scale-105 ${activeFilter === 'pending' ? 'ring-2 ring-yellow-400 bg-yellow-900 bg-opacity-20' : ''
+            }`}
           onClick={() => handleFilterClick('pending')}
         >
           <div className="text-2xl font-bold text-yellow-400 mb-2">{stats.pending}</div>
           <div className="text-slate-400 text-sm">Pending</div>
         </div>
         <div
-          className={`glass-card rounded-xl p-6 text-center cursor-pointer transition-all duration-200 hover:scale-105 ${
-            activeFilter === 'inProgress' ? 'ring-2 ring-blue-400 bg-blue-900 bg-opacity-20' : ''
-          }`}
+          className={`glass-card rounded-xl p-6 text-center cursor-pointer transition-all duration-200 hover:scale-105 ${activeFilter === 'inProgress' ? 'ring-2 ring-blue-400 bg-blue-900 bg-opacity-20' : ''
+            }`}
           onClick={() => handleFilterClick('inProgress')}
         >
           <div className="text-2xl font-bold text-blue-400 mb-2">{stats.inProgress}</div>
           <div className="text-slate-400 text-sm">In Progress</div>
         </div>
         <div
-          className={`glass-card rounded-xl p-6 text-center cursor-pointer transition-all duration-200 hover:scale-105 ${
-            activeFilter === 'resolved' ? 'ring-2 ring-emerald-400 bg-emerald-900 bg-opacity-20' : ''
-          }`}
+          className={`glass-card rounded-xl p-6 text-center cursor-pointer transition-all duration-200 hover:scale-105 ${activeFilter === 'resolved' ? 'ring-2 ring-emerald-400 bg-emerald-900 bg-opacity-20' : ''
+            }`}
           onClick={() => handleFilterClick('resolved')}
         >
           <div className="text-2xl font-bold text-emerald-400 mb-2">{stats.resolved}</div>
@@ -297,7 +293,7 @@ const Complaints = () => {
               <span className="ml-2 text-sm text-slate-400">
                 ({activeFilter === 'pending' ? 'Pending' :
                   activeFilter === 'inProgress' ? 'In Progress' :
-                  activeFilter === 'resolved' ? 'Resolved' : 'All'})
+                    activeFilter === 'resolved' ? 'Resolved' : 'All'})
               </span>
             )}
           </h3>
@@ -341,7 +337,7 @@ const Complaints = () => {
         ) : filteredComplaints.length === 0 ? (
           <div className="text-center text-slate-400">
             No {activeFilter === 'pending' ? 'pending' :
-                activeFilter === 'inProgress' ? 'in progress' :
+              activeFilter === 'inProgress' ? 'in progress' :
                 activeFilter === 'resolved' ? 'resolved' : ''} complaints found.
             <button
               onClick={() => setActiveFilter('all')}
@@ -353,27 +349,25 @@ const Complaints = () => {
         ) : (
           <div className="space-y-4">
             {filteredComplaints.map((complaint) => (
-              <div key={complaint.complaint_id} className={`glass-effect rounded-lg p-4 border-l-4 ${
-                complaint.status && complaint.status.toLowerCase() === 'pending' ? 'border-yellow-400' :
-                complaint.status && complaint.status.toLowerCase() === 'in progress' ? 'border-blue-400' :
-                complaint.status && complaint.status.toLowerCase() === 'resolved' ? 'border-emerald-400' : 'border-gray-400'
-              }`}>
+              <div key={complaint.complaint_id} className={`glass-effect rounded-lg p-4 border-l-4 ${complaint.status && complaint.status.toLowerCase() === 'pending' ? 'border-yellow-400' :
+                  complaint.status && complaint.status.toLowerCase() === 'in progress' ? 'border-blue-400' :
+                    complaint.status && complaint.status.toLowerCase() === 'resolved' ? 'border-emerald-400' : 'border-gray-400'
+                }`}>
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center space-x-3">
                     <span className="text-lg">{
                       complaint.category === 'Maintenance' ? '🔧' :
-                      complaint.category === 'Mess' ? '🍽️' :
-                      complaint.category === 'Infrastructure' ? '🏗️' : '📋'
+                        complaint.category === 'Mess' ? '🍽️' :
+                          complaint.category === 'Infrastructure' ? '🏗️' : '📋'
                     }</span>
                     <div>
                       <h4 className="text-white font-medium">{complaint.title}</h4>
                     </div>
                   </div>
-                  <span className={`px-3 py-1 rounded-full text-sm font-medium text-white ${
-                    complaint.status && complaint.status.toLowerCase() === 'pending' ? 'bg-yellow-500 bg-opacity-20' :
-                    complaint.status && complaint.status.toLowerCase() === 'in progress' ? 'bg-blue-500 bg-opacity-20' :
-                    complaint.status && complaint.status.toLowerCase() === 'resolved' ? 'bg-emerald-500 bg-opacity-20' : 'bg-gray-500 bg-opacity-20'
-                  }`}>
+                  <span className={`px-3 py-1 rounded-full text-sm font-medium text-white ${complaint.status && complaint.status.toLowerCase() === 'pending' ? 'bg-yellow-500 bg-opacity-20' :
+                      complaint.status && complaint.status.toLowerCase() === 'in progress' ? 'bg-blue-500 bg-opacity-20' :
+                        complaint.status && complaint.status.toLowerCase() === 'resolved' ? 'bg-emerald-500 bg-opacity-20' : 'bg-gray-500 bg-opacity-20'
+                    }`}>
                     {complaint.status}
                   </span>
                 </div>

@@ -71,7 +71,7 @@ const Attendance = () => {
         return;
       }
 
-      const response = await axios.post('https://finalbackend1.vercel.app/attendance', {
+      const response = await axios.post('https://finalbackend1.vercel.app/students/attendance', {
         id: studentId,
         token: token,
       }, {
@@ -164,7 +164,7 @@ const Attendance = () => {
 
         try {
           const response = await axios.post(
-            'https://finalbackend1.vercel.app/attendance',
+            'https://finalbackend1.vercel.app/students/attendance',
             {
               lat,
               lng,
@@ -240,7 +240,7 @@ const Attendance = () => {
 
         try {
           const response = await axios.post(
-            'https://finalbackend1.vercel.app/absent',
+            'https://finalbackend1.vercel.app/students/absent',
             {
               lat,
               lng,
@@ -329,9 +329,9 @@ const Attendance = () => {
         <div className="glass-card rounded-xl p-6 text-center">
           <div className="relative w-36 h-36 mx-auto mb-4 md:w-32 md:h-32">
             <svg className="progress-circle w-full h-full" viewBox="0 0 120 120">
-              <circle cx="60" cy="60" r="50" stroke="rgba(255,255,255,0.1)" strokeWidth="8" fill="none"/>
+              <circle cx="60" cy="60" r="50" stroke="rgba(255,255,255,0.1)" strokeWidth="8" fill="none" />
               <circle cx="60" cy="60" r="50" stroke="#10b981" strokeWidth="8" fill="none"
-                      strokeDasharray="314" strokeDashoffset={314 - (314 * attendanceStats.percentage / 100)}/>
+                strokeDasharray="314" strokeDashoffset={314 - (314 * attendanceStats.percentage / 100)} />
             </svg>
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="text-center">

@@ -51,7 +51,7 @@ const MessBills = () => {
 
   const formatMonthYear = (monthYearString) => {
     if (!monthYearString) return '';
-    
+
     const [year, month] = monthYearString.split('-');
     return `${month}-${year}`;
   };
@@ -113,10 +113,10 @@ const MessBills = () => {
         total += parseFloat(newFormData[field]) || 0;
       });
       newFormData.total_expenditure = total.toFixed(2);
-      
+
       const deductions = parseFloat(newFormData.deductions_income) || 0;
       newFormData.expenditure_after_income = (total - deductions).toFixed(2);
-      
+
       calculateMessFee(newFormData);
     }
 
@@ -151,18 +151,18 @@ const MessBills = () => {
     const { name, value } = e.target;
     const maxLengths = { year: 1, total_students: 3, total_days: 2 };
     const maxLength = maxLengths[name] || 999;
-    
+
     if (value.length > maxLength) {
       return;
     }
 
     const newYears = [...formData.years_data];
     newYears[index][name] = value;
-    
+
     const updatedFormData = { ...formData, years_data: newYears };
-    
+
     calculateMessFee(updatedFormData);
-    
+
     setFormData(updatedFormData);
   };
 
@@ -230,7 +230,7 @@ const MessBills = () => {
         }))
       };
 
-      const response = await axios.post('https://finalbackend1.vercel.app/create', requestBody, {
+      const response = await axios.post('https://finalbackend1.vercel.app/admin/create', requestBody, {
         headers: {
           'Content-Type': 'application/json'
         }
@@ -261,9 +261,9 @@ const MessBills = () => {
 
     try {
       const requestBody = year ? { year } : {};
-      
+
       const response = await axios.post(
-        'https://finalbackend1.vercel.app/show',
+        'https://finalbackend1.vercel.app/admin/show',
         requestBody,
         {
           headers: { 'Content-Type': 'application/json' }
@@ -274,7 +274,7 @@ const MessBills = () => {
         const transformedMonths = response.data.data.map(item => {
           const totalStudents = item.years_data.reduce((sum, year) => sum + year.total_students, 0);
           const totalDays = item.years_data.reduce((sum, year) => sum + year.total_days, 0) / item.years_data.length;
-          
+
           const createdDate = new Date(item.created_at);
           const formattedDate = createdDate.toLocaleDateString('en-US', {
             year: 'numeric',
@@ -359,7 +359,7 @@ const MessBills = () => {
 
   return (
     <div className="container">
-      
+
 
       <div className="navigation">
         <button className={`nav-btn ${activeSection === 'new-bill' ? 'active' : ''}`} onClick={() => handleNavClick('new-bill')}>New Mess Bill</button>
@@ -685,8 +685,8 @@ const MessBills = () => {
               />
             </div>
             <button id="fetchData" className="btn" onClick={() => fetchExistingBills(filterYear)}>Search</button>
-            <button 
-              className="btn" 
+            <button
+              className="btn"
               onClick={() => {
                 setFilterYear('');
                 fetchExistingBills('');
@@ -702,7 +702,7 @@ const MessBills = () => {
           <div id="loadingMonthly" className="loading">
             <p>Loading existing mess bills data...</p>
             <div>
-              <div style={{display: 'inline-block', width: '20px', height: '20px', border: '3px solid #f3f3f3', borderTop: '3px solid #4a6cf7', borderRadius: '50%', animation: 'spin 1s linear infinite'}}></div>
+              <div style={{ display: 'inline-block', width: '20px', height: '20px', border: '3px solid #f3f3f3', borderTop: '3px solid #4a6cf7', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
             </div>
           </div>
         )}
@@ -723,14 +723,14 @@ const MessBills = () => {
           <div id="dataContainer">
             {existingBills.months.map((month, index) => (
               <div key={index} className="month-card" onClick={() => { sessionStorage.setItem('monthData', JSON.stringify(month)); navigate('/mess-bills-detail'); }}>
-                <div className="month-header" style={{cursor: 'pointer'}}>
+                <div className="month-header" style={{ cursor: 'pointer' }}>
                   <div>
                     <div className="month-title">{month.title}</div>
                     <div className="month-date">{month.date}</div>
                   </div>
-                  <div style={{textAlign: 'right'}}>
-                    <div style={{fontSize: '0.9rem', opacity: 0.9}}>Total Bills: {month.totalBills}</div>
-                    <div style={{fontSize: '0.9rem', opacity: 0.9}}>Total Amount: ₹{month.totalAmount.toFixed(2)}</div>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>Total Bills: {month.totalBills}</div>
+                    <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>Total Amount: ₹{month.totalAmount.toFixed(2)}</div>
                   </div>
                 </div>
               </div>

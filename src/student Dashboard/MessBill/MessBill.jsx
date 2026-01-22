@@ -47,7 +47,7 @@ const MessBill = () => {
   const fetchMessBills = async (token, studentId) => {
     setLoading(true);
     try {
-      const response = await axios.post(`${API_BASE_URL}/showmessbillbyid1`, {
+      const response = await axios.post(`${API_BASE_URL}/students/showmessbillbyid1`, {
         student_id: studentId,
       }, {
         headers: {
@@ -83,7 +83,7 @@ const MessBill = () => {
     if (!confirm(`Proceed to pay for ${year_month}?`)) return;
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/create-order`, {
+      const response = await axios.post(`${API_BASE_URL}/students/create-order`, {
         student_id: studentData.id,
         year_month,
         student_name: studentData.name,
@@ -280,8 +280,8 @@ const MessBill = () => {
             const status = bill.status ? bill.status.toUpperCase() : 'UNPAID';
             const isPaid = status === 'PAID' || status === 'SUCCESS';
             const totalAmount = (parseFloat(bill.number_of_days || 0) * parseFloat(bill.mess_fee_per_day || 0)) +
-                                (parseFloat(bill.veg_days || 0) * parseFloat(bill.veg_extra_per_day || 0)) +
-                                (parseFloat(bill.non_veg_days || 0) * parseFloat(bill.nonveg_extra_per_day || 0));
+              (parseFloat(bill.veg_days || 0) * parseFloat(bill.veg_extra_per_day || 0)) +
+              (parseFloat(bill.non_veg_days || 0) * parseFloat(bill.nonveg_extra_per_day || 0));
 
             return (
               <div key={bill.mess_bill_id || bill.month_year} className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">

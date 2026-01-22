@@ -47,7 +47,7 @@ const MessBillsIndividualList = () => {
     setLoadingStatus(true);
     try {
       // Fetch departments
-      const deptResponse = await fetch('https://finalbackend1.vercel.app/fetchdepartments');
+      const deptResponse = await fetch('https://finalbackend1.vercel.app/students/fetchdepartments');
       const deptData = await deptResponse.json();
 
       if (!deptData.success || !deptData.departments) {
@@ -63,7 +63,7 @@ const MessBillsIndividualList = () => {
           try {
             // This is a simplified check - in reality you'd need an API endpoint
             // that checks if there are verified bills for this department and year
-            const response = await fetch('https://finalbackend1.vercel.app/check-verification-status', {
+            const response = await fetch('https://finalbackend1.vercel.app/admin/check-verification-status', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -124,7 +124,7 @@ const MessBillsIndividualList = () => {
 
   const fetchDepartments = async () => {
     try {
-      const response = await fetch('https://finalbackend1.vercel.app/fetchdepartments');
+      const response = await fetch('https://finalbackend1.vercel.app/students/fetchdepartments');
       const data = await response.json();
       if (data.success && Array.isArray(data.result)) {
         setDepartments(data.result);
@@ -308,7 +308,7 @@ const MessBillsIndividualList = () => {
         non_veg_days: !student.isveg ? student.nonVegDays : 0,
       };
 
-      const response = await fetch('https://finalbackend1.vercel.app/upadatemessbill', {
+      const response = await fetch('https://finalbackend1.vercel.app/admin/upadatemessbill', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
@@ -350,7 +350,7 @@ const MessBillsIndividualList = () => {
         academic_year: selectedAcademicYear
       };
 
-      const response = await fetch('https://finalbackend1.vercel.app/fetchstudentsmessbillnew', {
+      const response = await fetch('https://finalbackend1.vercel.app/admin/fetchstudentsmessbillnew', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -417,7 +417,7 @@ const MessBillsIndividualList = () => {
     return (
       <div className="light-mode flex min-h-screen text-gray-900">
         <Sidebar
-          setActiveSection={() => {}}
+          setActiveSection={() => { }}
           activeSection="messbills"
           onLogout={handleLogout}
           sidebarOpen={sidebarOpen}
@@ -443,7 +443,7 @@ const MessBillsIndividualList = () => {
   return (
     <div className="light-mode flex min-h-screen text-gray-900">
       <Sidebar
-        setActiveSection={() => {}}
+        setActiveSection={() => { }}
         activeSection="messbills"
         onLogout={handleLogout}
         sidebarOpen={sidebarOpen}
@@ -464,7 +464,7 @@ const MessBillsIndividualList = () => {
             <h1 className="text-2xl font-bold mb-4">Mess Bill Reduction</h1>
 
             <div className="filters-card">
-              <h2 style={{marginBottom: '20px'}}>Mess Bill Reduction</h2>
+              <h2 style={{ marginBottom: '20px' }}>Mess Bill Reduction</h2>
               <form id="searchForm" onSubmit={handleFetchBills}>
                 <div className="filters-grid">
                   <div className="form-group">
@@ -511,19 +511,19 @@ const MessBillsIndividualList = () => {
                 </div>
               </form>
             </div>
-            <div id="loadingBills" className="loading" style={{display: loading ? 'block' : 'none'}}>
+            <div id="loadingBills" className="loading" style={{ display: loading ? 'block' : 'none' }}>
               <p>Loading mess bills data...</p>
-              <div style={{marginTop: '20px'}}>
-                <div style={{display: 'inline-block', width: '20px', height: '20px', border: '3px solid #f3f3f3', borderTop: '3px solid #4a6cf7', borderRadius: '50%', animation: 'spin 1s linear infinite'}}></div>
+              <div style={{ marginTop: '20px' }}>
+                <div style={{ display: 'inline-block', width: '20px', height: '20px', border: '3px solid #f3f3f3', borderTop: '3px solid #4a6cf7', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
               </div>
             </div>
-            <div id="errorBills" className="error" style={{display: error ? 'block' : 'none'}}>
+            <div id="errorBills" className="error" style={{ display: error ? 'block' : 'none' }}>
               {error}
             </div>
-            <div id="successBills" className="success" style={{display: success ? 'block' : 'none'}}>
+            <div id="successBills" className="success" style={{ display: success ? 'block' : 'none' }}>
               {success}
             </div>
-            <div id="resultsContainer" style={{display: resultsVisible ? 'block' : 'none'}}>
+            <div id="resultsContainer" style={{ display: resultsVisible ? 'block' : 'none' }}>
               <div className="results-card">
                 <div className="results-header">
                   <div className="results-title">Mess Bills Results</div>
@@ -577,14 +577,14 @@ const MessBillsIndividualList = () => {
                               onChange={(e) => handleDaysPresentChange(student.id, e.target.value)}
                               min="0"
                               max="31"
-                              style={{width: '80px', textAlign: 'center'}}
+                              style={{ width: '80px', textAlign: 'center' }}
                             />
                           </td>
                           <td>
                             <select
                               value={student.isveg ? 'Veg' : 'Non-Veg'}
                               onChange={(e) => handleMealTypeChange(student.id, e.target.value)}
-                              style={{width: '100px'}}
+                              style={{ width: '100px' }}
                             >
                               <option value="Veg">Veg</option>
                               <option value="Non-Veg">Non-Veg</option>
@@ -597,7 +597,7 @@ const MessBillsIndividualList = () => {
                               onChange={(e) => handleVegDaysChange(student.id, e.target.value)}
                               min="0"
                               disabled={!student.isveg}
-                              style={{width: '80px', textAlign: 'center'}}
+                              style={{ width: '80px', textAlign: 'center' }}
                             />
                           </td>
                           <td>
@@ -607,14 +607,14 @@ const MessBillsIndividualList = () => {
                               onChange={(e) => handleNonVegDaysChange(student.id, e.target.value)}
                               min="0"
                               disabled={student.isveg}
-                              style={{width: '80px', textAlign: 'center'}}
+                              style={{ width: '80px', textAlign: 'center' }}
                             />
                           </td>
                           <td>
                             <select
                               value={student.status === 'Verified' ? 'true' : 'false'}
                               onChange={(e) => handleVerifiedChange(student.id, e.target.value)}
-                              style={{width: '90px'}}
+                              style={{ width: '90px' }}
                             >
                               <option value="true">Yes</option>
                               <option value="false">No</option>

@@ -14,8 +14,8 @@ const RecentActivities = ({ setActiveSection, studentData }) => {
 
   const getAuthToken = () => {
     return localStorage.getItem('studentToken') ||
-           localStorage.getItem('accessToken') ||
-           sessionStorage.getItem('studentToken');
+      localStorage.getItem('accessToken') ||
+      sessionStorage.getItem('studentToken');
   };
 
   const decodeJWT = (token) => {
@@ -82,7 +82,7 @@ const RecentActivities = ({ setActiveSection, studentData }) => {
       // Fetch recent attendance
       try {
         const attendanceResponse = await axios.post(
-          'https://finalbackend1.vercel.app/attendance',
+          'https://finalbackend1.vercel.app/students/attendance',
           { id: studentId, token },
           {
             headers: {
@@ -187,7 +187,7 @@ const RecentActivities = ({ setActiveSection, studentData }) => {
                   const year = parts[0];
                   const monthNum = parseInt(parts[1]);
                   const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
-                                    'July', 'August', 'September', 'October', 'November', 'December'];
+                    'July', 'August', 'September', 'October', 'November', 'December'];
                   const monthName = monthNames[monthNum - 1];
                   if (monthName && year) {
                     periodText = `${monthName} ${year}`;

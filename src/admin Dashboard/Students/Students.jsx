@@ -360,9 +360,9 @@ const Students = ({ isDarkMode }) => {
       {error && (
         <div className={`p-4 rounded-md ${isDarkMode ? 'bg-red-900 text-red-200' : 'bg-red-100 text-red-700'}`}>
           <p>Error: {error}</p>
-          <Button 
-            onClick={fetchStudents} 
-            variant="outline" 
+          <Button
+            onClick={fetchStudents}
+            variant="outline"
             isDarkMode={isDarkMode}
             className="mt-2"
           >
@@ -386,20 +386,18 @@ const Students = ({ isDarkMode }) => {
                 placeholder="Search students..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className={`flex-1 min-w-0 px-3 py-2 border rounded-md text-sm ${
-                  isDarkMode
+                className={`flex-1 min-w-0 px-3 py-2 border rounded-md text-sm ${isDarkMode
                     ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
                     : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-                }`}
+                  }`}
               />
               <select
                 value={yearFilter}
                 onChange={(e) => setYearFilter(e.target.value)}
-                className={`w-auto px-3 py-2 border rounded-md text-sm ${
-                  isDarkMode
+                className={`w-auto px-3 py-2 border rounded-md text-sm ${isDarkMode
                     ? 'bg-gray-700 border-gray-600 text-white'
                     : 'bg-white border-gray-300 text-gray-900'
-                }`}
+                  }`}
               >
                 <option value="all">All Years</option>
                 <option value="1">Year 1</option>
@@ -410,11 +408,10 @@ const Students = ({ isDarkMode }) => {
               <select
                 value={departmentFilter}
                 onChange={(e) => setDepartmentFilter(e.target.value)}
-                className={`w-auto px-3 py-2 border rounded-md text-sm ${
-                  isDarkMode
+                className={`w-auto px-3 py-2 border rounded-md text-sm ${isDarkMode
                     ? 'bg-gray-700 border-gray-600 text-white'
                     : 'bg-white border-gray-300 text-gray-900'
-                }`}
+                  }`}
                 style={{
                   minWidth: '180px',
                   position: 'relative',
@@ -435,11 +432,10 @@ const Students = ({ isDarkMode }) => {
               <select
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
-                className={`w-auto px-3 py-2 border rounded-md text-sm ${
-                  isDarkMode
+                className={`w-auto px-3 py-2 border rounded-md text-sm ${isDarkMode
                     ? 'bg-gray-700 border-gray-600 text-white'
                     : 'bg-white border-gray-300 text-gray-900'
-                }`}
+                  }`}
               >
                 <option value="all">All Status</option>
                 <option value="pending">Pending</option>
@@ -535,11 +531,10 @@ const Students = ({ isDarkMode }) => {
                   onChange={(e) => setRejectionReason(e.target.value)}
                   placeholder="Please provide a reason for rejection..."
                   rows={3}
-                  className={`w-full px-3 py-2 border rounded-md text-sm ${
-                    isDarkMode
+                  className={`w-full px-3 py-2 border rounded-md text-sm ${isDarkMode
                       ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
                       : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-                  }`}
+                    }`}
                   required
                 />
               </div>

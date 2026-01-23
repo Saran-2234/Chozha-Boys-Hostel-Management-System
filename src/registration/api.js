@@ -136,10 +136,10 @@ export const fetchStudents = async ({ department, academic_year, status, page = 
 };
 
 // Approve Student
-export const approveStudent = async (registrationNumber) => {
+export const approveStudent = async (id) => {
   try {
-    if (!registrationNumber) {
-      throw new Error("Registration number is required");
+    if (!id) {
+      throw new Error("Student ID is required");
     }
 
     const token = localStorage.getItem("accessToken");
@@ -147,9 +147,9 @@ export const approveStudent = async (registrationNumber) => {
       throw new Error("No authentication token found. Please log in again.");
     }
 
-    const response = await api.post(
-      "/admin/approve",
-      { registerno: registrationNumber },
+    const response = await api.put(
+      `/admin/approve/${id}`,
+      {},
       { headers: { Authorization: `Bearer ${token}` } }
     );
 
@@ -253,10 +253,10 @@ export const deleteDepartment = async (departmentId) => {
 };
 
 // Reject Student
-export const rejectStudent = async (registrationNumber, reason) => {
+export const rejectStudent = async (id, reason) => {
   try {
-    if (!registrationNumber) {
-      throw new Error("Registration number is required");
+    if (!id) {
+      throw new Error("Student ID is required");
     }
 
     if (!reason) {
@@ -268,9 +268,9 @@ export const rejectStudent = async (registrationNumber, reason) => {
       throw new Error("No authentication token found. Please log in again.");
     }
 
-    const response = await api.post(
-      "/admin/adminreject",
-      { registerno: registrationNumber, reason },
+    const response = await api.put(
+      `/admin/adminreject/${id}`,
+      { reason },
       { headers: { Authorization: `Bearer ${authToken}` } }
     );
 
@@ -324,6 +324,8 @@ export const showAttends = async (filters = {}) => {
         academic_year: filters.academic_year,
         date: filters.date,
         status: filters.status,
+        page: filters.page || 1,
+        limit: filters.limit || 10,
       },
       {
         headers: {
@@ -390,6 +392,10 @@ export const showAttends = async (filters = {}) => {
     return {
       success: true,
       data: normalizedData,
+      total: response.data.total,
+      totalPages: response.data.totalPages,
+      page: response.data.page,
+      limit: response.data.limit,
     };
   } catch (error) {
     console.error("Error fetching attendance:", error);

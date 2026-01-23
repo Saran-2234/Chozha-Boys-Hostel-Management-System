@@ -64,6 +64,7 @@ const StudentTable = ({
   // OR apply simple search on the current page data if server-side.
 
   let paginatedStudents = [];
+  let filteredStudents = [];
   let totalPages = 0;
   let startIndex = 0;
   let currentPage = isServerSide ? serverPage : clientPage;
@@ -72,19 +73,19 @@ const StudentTable = ({
     // In server-side mode, 'students' IS the page data.
     // We might still filter by searchTerm locally on this subset? 
     // It's imperfect but better than nothing if server doesn't support search.
-    const filteredFunctions = students.filter(student => {
+    filteredStudents = students.filter(student => {
       if (!searchTerm) return true;
       return student.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         student.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         student.registration_number?.toLowerCase().includes(searchTerm.toLowerCase());
     });
 
-    paginatedStudents = filteredFunctions;
+    paginatedStudents = filteredStudents;
     // We don't know total pages in server mode from the provided API, only hasMore.
     // We'll handle pagination controls differently.
     startIndex = (serverPage - 1) * itemsPerPage; // Approximate
   } else {
-    const filteredStudents = students.filter(student => {
+    filteredStudents = students.filter(student => {
       const normalizedStatus = normalizeStatus(student.status);
       const matchesSearch = student.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         student.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -152,17 +153,17 @@ const StudentTable = ({
     return statusString;
   }
 
-  const handleApprove = (registrationNumber) => {
-    console.log('Approve student:', registrationNumber);
+  const handleApprove = (studentId) => {
+    console.log('Approve student:', studentId);
     if (onApprove) {
-      onApprove(registrationNumber);
+      onApprove(studentId);
     }
   };
 
-  const handleReject = (registrationNumber) => {
-    console.log('Reject student:', registrationNumber);
+  const handleReject = (studentId) => {
+    console.log('Reject student:', studentId);
     if (onReject) {
-      onReject(registrationNumber);
+      onReject(studentId);
     }
   };
 
@@ -230,7 +231,11 @@ const StudentTable = ({
       <div className="space-y-4 relative z-10">
         <div className="flex justify-between items-center">
           <div className="text-sm text-gray-700">
-            Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredStudents.length)} of {filteredStudents.length} students
+            {paginatedStudents.length > 0 ? (
+              <span>Showing {startIndex + 1} to {startIndex + paginatedStudents.length}{!isServerSide && ` of ${filteredStudents.length} students`}</span>
+            ) : (
+              <span>No students to display</span>
+            )}
           </div>
           <Button
             onClick={onRefresh}
@@ -276,8 +281,8 @@ const StudentTable = ({
                     <div className="mt-3 flex flex-wrap gap-2">
                       {canModerateStatus(student.status) && (
                         <>
-                          <button onClick={() => handleApprove(student.registration_number)} className="px-2 py-1 text-xs rounded bg-emerald-500 text-white">Approve</button>
-                          <button onClick={() => handleReject(student.registration_number)} className="px-2 py-1 text-xs rounded bg-red-500 text-white">Reject</button>
+                          <button onClick={() => handleApprove(student.id)} className="px-2 py-1 text-xs rounded bg-emerald-500 text-white">Approve</button>
+                          <button onClick={() => handleReject(student.id)} className="px-2 py-1 text-xs rounded bg-red-500 text-white">Reject</button>
                         </>
                       )}
                       <button onClick={() => handleEdit(student.id)} className="px-2 py-1 text-xs rounded bg-blue-500 text-white">Edit</button>
@@ -422,14 +427,14 @@ const StudentTable = ({
                           {canModerateStatus(student.status) && (
                             <>
                               <button
-                                onClick={() => handleApprove(student.registration_number)}
+                                onClick={() => handleApprove(student.id)}
                                 className="action-btn bg-emerald-500 bg-opacity-20 text-emerald-400 hover:bg-opacity-30"
                                 title="Approve student"
                               >
                                 ✅
                               </button>
                               <button
-                                onClick={() => handleReject(student.registration_number)}
+                                onClick={() => handleReject(student.id)}
                                 className="action-btn bg-red-500 bg-opacity-20 text-red-400 hover:bg-opacity-30"
                                 title="Reject student"
                               >
@@ -474,8 +479,8 @@ const StudentTable = ({
                                 <div className="py-2 flex space-x-2">
                                   {canModerateStatus(student.status) && (
                                     <>
-                                      <button onClick={() => handleApprove(student.registration_number)} className="px-2 py-1 text-xs rounded bg-emerald-500 text-white">Approve</button>
-                                      <button onClick={() => handleReject(student.registration_number)} className="px-2 py-1 text-xs rounded bg-red-500 text-white">Reject</button>
+                                      <button onClick={() => handleApprove(student.id)} className="px-2 py-1 text-xs rounded bg-emerald-500 text-white">Approve</button>
+                                      <button onClick={() => handleReject(student.id)} className="px-2 py-1 text-xs rounded bg-red-500 text-white">Reject</button>
                                     </>
                                   )}
                                   <button onClick={() => handleEdit(student.id)} className="px-2 py-1 text-xs rounded bg-blue-500 text-white">Edit</button>
@@ -503,14 +508,18 @@ const StudentTable = ({
         </div>
 
         {/* Pagination */}
-        {totalPages > 1 && (
+        {(totalPages > 1 || (isServerSide && (currentPage > 1 || hasMore))) && (
           <div className="flex items-center justify-between">
             <div className="text-sm text-gray-700">
-              Page {currentPage} of {totalPages}
+              {isServerSide ? (
+                <span>Page {currentPage}</span>
+              ) : (
+                <span>Page {currentPage} of {totalPages}</span>
+              )}
             </div>
             <div className="flex space-x-2">
               <Button
-                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
                 disabled={currentPage === 1}
                 variant="outline"
                 size="small"
@@ -518,8 +527,8 @@ const StudentTable = ({
                 Previous
               </Button>
               <Button
-                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                disabled={currentPage === totalPages}
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={isServerSide ? !hasMore : currentPage === totalPages}
                 variant="outline"
                 size="small"
               >

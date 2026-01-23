@@ -19,6 +19,7 @@ const Attendance = () => {
   const [infoMessage, setInfoMessage] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [totalRecords, setTotalRecords] = useState(0);
   const [bulkAction, setBulkAction] = useState(null);
   const [isBulkProcessing, setIsBulkProcessing] = useState(false);
 
@@ -30,11 +31,12 @@ const Attendance = () => {
     const hasActiveFilters = Object.values(filters).some(Boolean);
     if (!hasActiveFilters) {
       setAttendanceRecords([]);
+      setTotalRecords(0);
       return;
     }
 
-    fetchAttendanceRecords(filters);
-  }, [filters]);
+    fetchAttendanceRecords({ ...filters, page: currentPage, limit: itemsPerPage });
+  }, [filters, currentPage, itemsPerPage]);
 
   const loadDepartments = async () => {
     try {
@@ -52,25 +54,29 @@ const Attendance = () => {
       ...prev,
       [name]: value
     }));
+    setCurrentPage(1);
   };
 
-  const fetchAttendanceRecords = async (selectedFilters) => {
+  const fetchAttendanceRecords = async (params) => {
     setLoading(true);
     setError(null);
 
     try {
-      const response = await showAttends(selectedFilters);
+      const response = await showAttends(params);
 
       if (response.success) {
         setAttendanceRecords(response.data || []);
+        setTotalRecords(response.total || 0);
         setError(null);
       } else {
         setAttendanceRecords([]);
+        setTotalRecords(0);
         setError(response.message || "No attendance data found for the current filters.");
       }
     } catch (err) {
       console.error("Error fetching attendance records:", err);
       setAttendanceRecords([]);
+      setTotalRecords(0);
       setError(err.message || "Failed to fetch attendance records");
     } finally {
       setLoading(false);
@@ -85,6 +91,7 @@ const Attendance = () => {
       status: ''
     });
     setAttendanceRecords([]);
+    setTotalRecords(0);
     setCurrentPage(1);
   };
 
@@ -119,10 +126,10 @@ const Attendance = () => {
     document.body.removeChild(link);
   };
 
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentRecords = attendanceRecords.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(attendanceRecords.length / itemsPerPage);
+  // Client-side slicing removed.
+  // We use attendanceRecords directly as it now contains only the current page's data.
+  const currentRecords = attendanceRecords;
+  const totalPages = Math.ceil(totalRecords / itemsPerPage);
 
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
@@ -169,7 +176,8 @@ const Attendance = () => {
 
       if (response.success) {
         setInfoMessage("Attendance updated successfully");
-        fetchAttendanceRecords(filters);
+        // Refetch current page
+        fetchAttendanceRecords({ ...filters, page: currentPage, limit: itemsPerPage });
 
         setTimeout(() => {
           setInfoMessage(null);
@@ -228,7 +236,8 @@ const Attendance = () => {
         setInfoMessage('Bulk attendance applied successfully.');
       }
 
-      await fetchAttendanceRecords(filters);
+      // Refetch current page
+      await fetchAttendanceRecords({ ...filters, page: currentPage, limit: itemsPerPage });
     } catch (error) {
       console.error('Bulk attendance error:', error);
       setInfoMessage('An error occurred while applying bulk attendance.');
@@ -547,7 +556,7 @@ const Attendance = () => {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  {['Name','Department','Year','Date','Status', 'Change Attendance'].map((title) => (
+                  {['Name', 'Department', 'Year', 'Date', 'Status', 'Change Attendance'].map((title) => (
                     <th
                       key={title}
                       className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
@@ -630,17 +639,19 @@ const Attendance = () => {
           </div>
 
           {/* Pagination and Stats */}
-          {attendanceRecords.length > 0 && (
+          {totalRecords > 0 && (
             <div className="mt-6 space-y-4">
               {/* Statistics */}
               <div className="flex justify-between items-center text-sm select-none">
+                {/* Note: Showing counts for current page only as getting total counts for each status would require more backend queries */}
                 <div className="flex space-x-4 text-gray-600">
                   <span>Present: {attendanceRecords.filter(r => r.status?.toLowerCase() === 'present').length}</span>
                   <span>Absent: {attendanceRecords.filter(r => r.status?.toLowerCase() === 'absent').length}</span>
                   <span>Not Marked: {attendanceRecords.filter(r => !r.status).length}</span>
+                  <span className="text-xs italic text-gray-400">(Current Page)</span>
                 </div>
                 <div className="text-gray-600">
-                  Total Records: {attendanceRecords.length}
+                  Total Records: {totalRecords}
                 </div>
               </div>
 
@@ -662,7 +673,7 @@ const Attendance = () => {
                     <option value={100}>100</option>
                   </select>
                   <span className="text-sm text-gray-600">
-                    Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, attendanceRecords.length)} of {attendanceRecords.length}
+                    Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, totalRecords)} of {totalRecords}
                   </span>
                 </div>
 
@@ -671,11 +682,10 @@ const Attendance = () => {
                   <button
                     onClick={() => handlePageChange(currentPage - 1)}
                     disabled={currentPage === 1}
-                    className={`px-3 py-1 rounded-md text-sm ${
-                      currentPage === 1
+                    className={`px-3 py-1 rounded-md text-sm ${currentPage === 1
                         ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                         : 'bg-white text-gray-900 hover:bg-gray-100 border border-gray-300'
-                    }`}
+                      }`}
                   >
                     Previous
                   </button>
@@ -698,11 +708,10 @@ const Attendance = () => {
                         <button
                           key={pageNum}
                           onClick={() => handlePageChange(pageNum)}
-                          className={`px-3 py-1 rounded-md text-sm ${
-                            currentPage === pageNum
+                          className={`px-3 py-1 rounded-md text-sm ${currentPage === pageNum
                               ? 'bg-blue-500 text-white'
                               : 'bg-white text-gray-900 hover:bg-gray-100 border border-gray-300'
-                          }`}
+                            }`}
                         >
                           {pageNum}
                         </button>
@@ -713,11 +722,10 @@ const Attendance = () => {
                   <button
                     onClick={() => handlePageChange(currentPage + 1)}
                     disabled={currentPage === totalPages}
-                    className={`px-3 py-1 rounded-md text-sm ${
-                      currentPage === totalPages
+                    className={`px-3 py-1 rounded-md text-sm ${currentPage === totalPages
                         ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                         : 'bg-white text-gray-900 hover:bg-gray-100 border border-gray-300'
-                    }`}
+                      }`}
                   >
                     Next
                   </button>

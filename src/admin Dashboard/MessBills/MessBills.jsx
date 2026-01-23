@@ -11,7 +11,12 @@ const MessBills = () => {
     month_year: '',
 
     // Year-wise Student Data
-    years_data: [{ year: '', total_students: '', total_days: '' }],
+    years_data: [
+      { year: '1', total_students: '', total_days: '' },
+      { year: '2', total_students: '', total_days: '' },
+      { year: '3', total_students: '', total_days: '' },
+      { year: '4', total_students: '', total_days: '' }
+    ],
 
     // Cost Details
     grocery_cost: '',
@@ -166,21 +171,7 @@ const MessBills = () => {
     setFormData(updatedFormData);
   };
 
-  const addYear = () => {
-    setFormData(prev => ({
-      ...prev,
-      years_data: [...prev.years_data, { year: '', total_students: '', total_days: '' }]
-    }));
-  };
 
-  const removeYear = (index) => {
-    if (formData.years_data.length > 1) {
-      const newYears = formData.years_data.filter((_, i) => i !== index);
-      const updatedFormData = { ...formData, years_data: newYears };
-      calculateMessFee(updatedFormData);
-      setFormData(updatedFormData);
-    }
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -333,7 +324,12 @@ const MessBills = () => {
   const resetForm = () => {
     setFormData({
       month_year: '',
-      years_data: [{ year: '', total_students: '', total_days: '' }],
+      years_data: [
+        { year: '1', total_students: '', total_days: '' },
+        { year: '2', total_students: '', total_days: '' },
+        { year: '3', total_students: '', total_days: '' },
+        { year: '4', total_students: '', total_days: '' }
+      ],
       grocery_cost: '',
       vegetable_cost: '',
       gas_charges: '',
@@ -412,11 +408,9 @@ const MessBills = () => {
                     <input
                       id={`year-${index}`}
                       name="year"
-                      placeholder="e.g., 1"
                       value={year.year}
-                      onChange={(e) => handleYearChange(index, e)}
-                      onKeyDown={handleNumericInput}
-                      maxLength="1"
+                      readOnly
+                      style={{ backgroundColor: '#f0f0f0', cursor: 'not-allowed' }}
                     />
                   </div>
                   <div className="form-group">
@@ -443,24 +437,9 @@ const MessBills = () => {
                       maxLength="2"
                     />
                   </div>
-                  {formData.years_data.length > 1 && (
-                    <div className="form-group" style={{ display: 'flex', alignItems: 'end' }}>
-                      <button
-                        type="button"
-                        className="btn btn-reset"
-                        onClick={() => removeYear(index)}
-                        style={{ marginTop: '24px' }}
-                      >
-                        Remove Year
-                      </button>
-                    </div>
-                  )}
                 </div>
               </div>
             ))}
-            <button type="button" className="btn" onClick={addYear} style={{ marginTop: '10px' }}>
-              Add Year
-            </button>
           </div>
 
           {/* Cost Details Section */}

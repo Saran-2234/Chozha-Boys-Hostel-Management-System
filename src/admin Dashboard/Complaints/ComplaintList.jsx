@@ -1,38 +1,35 @@
 import React, { useState } from 'react';
 import Button from '../Common/Button';
 import Modal from '../Common/Modal';
-import { resolveComplaint, changeComplaintStatus } from '../../registration/api';
+import { changeComplaintStatus } from '../../registration/api';
 
-const ComplaintList = ({ isDarkMode, searchTerm, filter, complaints = [], onRefresh }) => {
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+const ComplaintList = ({
+  isDarkMode,
+  complaints = [],
+  onRefresh,
+  pagination,
+  onPageChange
+}) => {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [selectedComplaint, setSelectedComplaint] = useState(null);
 
-  // Filter complaints based on search term and filter prop
-  const filteredComplaints = complaints.filter((complaint) => {
-    const matchesSearch =
-      complaint.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      complaint.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      complaint.description.toLowerCase().includes(searchTerm.toLowerCase());
-
-    // Normalize status for comparison
-    const status = complaint.status.toLowerCase();
-    const filterLower = filter.toLowerCase();
-
-    const matchesFilter =
-      filter === 'all' ||
-      status === filterLower ||
-      (filterLower === 'pending' && (status === 'open' || status === 'pending')) ||
-      complaint.priority.toLowerCase() === filterLower;
-
-    return matchesSearch && matchesFilter;
-  });
+  // Use props for pagination
+  const { currentPage, totalPages, totalRecords, limit } = pagination || {
+    currentPage: 1,
+    totalPages: 1,
+    totalRecords: 0,
+    limit: 10
+  };
 
   const handleUpdateStatus = async (complaintId, newStatus) => {
+    // Optimistic UI update or wait for completion? waiting for completion is safer
+    if (!window.confirm(`Are you sure you want to change status to "${newStatus}"?`)) return;
+
     try {
       const response = await changeComplaintStatus(complaintId, newStatus);
-      if (response && response.success) {
+      if (response && (response.success || response.message)) {
+        // Note: api usually returns whole response object or data
+        // API wrapper returns response.data probably
         alert(response.message || 'Updated successfully');
         if (onRefresh) onRefresh();
       } else {
@@ -40,28 +37,8 @@ const ComplaintList = ({ isDarkMode, searchTerm, filter, complaints = [], onRefr
       }
     } catch (err) {
       console.error('Error updating complaint status:', err);
-      alert(err.message || 'Internal Server Error');
+      // alert(err.message || 'Internal Server Error');
     }
-  };
-
-  const handleResolve = async (complaintId) => {
-    try {
-      const response = await resolveComplaint(complaintId);
-      if (response && response.success) {
-        alert('Complaint resolved!');
-        if (onRefresh) onRefresh();
-      } else {
-        alert(response.message || 'Failed to resolve complaint');
-      }
-    } catch (error) {
-      console.error('Error resolving complaint:', error);
-      alert(error.message || 'Internal Server Error');
-    }
-  };
-
-  const handleRegisterComplaint = (newComplaint) => {
-    // This logic seems misplaced or unused in current flow, leaving it empty or logging
-    console.log("Register complaint called (not fully implemented in list view):", newComplaint);
   };
 
   const handleViewComplaint = (complaint) => {
@@ -75,8 +52,9 @@ const ComplaintList = ({ isDarkMode, searchTerm, filter, complaints = [], onRefr
   };
 
   const getStatusColor = (status) => {
-    switch (status.toLowerCase()) {
+    switch (status?.toLowerCase()) {
       case 'pending':
+      case 'open':
         return 'bg-red-100 text-red-800';
       case 'in progress':
         return 'bg-yellow-100 text-yellow-800';
@@ -88,7 +66,7 @@ const ComplaintList = ({ isDarkMode, searchTerm, filter, complaints = [], onRefr
   };
 
   const getPriorityColor = (priority) => {
-    switch (priority.toLowerCase()) {
+    switch (priority?.toLowerCase()) {
       case 'high':
         return 'bg-red-100 text-red-800';
       case 'normal':
@@ -100,40 +78,16 @@ const ComplaintList = ({ isDarkMode, searchTerm, filter, complaints = [], onRefr
     }
   };
 
-
-
-  const totalPages = Math.ceil(filteredComplaints.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedComplaints = filteredComplaints.slice(startIndex, startIndex + itemsPerPage);
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-        <span className="ml-2">Loading complaints...</span>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="text-center py-8">
-        <div className={`text-red-500 text-lg font-semibold ${isDarkMode ? 'text-red-400' : 'text-red-600'}`}>
-          Error loading complaints
-        </div>
-        <div className={`mt-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-          {error}
-        </div>
-      </div>
-    );
-  }
+  // Calculate start and end indices for display purposes only
+  const displayStartIndex = (currentPage - 1) * limit + 1;
+  const displayEndIndex = Math.min(currentPage * limit, totalRecords);
 
   return (
     <div className="space-y-4">
       {/* Mobile: stacked complaint cards */}
       <div className="space-y-3 sm:hidden">
-        {paginatedComplaints.length > 0 ? (
-          paginatedComplaints.map((complaint) => {
+        {complaints.length > 0 ? (
+          complaints.map((complaint) => {
             return (
               <div key={complaint.id} className={isDarkMode ? 'p-3 rounded-lg bg-gray-800 border border-gray-700' : 'p-3 rounded-lg bg-white border border-gray-200'}>
                 <div className="flex items-start justify-between">
@@ -156,39 +110,43 @@ const ComplaintList = ({ isDarkMode, searchTerm, filter, complaints = [], onRefr
                   <div className="ml-3 flex-shrink-0">
                     <div className="flex flex-col space-y-2">
                       <Button onClick={() => handleViewComplaint(complaint)} variant="outline" size="small" isDarkMode={isDarkMode}>
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                        </svg>
                         View
                       </Button>
                       {complaint.status !== 'resolved' && (
-                        <div className="flex space-x-1">
+                        <div className="flex flex-col space-y-1 mt-2">
+                          {/* Status Change Buttons */}
+                          {(complaint.status !== 'pending' && complaint.status !== 'open') && (
+                            <Button
+                              onClick={() => handleUpdateStatus(complaint.id, 'pending')}
+                              variant="outline"
+                              size="small"
+                              isDarkMode={isDarkMode}
+                              className="w-full text-center"
+                            >
+                              Mark Pending
+                            </Button>
+                          )}
+
+                          {complaint.status !== 'in progress' && (
+                            <Button
+                              onClick={() => handleUpdateStatus(complaint.id, 'in progress')}
+                              variant="outline"
+                              size="small"
+                              isDarkMode={isDarkMode}
+                              className="w-full text-center"
+                            >
+                              Mark In Progress
+                            </Button>
+                          )}
+
                           <Button
-                            onClick={() => handleUpdateStatus(complaint.id, 'pending')}
-                            variant={complaint.status === 'pending' ? 'primary' : 'outline'}
-                            size="small"
-                            isDarkMode={isDarkMode}
-                            disabled={complaint.status === 'pending'}
-                          >
-                            Pending
-                          </Button>
-                          <Button
-                            onClick={() => handleUpdateStatus(complaint.id, 'in progress')}
-                            variant={complaint.status === 'in progress' ? 'primary' : 'outline'}
-                            size="small"
-                            isDarkMode={isDarkMode}
-                            disabled={complaint.status === 'in progress'}
-                          >
-                            In Progress
-                          </Button>
-                          <Button
-                            onClick={() => handleResolve(complaint.id)}
+                            onClick={() => handleUpdateStatus(complaint.id, 'resolved')}
                             variant="outline"
                             size="small"
                             isDarkMode={isDarkMode}
+                            className="w-full text-center hover:bg-green-100 hover:text-green-700"
                           >
-                            Resolve
+                            Mark Resolved
                           </Button>
                         </div>
                       )}
@@ -205,7 +163,7 @@ const ComplaintList = ({ isDarkMode, searchTerm, filter, complaints = [], onRefr
 
       {/* Desktop/tablet: show table on sm+ */}
       <div className="hidden sm:block">
-        <div className="overflow-x-auto max-h-[400px] overflow-y-auto block w-full" style={{ position: 'relative', zIndex: 1 }}>
+        <div className="overflow-x-auto max-h-[600px] overflow-y-auto block w-full" style={{ position: 'relative', zIndex: 1 }}>
           <table className={`min-w-full divide-y ${isDarkMode ? 'divide-gray-700' : 'divide-gray-200'}`}>
             <thead className={isDarkMode ? 'bg-gray-700' : 'bg-gray-50'}>
               <tr>
@@ -233,90 +191,115 @@ const ComplaintList = ({ isDarkMode, searchTerm, filter, complaints = [], onRefr
               </tr>
             </thead>
             <tbody className={`divide-y ${isDarkMode ? 'divide-gray-700 bg-gray-800' : 'divide-gray-200 bg-white'}`}>
-              {paginatedComplaints.map((complaint) => (
-                <tr key={complaint.id} className={isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}>
-                  <td className="px-6 py-4">
-                    <div>
-                      <div className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                        {complaint.title}
+              {complaints.length > 0 ? (
+                complaints.map((complaint) => (
+                  <tr key={complaint.id} className={isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}>
+                    <td className="px-6 py-4">
+                      <div>
+                        <div className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                          {complaint.title}
+                        </div>
+                        <div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} truncate max-w-xs`}>
+                          {complaint.description}
+                        </div>
                       </div>
-                      <div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} truncate max-w-xs`}>
-                        {complaint.description}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div>
+                        <div className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                          {complaint.studentName}
+                        </div>
+                        <div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                          Room {complaint.room}
+                        </div>
                       </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div>
-                      <div className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                        {complaint.studentName}
-                      </div>
-                      <div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                        Room {complaint.room}
-                      </div>
-                    </div>
-                  </td>
-                  <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>
-                    {complaint.category}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getPriorityColor(complaint.priority)}`}>
-                      {complaint.priority}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(complaint.status)}`}>
-                      {complaint.status}
-                    </span>
-                  </td>
-                  <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>
-                    {new Date(complaint.dateSubmitted).toLocaleDateString()}
-                  </td>
-                  <td className="px-6 py-4 text-sm font-medium space-x-2">
-                    <Button
-                      onClick={() => handleViewComplaint(complaint)}
-                      variant="outline"
-                      size="small"
-                      isDarkMode={isDarkMode}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                      </svg>
-                      View
-                    </Button>
-                    {complaint.status !== 'resolved' && (
-                      <div className="inline-flex space-x-1">
+                    </td>
+                    <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>
+                      {complaint.category}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getPriorityColor(complaint.priority)}`}>
+                        {complaint.priority}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(complaint.status)}`}>
+                        {complaint.status}
+                      </span>
+                    </td>
+                    <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>
+                      {new Date(complaint.dateSubmitted).toLocaleDateString()}
+                    </td>
+                    <td className="px-6 py-4 text-sm font-medium space-x-2">
+                      <div className="flex flex-col space-y-1">
                         <Button
-                          onClick={() => handleUpdateStatus(complaint.id, 'pending')}
-                          variant={complaint.status === 'pending' ? 'primary' : 'outline'}
-                          size="small"
-                          isDarkMode={isDarkMode}
-                          disabled={complaint.status === 'pending'}
-                        >
-                          Pending
-                        </Button>
-                        <Button
-                          onClick={() => handleUpdateStatus(complaint.id, 'in progress')}
-                          variant={complaint.status === 'in progress' ? 'primary' : 'outline'}
-                          size="small"
-                          isDarkMode={isDarkMode}
-                          disabled={complaint.status === 'in progress'}
-                        >
-                          In Progress
-                        </Button>
-                        <Button
-                          onClick={() => handleResolve(complaint.id)}
+                          onClick={() => handleViewComplaint(complaint)}
                           variant="outline"
                           size="small"
                           isDarkMode={isDarkMode}
+                          className="w-full"
                         >
-                          Resolve
+                          View
                         </Button>
+
+                        {complaint.status !== 'resolved' && (
+                          <>
+                            {(complaint.status !== 'pending' && complaint.status !== 'open') && (
+                              <Button
+                                onClick={() => handleUpdateStatus(complaint.id, 'pending')}
+                                variant="outline"
+                                size="small"
+                                isDarkMode={isDarkMode}
+                              >
+                                Pending
+                              </Button>
+                            )}
+
+                            {complaint.status !== 'in progress' && (
+                              <Button
+                                onClick={() => handleUpdateStatus(complaint.id, 'in progress')}
+                                variant="outline"
+                                size="small"
+                                isDarkMode={isDarkMode}
+                              >
+                                In Progress
+                              </Button>
+                            )}
+
+                            <Button
+                              onClick={() => handleUpdateStatus(complaint.id, 'resolved')}
+                              variant="outline"
+                              size="small"
+                              isDarkMode={isDarkMode}
+                              className="bg-green-50 text-green-700 hover:bg-green-100 border-green-200"
+                            >
+                              Resolve
+                            </Button>
+                          </>
+                        )}
+                        {/* Optionally allow reopening resolved tickets */}
+                        {complaint.status === 'resolved' && (
+                          <Button
+                            onClick={() => handleUpdateStatus(complaint.id, 'pending')}
+                            variant="outline"
+                            size="small"
+                            isDarkMode={isDarkMode}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          >
+                            Reopen
+                          </Button>
+                        )}
                       </div>
-                    )}
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="7" className={`px-6 py-4 text-center text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                    No complaints found.
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>
@@ -324,11 +307,11 @@ const ComplaintList = ({ isDarkMode, searchTerm, filter, complaints = [], onRefr
         {/* Pagination */}
         <div className="flex flex-col sm:flex-row items-center justify-between space-y-2 sm:space-y-0 mt-4">
           <div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-700'}`}>
-            Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredComplaints.length)} of {filteredComplaints.length} complaints
+            Showing {totalRecords > 0 ? displayStartIndex : 0} to {displayEndIndex} of {totalRecords} complaints
           </div>
           <div className="flex space-x-2">
             <Button
-              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+              onClick={() => onPageChange(Math.max(1, currentPage - 1))}
               disabled={currentPage === 1}
               variant="outline"
               size="small"
@@ -337,7 +320,7 @@ const ComplaintList = ({ isDarkMode, searchTerm, filter, complaints = [], onRefr
               Previous
             </Button>
             <Button
-              onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+              onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
               disabled={currentPage === totalPages}
               variant="outline"
               size="small"
@@ -352,15 +335,53 @@ const ComplaintList = ({ isDarkMode, searchTerm, filter, complaints = [], onRefr
       {/* Modal for viewing complaint details */}
       <Modal isOpen={isViewModalOpen} onClose={handleCloseModal} title="Complaint Details" size="medium" isDarkMode={isDarkMode}>
         {selectedComplaint ? (
-          <div className="space-y-2 text-sm">
-            <div><strong>Title:</strong> {selectedComplaint.title}</div>
-            <div><strong>Description:</strong> {selectedComplaint.description}</div>
-            <div><strong>Student:</strong> {selectedComplaint.studentName}</div>
-            <div><strong>Room:</strong> {selectedComplaint.room}</div>
-            <div><strong>Category:</strong> {selectedComplaint.category}</div>
-            <div><strong>Priority:</strong> {selectedComplaint.priority}</div>
-            <div><strong>Status:</strong> {selectedComplaint.status}</div>
-            <div><strong>Date Submitted:</strong> {new Date(selectedComplaint.dateSubmitted).toLocaleString()}</div>
+          <div className="space-y-4 text-sm">
+            <div className={`p-4 rounded-md ${isDarkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <span className={`block font-semibold ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Student</span>
+                  <span className={isDarkMode ? 'text-white' : 'text-gray-900'}>{selectedComplaint.studentName}</span>
+                </div>
+                <div>
+                  <span className={`block font-semibold ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Room</span>
+                  <span className={isDarkMode ? 'text-white' : 'text-gray-900'}>{selectedComplaint.room}</span>
+                </div>
+                <div>
+                  <span className={`block font-semibold ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Category</span>
+                  <span className={isDarkMode ? 'text-white' : 'text-gray-900'}>{selectedComplaint.category}</span>
+                </div>
+                <div>
+                  <span className={`block font-semibold ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Priority</span>
+                  <span className={`inline-block px-2 py-0.5 text-xs rounded-full ${getPriorityColor(selectedComplaint.priority)}`}>{selectedComplaint.priority}</span>
+                </div>
+                <div>
+                  <span className={`block font-semibold ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Status</span>
+                  <span className={`inline-block px-2 py-0.5 text-xs rounded-full ${getStatusColor(selectedComplaint.status)}`}>{selectedComplaint.status}</span>
+                </div>
+                <div>
+                  <span className={`block font-semibold ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Submitted</span>
+                  <span className={isDarkMode ? 'text-white' : 'text-gray-900'}>{new Date(selectedComplaint.dateSubmitted).toLocaleString()}</span>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h4 className={`font-semibold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Title</h4>
+              <p className={`p-2 rounded border ${isDarkMode ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-200'}`}>
+                {selectedComplaint.title}
+              </p>
+            </div>
+
+            <div>
+              <h4 className={`font-semibold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Description</h4>
+              <div className={`p-3 rounded border h-32 overflow-y-auto ${isDarkMode ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-200'}`}>
+                {selectedComplaint.description}
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-4 border-t border-gray-200 dark:border-gray-700">
+              <Button onClick={handleCloseModal} variant="primary" isDarkMode={isDarkMode}>Close</Button>
+            </div>
           </div>
         ) : (
           <div>No complaint selected.</div>

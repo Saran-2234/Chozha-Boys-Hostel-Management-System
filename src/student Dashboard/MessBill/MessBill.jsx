@@ -12,6 +12,8 @@ const MessBill = () => {
   const [messBills, setMessBills] = useState([]);
   const [loading, setLoading] = useState(false);
   const [studentData, setStudentData] = useState(null);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   const API_BASE_URL = 'https://finalbackend1.vercel.app';
 
@@ -38,17 +40,19 @@ const MessBill = () => {
         ...JSON.parse(userData),
         id: studentId
       });
-      fetchMessBills(token, studentId);
+      fetchMessBills(token, studentId, 1);
     } else {
       setError('Authentication required. Please login again.');
     }
   }, []);
 
-  const fetchMessBills = async (token, studentId) => {
+  const fetchMessBills = async (token, studentId, pageNum) => {
     setLoading(true);
     try {
       const response = await axios.post(`${API_BASE_URL}/students/showmessbillbyid1`, {
         student_id: studentId,
+        page: pageNum,
+        limit: 10
       }, {
         headers: {
           'Content-Type': 'application/json',
@@ -59,8 +63,11 @@ const MessBill = () => {
 
       if (response.data && response.data.data) {
         setMessBills(response.data.data);
+        setTotalPages(response.data.totalPages || 1);
+        setPage(pageNum);
       } else {
         setMessBills([]);
+        setTotalPages(0);
       }
     } catch (err) {
       console.error('Error fetching mess bills:', err);
@@ -70,6 +77,18 @@ const MessBill = () => {
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handlePrevious = () => {
+    if (page > 1 && studentData) {
+      fetchMessBills(studentData.token, studentData.id, page - 1);
+    }
+  };
+
+  const handleNext = () => {
+    if (page < totalPages && studentData) {
+      fetchMessBills(studentData.token, studentData.id, page + 1);
     }
   };
 
@@ -375,6 +394,26 @@ const MessBill = () => {
               </div>
             );
           })}
+
+          <div className="flex justify-center mt-6 gap-2">
+            <button
+              onClick={handlePrevious}
+              disabled={page === 1}
+              className={`px-4 py-2 rounded text-sm font-medium ${page === 1 ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'}`}
+            >
+              Previous
+            </button>
+            <span className="px-4 py-2 text-sm text-gray-600 font-medium flex items-center">
+              Page {page} of {totalPages}
+            </span>
+            <button
+              onClick={handleNext}
+              disabled={page === totalPages}
+              className={`px-4 py-2 rounded text-sm font-medium ${page === totalPages ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'}`}
+            >
+              Next
+            </button>
+          </div>
         </div>
       ) : (
         <div className="text-center py-8">

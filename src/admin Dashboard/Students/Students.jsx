@@ -15,6 +15,10 @@ const Students = ({ isDarkMode }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Pagination state
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [showRejectDialog, setShowRejectDialog] = useState(false);
   const [studentToApprove, setStudentToApprove] = useState(null);
@@ -29,6 +33,9 @@ const Students = ({ isDarkMode }) => {
 
   useEffect(() => {
     fetchStudents();
+  }, [page, filter, yearFilter, departmentFilter]);
+
+  useEffect(() => {
     fetchDepartmentsData();
   }, []);
 
@@ -37,39 +44,62 @@ const Students = ({ isDarkMode }) => {
       setLoading(true);
       setError(null);
 
-      const data = await fetchStudentsAPI();
-      setStudents(data);
+      // Pass the values as is. api.js will handle construction
+      // Construct params, excluding 'all' values
+      const params = {
+        page,
+        limit: 10
+      };
+
+      if (departmentFilter && departmentFilter !== 'all') {
+        params.department = departmentFilter;
+      }
+
+      if (yearFilter && yearFilter !== 'all') {
+        params.academic_year = yearFilter;
+      }
+
+      if (filter && filter !== 'all') {
+        params.status = filter;
+      }
+
+      const data = await fetchStudentsAPI(params);
+
+      // Handle the new response structure from api.js
+      if (data && data.students) {
+        setStudents(data.students);
+        setHasMore(data.hasMore || false);
+      } else if (Array.isArray(data)) {
+        // Fallback for older API or direct array return
+        setStudents(data);
+        setHasMore(false);
+      } else {
+        setStudents([]);
+        setHasMore(false);
+      }
     } catch (err) {
       console.error('Error fetching students:', err);
-      setError(err.message);
-      // Fallback to mock data if API fails
-      setStudents([
-        {
-          id: 14,
-          name: 'mega',
-          email: 'benmega500@gmail.com',
-          room_number: '130',
-          status: 'inactive',
-          registration_number: 'REG030',
-          department: 'Computer Science',
-          academic_year: '2023-24',
-          created_at: '2024-01-15'
-        },
-        {
-          id: 15,
-          name: 'SARAN S',
-          email: '9788saran@gmail.com',
-          room_number: '410',
-          status: 'pending',
-          registration_number: '822722104045',
-          department: 'Electrical Engineering',
-          academic_year: '2023-24',
-          created_at: '2024-01-16'
-        }
-      ]);
+      // We don't clear students on error if we want to show stale data, but usually better to clear or show error
+      // If error is just 404/400 (no students found), we treat as empty
+      if (err.message && (err.message.includes('404') || err.message.includes('400'))) {
+        setStudents([]);
+        setHasMore(false);
+      } else {
+        setError(err.message || "Failed to fetch students");
+        setStudents([]);
+      }
     } finally {
       setLoading(false);
     }
+  };
+
+  const handlePageChange = (newPage) => {
+    setPage(newPage);
+  };
+
+  const handleFilterChange = (setter) => (e) => {
+    setter(e.target.value);
+    setPage(1); // Reset to first page on filter change
   };
 
   const fetchDepartmentsData = async () => {
@@ -107,8 +137,8 @@ const Students = ({ isDarkMode }) => {
     console.log('Export students clicked');
   };
 
-  const handleApproveClick = (registrationNumber) => {
-    const student = students.find(s => s.registration_number === registrationNumber);
+  const handleApproveClick = (studentId) => {
+    const student = students.find(s => s.id === studentId);
     if (student) {
       setStudentToApprove(student);
       setShowConfirmDialog(true);
@@ -125,9 +155,9 @@ const Students = ({ isDarkMode }) => {
     setLoading(true);
 
     try {
-      console.log('Approving student:', studentToApprove.name, 'with registration number:', studentToApprove.registration_number);
+      console.log('Approving student:', studentToApprove.name, 'with ID:', studentToApprove.id);
 
-      const responseData = await approveStudent(studentToApprove.registration_number);
+      const responseData = await approveStudent(studentToApprove.id);
       console.log('Approval response:', responseData);
 
       // Update local state with response data
@@ -169,8 +199,8 @@ const Students = ({ isDarkMode }) => {
     setStudentToApprove(null);
   };
 
-  const handleRejectClick = (registrationNumber) => {
-    const student = students.find(s => s.registration_number === registrationNumber);
+  const handleRejectClick = (studentId) => {
+    const student = students.find(s => s.id === studentId);
     if (student) {
       setStudentToReject(student);
       setRejectionReason('');
@@ -193,9 +223,8 @@ const Students = ({ isDarkMode }) => {
     setLoading(true);
 
     try {
-      console.log('Rejecting student:', studentToReject.name, 'with registration number:', studentToReject.registration_number, 'reason:', rejectionReason.trim());
-
-      const responseData = await rejectStudent(studentToReject.registration_number, rejectionReason.trim());
+      console.log('Rejecting student:', studentToReject.name, 'with ID:', studentToReject.id, 'reason:', rejectionReason.trim());
+      const responseData = await rejectStudent(studentToReject.id, rejectionReason.trim());
       console.log('Rejection response:', responseData);
 
       // Update local state with response data
@@ -387,16 +416,16 @@ const Students = ({ isDarkMode }) => {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className={`flex-1 min-w-0 px-3 py-2 border rounded-md text-sm ${isDarkMode
-                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
-                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                  ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                  : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
                   }`}
               />
               <select
                 value={yearFilter}
-                onChange={(e) => setYearFilter(e.target.value)}
+                onChange={handleFilterChange(setYearFilter)}
                 className={`w-auto px-3 py-2 border rounded-md text-sm ${isDarkMode
-                    ? 'bg-gray-700 border-gray-600 text-white'
-                    : 'bg-white border-gray-300 text-gray-900'
+                  ? 'bg-gray-700 border-gray-600 text-white'
+                  : 'bg-white border-gray-300 text-gray-900'
                   }`}
               >
                 <option value="all">All Years</option>
@@ -407,10 +436,10 @@ const Students = ({ isDarkMode }) => {
               </select>
               <select
                 value={departmentFilter}
-                onChange={(e) => setDepartmentFilter(e.target.value)}
+                onChange={handleFilterChange(setDepartmentFilter)}
                 className={`w-auto px-3 py-2 border rounded-md text-sm ${isDarkMode
-                    ? 'bg-gray-700 border-gray-600 text-white'
-                    : 'bg-white border-gray-300 text-gray-900'
+                  ? 'bg-gray-700 border-gray-600 text-white'
+                  : 'bg-white border-gray-300 text-gray-900'
                   }`}
                 style={{
                   minWidth: '180px',
@@ -431,18 +460,15 @@ const Students = ({ isDarkMode }) => {
               </select>
               <select
                 value={filter}
-                onChange={(e) => setFilter(e.target.value)}
+                onChange={handleFilterChange(setFilter)}
                 className={`w-auto px-3 py-2 border rounded-md text-sm ${isDarkMode
-                    ? 'bg-gray-700 border-gray-600 text-white'
-                    : 'bg-white border-gray-300 text-gray-900'
+                  ? 'bg-gray-700 border-gray-600 text-white'
+                  : 'bg-white border-gray-300 text-gray-900'
                   }`}
               >
                 <option value="all">All Status</option>
-                <option value="pending">Pending</option>
-                <option value="active">Active</option>
-                <option value="rejected">Rejected</option>
-                <option value="not approved">Not Approved</option>
-                <option value="inactive">Inactive</option>
+                <option value="true">Accepted</option>
+                <option value="false">Rejected</option>
               </select>
             </div>
           </div>
@@ -459,6 +485,11 @@ const Students = ({ isDarkMode }) => {
             onReject={handleRejectClick}
             onEdit={handleEdit}
             onRefresh={fetchStudents}
+            // Server-side props
+            isServerSide={true}
+            currentPage={page}
+            hasMore={hasMore}
+            onPageChange={handlePageChange}
           />
         </CardContent>
       </Card>
@@ -532,8 +563,8 @@ const Students = ({ isDarkMode }) => {
                   placeholder="Please provide a reason for rejection..."
                   rows={3}
                   className={`w-full px-3 py-2 border rounded-md text-sm ${isDarkMode
-                      ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
-                      : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
                     }`}
                   required
                 />

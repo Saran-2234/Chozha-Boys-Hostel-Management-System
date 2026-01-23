@@ -24,16 +24,34 @@ const MessBillsIndividualList = () => {
   const [statusData, setStatusData] = useState([]);
   const [loadingStatus, setLoadingStatus] = useState(false);
   const [departments, setDepartments] = useState([]);
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
 
   useEffect(() => {
+    let currentMonth = null;
     if (location.state && location.state.month) {
-      setMonth(location.state.month);
+      currentMonth = location.state.month;
+      setMonth(currentMonth);
     } else {
       const monthData = sessionStorage.getItem('monthData');
       if (monthData) {
-        setMonth(JSON.parse(monthData));
+        currentMonth = JSON.parse(monthData);
+        setMonth(currentMonth);
       }
     }
+
+    if (currentMonth && currentMonth.title) {
+      // currentMonth.title is expected to be in "MM-YYYY" format
+      const parts = currentMonth.title.split('-');
+      if (parts.length === 2) {
+        const [mm, yyyy] = parts;
+        setSelectedMonthYear(`${yyyy}-${mm}`);
+      }
+    }
+
     fetchDepartments();
   }, [location.state]);
 
@@ -327,12 +345,13 @@ const MessBillsIndividualList = () => {
     }
   };
 
-  const handleFetchBills = async (e) => {
-    e.preventDefault();
+  const fetchBillsData = async (page = 1, limit = 10) => {
     setLoading(true);
     setError('');
     setSuccess('');
     setSelectedStudents([]);
+    // Do not reset bills here if we want to show loading state while keeping old data, 
+    // but typically we clear or show loading overlay. Validated by loading state.
 
     if (!selectedMonthYear || !selectedDepartmentText || !selectedAcademicYear) {
       setError('Please fill in all required fields');
@@ -347,7 +366,9 @@ const MessBillsIndividualList = () => {
       const payload = {
         month_year: formattedMonthYear,
         department: selectedDepartmentText,
-        academic_year: selectedAcademicYear
+        academic_year: selectedAcademicYear,
+        page: page,
+        limit: limit
       };
 
       const response = await fetch('https://finalbackend1.vercel.app/admin/fetchstudentsmessbillnew', {
@@ -360,14 +381,29 @@ const MessBillsIndividualList = () => {
 
       if (!response.ok) {
         const errorData = await response.json();
+        // If 404, it might just mean no records for this page, or total
+        if (response.status === 404) {
+          setBills([]);
+          setTotalRecords(0);
+          setTotalPages(0);
+          setResultsVisible(true); // Still show the container to show "0 results"
+          setError(errorData.message || 'No records found');
+          setLoading(false);
+          return;
+        }
         throw new Error(errorData.error || 'Failed to fetch bills');
       }
 
       const data = await response.json();
 
+      setTotalRecords(data.total || 0);
+      setTotalPages(data.totalPages || 0);
+      setCurrentPage(data.page || 1);
+
       if (!data.data || data.data.length === 0) {
         setError(data.message || 'No records found for the given filters');
-        setResultsVisible(false);
+        setBills([]);
+        setResultsVisible(true);
         setLoading(false);
         return;
       }
@@ -401,6 +437,25 @@ const MessBillsIndividualList = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleFetchBills = (e) => {
+    e.preventDefault();
+    setCurrentPage(1); // Reset to page 1 for new filter search
+    fetchBillsData(1, itemsPerPage);
+  };
+
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      fetchBillsData(newPage, itemsPerPage);
+    }
+  };
+
+  const handleItemsPerPageChange = (e) => {
+    const newLimit = parseInt(e.target.value);
+    setItemsPerPage(newLimit);
+    setCurrentPage(1);
+    fetchBillsData(1, newLimit);
   };
 
   const handleResetFilters = () => {
@@ -532,7 +587,8 @@ const MessBillsIndividualList = () => {
                     <button className="btn" onClick={handleSelectAll}>Select All</button>
                     <button className="btn" onClick={handleDeselectAll}>Deselect All</button>
                     <button className="btn" onClick={handleSelectUnselected}>Select Unselected</button>
-                    <div className="results-count" id="resultsCount">{bills.length} bills found</div>x``
+                    <button className="btn" onClick={handleSelectUnselected}>Select Unselected</button>
+                    <div className="results-count" id="resultsCount">Total: {totalRecords}</div>
                   </div>
                 </div>
                 <div id="billsTableContainer">
@@ -636,6 +692,79 @@ const MessBillsIndividualList = () => {
                     </tbody>
                   </table>
                 </div>
+
+                {/* Pagination Controls */}
+                {totalRecords > 0 && (
+                  <div className="pagination-controls" style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#f9f9f9', borderTop: '1px solid #eee' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <span style={{ fontSize: '0.9rem', color: '#666' }}>Show per page:</span>
+                      <select
+                        value={itemsPerPage}
+                        onChange={handleItemsPerPageChange}
+                        style={{ padding: '5px 10px', borderRadius: '4px', border: '1px solid #ddd' }}
+                      >
+                        <option value={10}>10</option>
+                        <option value={20}>20</option>
+                        <option value={50}>50</option>
+                        <option value={100}>100</option>
+                      </select>
+                      <span style={{ fontSize: '0.9rem', color: '#666', marginLeft: '10px' }}>
+                        Showing {(currentPage - 1) * itemsPerPage + 1} - {Math.min(currentPage * itemsPerPage, totalRecords)} of {totalRecords} records
+                      </span>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '5px' }}>
+                      <button
+                        className="btn"
+                        onClick={() => handlePageChange(currentPage - 1)}
+                        disabled={currentPage === 1}
+                        style={{ padding: '5px 10px', fontSize: '0.9rem', opacity: currentPage === 1 ? 0.5 : 1, cursor: currentPage === 1 ? 'not-allowed' : 'pointer' }}
+                      >
+                        Previous
+                      </button>
+
+                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                        let pageNum;
+                        if (totalPages <= 5) {
+                          pageNum = i + 1;
+                        } else if (currentPage <= 3) {
+                          pageNum = i + 1;
+                        } else if (currentPage >= totalPages - 2) {
+                          pageNum = totalPages - 4 + i;
+                        } else {
+                          pageNum = currentPage - 2 + i;
+                        }
+
+                        return (
+                          <button
+                            key={pageNum}
+                            onClick={() => handlePageChange(pageNum)}
+                            style={{
+                              padding: '5px 10px',
+                              borderRadius: '4px',
+                              border: '1px solid #ddd',
+                              background: currentPage === pageNum ? '#4a6cf7' : 'white',
+                              color: currentPage === pageNum ? 'white' : '#333',
+                              cursor: 'pointer',
+                              fontWeight: currentPage === pageNum ? 'bold' : 'normal'
+                            }}
+                          >
+                            {pageNum}
+                          </button>
+                        );
+                      })}
+
+                      <button
+                        className="btn"
+                        onClick={() => handlePageChange(currentPage + 1)}
+                        disabled={currentPage === totalPages}
+                        style={{ padding: '5px 10px', fontSize: '0.9rem', opacity: currentPage === totalPages ? 0.5 : 1, cursor: currentPage === totalPages ? 'not-allowed' : 'pointer' }}
+                      >
+                        Next
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 

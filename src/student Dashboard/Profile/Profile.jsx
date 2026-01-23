@@ -75,6 +75,31 @@ const Profile = ({ studentData }) => {
   // Use the actual student data if available
   const data = profileData || studentData || {};
 
+  const [stats, setStats] = useState(null);
+  const [statsLoading, setStatsLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      if (data?.id) {
+        try {
+          setStatsLoading(true);
+          const response = await axios.post('http://localhost:3001/students/stats', {
+            student_id: data.id
+          });
+          if (response.data.success) {
+            setStats(response.data.data);
+          }
+        } catch (error) {
+          console.error("Error fetching stats:", error);
+        } finally {
+          setStatsLoading(false);
+        }
+      }
+    };
+
+    fetchStats();
+  }, [data?.id]);
+
   if (loading) {
     return (
       <div className="p-6">
@@ -110,6 +135,65 @@ const Profile = ({ studentData }) => {
   return (
     <div className="p-6">
       <div className="max-w-4xl mx-auto">
+
+        {/* Statistics Section */}
+        {stats && (
+          <div className="glass-card rounded-xl p-8 mb-8">
+            <h2 className="text-2xl font-bold text-white mb-6">Dashboard Statistics</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+              {/* Attendance Stats */}
+              <div className="glass-effect p-6 rounded-xl border border-white/5 hover:border-white/10 transition-colors">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-blue-400">Attendance</h3>
+                  <span className="text-xs text-slate-400 bg-slate-800/50 px-2 py-1 rounded">Live Updates</span>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="text-center p-3 rounded-lg bg-gradient-to-br from-blue-500/10 to-purple-500/10 border border-white/5">
+                    <p className="text-slate-400 text-sm mb-1">Overall</p>
+                    <p className="text-2xl font-bold text-white">{stats.attendance.overall.percentage}%</p>
+                    <p className="text-xs text-slate-500 mt-1">{stats.attendance.overall.present}/{stats.attendance.overall.total} Days</p>
+                  </div>
+                  <div className="text-center p-3 rounded-lg bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-white/5">
+                    <p className="text-slate-400 text-sm mb-1">Current Year</p>
+                    <p className="text-2xl font-bold text-white">{stats.attendance.year.percentage}%</p>
+                    <p className="text-xs text-slate-500 mt-1">{stats.attendance.year.present}/{stats.attendance.year.total} Days</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Mess Bill Stats */}
+              <div className="glass-effect p-6 rounded-xl border border-white/5 hover:border-white/10 transition-colors">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-emerald-400">Mess Bill</h3>
+                  <span className="text-xs text-slate-400 bg-slate-800/50 px-2 py-1 rounded">Payment Status</span>
+                </div>
+                <div className="space-y-4">
+                  <div>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span className="text-slate-400">Paid Amount</span>
+                      <span className="text-emerald-400 font-bold float-right">{stats.messBill.currency} {stats.messBill.paid}</span>
+                    </div>
+                    <div className="w-full bg-slate-700/50 rounded-full h-2">
+                      <div className="bg-emerald-500 h-2 rounded-full" style={{ width: '100%' }}></div>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span className="text-slate-400">Pending Amount</span>
+                      <span className="text-red-400 font-bold float-right">{stats.messBill.currency} {stats.messBill.notPaid}</span>
+                    </div>
+                    <div className="w-full bg-slate-700/50 rounded-full h-2">
+                      <div className="bg-red-500 h-2 rounded-full" style={{ width: '100%' }}></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        )}
+
         <div className="glass-card rounded-xl p-8">
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-2xl font-bold text-white">Personal Information</h2>

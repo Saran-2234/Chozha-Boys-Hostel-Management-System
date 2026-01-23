@@ -14,6 +14,9 @@ const MessBill = () => {
   const [studentData, setStudentData] = useState(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [selectedYear, setSelectedYear] = useState('');
+  const [selectedMonth, setSelectedMonth] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState('');
 
   const API_BASE_URL = 'https://finalbackend1.vercel.app';
 
@@ -40,7 +43,7 @@ const MessBill = () => {
         ...JSON.parse(userData),
         id: studentId
       });
-      fetchMessBills(token, studentId, 1);
+      // fetchMessBills(token, studentId, 1); // Triggered by useEffect dependency on studentData
     } else {
       setError('Authentication required. Please login again.');
     }
@@ -52,7 +55,10 @@ const MessBill = () => {
       const response = await axios.post(`${API_BASE_URL}/students/showmessbillbyid1`, {
         student_id: studentId,
         page: pageNum,
-        limit: 10
+        limit: 10,
+        year: selectedYear,
+        month: selectedMonth,
+        status: selectedStatus
       }, {
         headers: {
           'Content-Type': 'application/json',
@@ -79,6 +85,12 @@ const MessBill = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (studentData) {
+      fetchMessBills(studentData.token, studentData.id, 1);
+    }
+  }, [selectedYear, selectedMonth, selectedStatus, studentData]);
 
   const handlePrevious = () => {
     if (page > 1 && studentData) {
@@ -229,6 +241,56 @@ const MessBill = () => {
           <button className="btn-secondary text-gray-800 px-3 sm:px-4 py-2 rounded-lg font-medium text-sm sm:text-base w-full sm:w-auto">
             📄 Download Bill
           </button>
+        </div>
+      </div>
+
+      <div className="bg-white p-4 rounded-xl shadow-md border border-gray-200 mb-6 flex flex-wrap gap-4 items-center">
+        <div className="flex flex-col gap-1">
+          <label className="text-xs font-semibold text-gray-500 uppercase">Year</label>
+          <select
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(e.target.value)}
+            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-32 p-2.5"
+          >
+            <option value="">All Years</option>
+            {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map(year => (
+              <option key={year} value={year}>{year}</option>
+            ))}
+          </select>
+        </div>
+        <div className="flex flex-col gap-1">
+          <label className="text-xs font-semibold text-gray-500 uppercase">Month</label>
+          <select
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(e.target.value)}
+            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-36 p-2.5"
+          >
+            <option value="">All Months</option>
+            <option value="1">January</option>
+            <option value="2">February</option>
+            <option value="3">March</option>
+            <option value="4">April</option>
+            <option value="5">May</option>
+            <option value="6">June</option>
+            <option value="7">July</option>
+            <option value="8">August</option>
+            <option value="9">September</option>
+            <option value="10">October</option>
+            <option value="11">November</option>
+            <option value="12">December</option>
+          </select>
+        </div>
+        <div className="flex flex-col gap-1">
+          <label className="text-xs font-semibold text-gray-500 uppercase">Status</label>
+          <select
+            value={selectedStatus}
+            onChange={(e) => setSelectedStatus(e.target.value)}
+            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-32 p-2.5"
+          >
+            <option value="">All Status</option>
+            <option value="Paid">Paid</option>
+            <option value="Unpaid">Unpaid</option>
+          </select>
         </div>
       </div>
       {isModalOpen && (

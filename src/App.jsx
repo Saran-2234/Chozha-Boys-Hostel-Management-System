@@ -9,6 +9,7 @@ import MessBillIndividual from './admin Dashboard/MessBillsDetail/MessBillIndivi
 import MessBillsIndividualList from './admin Dashboard/MessBillsDetail/MessBillsIndividualList.jsx'
 import PaidStudents from './admin Dashboard/MessBillsDetail/PaidStudents.jsx'
 import UnpaidStudents from './admin Dashboard/MessBillsDetail/UnpaidStudents.jsx'
+import StudentProfilePage from './admin Dashboard/Students/StudentProfilePage.jsx'
 import { createBrowserRouter, RouterProvider, redirect } from "react-router-dom";
 
 
@@ -36,57 +37,62 @@ function adminDashboardLoader() {
 function App() {
 
   const routes = [
-  {
-    path: "/",
-    element: <Home />,
-  },
-  {
-    path: "/dashboard",
-    element: <Dashboard/>,
-    loader: dashboardLoader,
-  },
-  {
-    path: "/admin-dashboard",
-    element: <AdminDashboard/>,
-    loader: adminDashboardLoader,
-  },
-  {
-    path: "/mess-bills",
-    element: <MessBills/>,
-    loader: adminDashboardLoader,
-  },
-  {
-    path: "/mess-bills-detail",
-    element: <MessBillsDetail/>,
-    loader: adminDashboardLoader,
-  },
-  {
-    path: "/mess-bill-individual",
-    element: <MessBillIndividual/>,
-    loader: adminDashboardLoader,
-  },
-  {
-    path: "/mess-bills-individual-list",
-    element: <MessBillsIndividualList/>,
-    loader: adminDashboardLoader,
-  },
-  {
-    path: "/paid-students",
-    element: <PaidStudents/>,
-    loader: adminDashboardLoader,
-  },
-  {
-    path: "/unpaid-students",
-    element: <UnpaidStudents/>,
-    loader: adminDashboardLoader,
-  },
-  {
-    path:"/login",
-    element:<Login/>
-  }
-];
+    {
+      path: "/",
+      element: <Home />,
+    },
+    {
+      path: "/dashboard",
+      element: <Dashboard />,
+      loader: dashboardLoader,
+    },
+    {
+      path: "/admin-dashboard",
+      element: <AdminDashboard />,
+      loader: adminDashboardLoader,
+    },
+    {
+      path: "/admin/student/:id",
+      element: <StudentProfilePage />,
+      loader: adminDashboardLoader,
+    },
+    {
+      path: "/mess-bills",
+      element: <MessBills />,
+      loader: adminDashboardLoader,
+    },
+    {
+      path: "/mess-bills-detail",
+      element: <MessBillsDetail />,
+      loader: adminDashboardLoader,
+    },
+    {
+      path: "/mess-bill-individual",
+      element: <MessBillIndividual />,
+      loader: adminDashboardLoader,
+    },
+    {
+      path: "/mess-bills-individual-list",
+      element: <MessBillsIndividualList />,
+      loader: adminDashboardLoader,
+    },
+    {
+      path: "/paid-students",
+      element: <PaidStudents />,
+      loader: adminDashboardLoader,
+    },
+    {
+      path: "/unpaid-students",
+      element: <UnpaidStudents />,
+      loader: adminDashboardLoader,
+    },
+    {
+      path: "/login",
+      element: <Login />
+    }
+  ];
 
-    const router = createBrowserRouter(routes);
+  const router = createBrowserRouter(routes);
   return (
     <RouterProvider router={router} />
   )

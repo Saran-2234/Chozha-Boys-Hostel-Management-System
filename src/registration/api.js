@@ -96,7 +96,8 @@ export const registerUser = async (payload) => {
 };
 
 // Fetch Students
-export const fetchStudents = async ({ department, academic_year, status, page = 1, limit = 10 } = {}) => {
+// Fetch Students
+export const fetchStudents = async ({ department, academic_year, status, page = 1, limit = 10, id } = {}) => {
   try {
     const token = localStorage.getItem("accessToken");
 
@@ -105,6 +106,7 @@ export const fetchStudents = async ({ department, academic_year, status, page = 
     if (department) payload.department = department;
     if (academic_year) payload.academic_year = academic_year;
     if (status !== undefined) payload.status = status;
+    if (id) payload.id = id;
 
     const response = await api.post(
       "/admin/fetchstudents",
@@ -493,6 +495,22 @@ export const changeComplaintStatus = async (complaintId, status) => {
     return response.data;
   } catch (error) {
     console.error("Error updating complaint status:", error);
+    throw error;
+  }
+};
+
+// Fetch Student Stats (Profile)
+export const fetchStudentStats = async (studentId) => {
+  try {
+    const response = await api.post("/students/stats", { student_id: studentId });
+
+    if (response.data.success) {
+      return response.data;
+    } else {
+      throw new Error(response.data.error || "Failed to fetch stats");
+    }
+  } catch (error) {
+    console.error("Error fetching student stats:", error);
     throw error;
   }
 };

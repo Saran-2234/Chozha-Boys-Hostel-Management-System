@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Button from '../Common/Button';
 import StudentPreviewModal from './StudentPreviewModal';
 
@@ -57,6 +58,7 @@ const StudentTable = ({
   const itemsPerPage = 10;
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
+  const navigate = useNavigate();
 
   // If server-side, we assume 'students' is already filtered and paginated for the current page
   // We still apply client-side search if needed, or rely on server (currently server has no search)
@@ -122,9 +124,8 @@ const StudentTable = ({
   };
 
   const handlePreview = (student) => {
-    console.log('Preview button clicked for student:', student);
-    setSelectedStudent(student);
-    setIsModalOpen(true);
+    console.log('Navigate to profile for student:', student);
+    navigate(`/admin/student/${student.id}`);
   };
 
   function normalizeStatus(status) {
@@ -254,15 +255,27 @@ const StudentTable = ({
                 <div className="flex items-start space-x-3">
                   <div className="flex-shrink-0">
                     {student.profile_photo ? (
-                      <img src={student.profile_photo} alt={`${student.name} profile`} className="w-12 h-12 rounded-md object-cover" />
+                      <img src={student.profile_photo} alt={`${student.name} profile`}
+                        className="w-12 h-12 rounded-md object-cover cursor-pointer hover:opacity-80 transition-opacity"
+                        onClick={() => handlePreview(student)}
+                      />
                     ) : (
-                      <div className="w-12 h-12 rounded-md bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold">{student.name ? student.name.charAt(0).toUpperCase() : 'N'}</div>
+                      <div className="w-12 h-12 rounded-md bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold cursor-pointer hover:opacity-80 transition-opacity"
+                        onClick={() => handlePreview(student)}
+                      >
+                        {student.name ? student.name.charAt(0).toUpperCase() : 'N'}
+                      </div>
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
                       <div>
-                        <div className="text-sm font-medium text-gray-900">{student.name || 'N/A'}</div>
+                        <div
+                          className="text-sm font-medium text-gray-900 cursor-pointer hover:text-blue-600 transition-colors"
+                          onClick={() => handlePreview(student)}
+                        >
+                          {student.name || 'N/A'}
+                        </div>
                         <div className="text-xs text-gray-500">{student.email || 'N/A'}</div>
                       </div>
                       <div className="text-right text-xs">
@@ -286,7 +299,7 @@ const StudentTable = ({
                         </>
                       )}
                       <button onClick={() => handleEdit(student.id)} className="px-2 py-1 text-xs rounded bg-blue-500 text-white">Edit</button>
-                      <button onClick={() => handlePreview(student)} className="px-2 py-1 text-xs rounded bg-purple-500 text-white">Preview</button>
+                      <button onClick={() => handlePreview(student)} className="px-2 py-1 text-xs rounded bg-purple-500 text-white">View Profile</button>
                     </div>
                   </div>
                 </div>
@@ -342,6 +355,7 @@ const StudentTable = ({
                                 src={student.profile_photo}
                                 alt={`${student.name || 'Student'} profile`}
                                 className="w-8 h-8 rounded-full object-cover border border-gray-300 cursor-pointer transition-all duration-200 hover:scale-110 hover:shadow-lg hover:ring-2 hover:ring-blue-400"
+                                onClick={() => handlePreview(student)}
                               />
                               {/* Modern tooltip positioned to the right */}
                               <div className="absolute z-50 left-full top-0 ml-3 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 ease-out">
@@ -383,7 +397,10 @@ const StudentTable = ({
                               </div>
                             </>
                           ) : (
-                            <div className={`w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center cursor-pointer transition-all duration-200 hover:scale-110 hover:shadow-lg hover:ring-2 hover:ring-blue-400`}>
+                            <div
+                              className={`w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center cursor-pointer transition-all duration-200 hover:scale-110 hover:shadow-lg hover:ring-2 hover:ring-blue-400`}
+                              onClick={() => handlePreview(student)}
+                            >
                               <span className="text-xs font-bold text-white">
                                 {student.name ? student.name.charAt(0).toUpperCase() : 'N'}
                               </span>
@@ -391,7 +408,10 @@ const StudentTable = ({
                           )}
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-gray-900">
+                          <p
+                            className="text-sm font-medium text-gray-900 cursor-pointer hover:text-blue-600 transition-colors"
+                            onClick={() => handlePreview(student)}
+                          >
                             {student.name || 'N/A'}
                           </p>
                           <p className="text-xs text-gray-500">
@@ -484,7 +504,7 @@ const StudentTable = ({
                                     </>
                                   )}
                                   <button onClick={() => handleEdit(student.id)} className="px-2 py-1 text-xs rounded bg-blue-500 text-white">Edit</button>
-                                  <button onClick={() => handlePreview(student)} className="px-2 py-1 text-xs rounded bg-purple-500 text-white">Preview</button>
+                                  <button onClick={() => handlePreview(student)} className="px-2 py-1 text-xs rounded bg-purple-500 text-white">View Profile</button>
                                 </div>
                               </div>
                             </div>
@@ -538,12 +558,12 @@ const StudentTable = ({
           </div>
         )}
 
-        {/* Student Preview Modal */}
-        <StudentPreviewModal
+        {/* Student Preview Modal - Removed or kept as fallback? Removing for now as we navigate to page */}
+        {/* <StudentPreviewModal
           student={selectedStudent}
           isOpen={isModalOpen}
           onClose={closeModal}
-        />
+        /> */}
       </div>
     </>
   );

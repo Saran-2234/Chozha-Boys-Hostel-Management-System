@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { parseRoomNumber } from '../../Common/roomUtils';
+import { fetchStudentStats } from '../../registration/api';
 
 const StudentPreviewModal = ({ student, isOpen, onClose }) => {
   if (!isOpen || !student) return null;
@@ -22,6 +23,32 @@ const StudentPreviewModal = ({ student, isOpen, onClose }) => {
 
   // Get room information using roomUtils
   const roomInfo = parseRoomNumber(student.room_number);
+
+  const [stats, setStats] = useState(null);
+  const [loadingStats, setLoadingStats] = useState(false);
+
+  useEffect(() => {
+    if (isOpen && student?.id) {
+      setLoadingStats(true);
+      fetchStudentStats(student.id)
+        .then(response => {
+          // Check if response has data property (from axios wrapper in api.js)
+          // Our fetchStudentStats returns response.data if success is true.
+          // Let's verify structure: result of fetchStudentStats calls response.data.
+          // So 'response' here IS likely { success: true, data: { ... } }
+          if (response && response.data) {
+            setStats(response.data);
+          }
+        })
+        .catch(err => {
+          console.error("Failed to fetch stats:", err);
+          setStats(null);
+        })
+        .finally(() => setLoadingStats(false));
+    } else if (!isOpen) {
+      setStats(null);
+    }
+  }, [isOpen, student]);
 
   const getStatusColor = (status) => {
     if (!status || typeof status !== 'string') return 'bg-gray-100 text-gray-800';
@@ -71,6 +98,99 @@ const StudentPreviewModal = ({ student, isOpen, onClose }) => {
         {/* Content */}
         <div className="p-6 overflow-y-auto flex-1">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+            {/* Statistics Section - New Addition */}
+            <div className="md:col-span-2 space-y-4">
+              <h4 className="text-lg font-semibold text-gray-900 border-b pb-2 flex items-center">
+                📊 Performance & Billing Overview
+              </h4>
+
+              {loadingStats ? (
+                <div className="flex justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                </div>
+              ) : stats ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Attendance Card */}
+                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-5 rounded-xl border border-blue-100 shadow-sm">
+                    <div className="flex items-center space-x-2 mb-4">
+                      <span className="text-2xl">📅</span>
+                      <h5 className="font-bold text-gray-800">Attendance</h5>
+                    </div>
+
+                    {/* Overall Progress */}
+                    <div className="mb-4">
+                      <div className="flex justify-between items-end mb-1">
+                        <span className="text-sm font-medium text-gray-600">Overall Attendance</span>
+                        <span className={`text-lg font-bold ${parseFloat(stats.attendance.overall.percentage) >= 75 ? 'text-emerald-600' : 'text-amber-600'}`}>
+                          {stats.attendance.overall.percentage}%
+                        </span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
+                        <div
+                          className={`h-2.5 rounded-full transition-all duration-1000 ease-out ${parseFloat(stats.attendance.overall.percentage) >= 75 ? 'bg-emerald-500' : 'bg-amber-500'}`}
+                          style={{ width: `${stats.attendance.overall.percentage}%` }}
+                        ></div>
+                      </div>
+                      <div className="text-xs text-gray-500 mt-1">
+                        {stats.attendance.overall.present} present out of {stats.attendance.overall.total} days
+                      </div>
+                    </div>
+
+                    {/* Yearly Progress */}
+                    <div>
+                      <div className="flex justify-between items-end mb-1">
+                        <span className="text-sm font-medium text-gray-600">Current Year ({stats.attendance.year.label})</span>
+                        <span className="text-lg font-bold text-blue-700">
+                          {stats.attendance.year.percentage}%
+                        </span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
+                        <div
+                          className="bg-blue-600 h-2.5 rounded-full transition-all duration-1000 ease-out"
+                          style={{ width: `${stats.attendance.year.percentage}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Mess Bill Card */}
+                  <div className="bg-gradient-to-br from-orange-50 to-amber-50 p-5 rounded-xl border border-orange-100 shadow-sm">
+                    <div className="flex items-center space-x-2 mb-4">
+                      <span className="text-2xl">🍽️</span>
+                      <h5 className="font-bold text-gray-800">Mess Bill Status</h5>
+                    </div>
+
+                    <div className="space-y-3">
+                      <div className="bg-white/60 p-3 rounded-lg border border-orange-100 flex justify-between items-center">
+                        <div>
+                          <p className="text-xs text-gray-500 uppercase font-semibold">Total Paid</p>
+                          <p className="text-2xl font-bold text-emerald-600">₹{stats.messBill.paid}</p>
+                        </div>
+                        <div className="h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
+                          ✔
+                        </div>
+                      </div>
+
+                      <div className="bg-white/60 p-3 rounded-lg border border-orange-100 flex justify-between items-center">
+                        <div>
+                          <p className="text-xs text-gray-500 uppercase font-semibold">Pending / Unpaid</p>
+                          <p className="text-2xl font-bold text-red-500">₹{stats.messBill.notPaid}</p>
+                        </div>
+                        <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center text-red-500">
+                          ⚠
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center text-gray-500">
+                  No statistical data available for this student.
+                </div>
+              )}
+            </div>
+
             {/* Personal Information */}
             <div className="space-y-4">
               <h4 className="text-lg font-semibold text-gray-900 border-b pb-2">
@@ -169,7 +289,7 @@ const StudentPreviewModal = ({ student, isOpen, onClose }) => {
                   </p>
                 </div>
 
-                
+
               </div>
             </div>
 
@@ -310,7 +430,7 @@ const StudentPreviewModal = ({ student, isOpen, onClose }) => {
           >
             Close
           </button>
-         
+
         </div>
       </div>
     </div>

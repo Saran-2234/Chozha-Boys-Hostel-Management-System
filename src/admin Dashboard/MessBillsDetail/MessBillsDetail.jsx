@@ -13,14 +13,7 @@ const MessBillsDetail = () => {
   const [statusData, setStatusData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [students, setStudents] = useState([
-    { id: 1, name: 'John Doe', room: '101', paymentStatus: 'paid', department: 'CSE', year: '3rd' },
-    { id: 2, name: 'Jane Smith', room: '205', paymentStatus: 'unpaid', department: 'ECE', year: '2nd' },
-    { id: 3, name: 'Robert Johnson', room: '312', paymentStatus: 'paid', department: 'CSE', year: '4th' },
-    { id: 4, name: 'Alice Brown', room: '102', paymentStatus: 'paid', department: 'ME', year: '3rd' },
-    { id: 5, name: 'Bob Wilson', room: '206', paymentStatus: 'unpaid', department: 'CSE', year: '1st' },
-    // Add more mock data as needed
-  ]);
+
 
   const fetchStatus = async (monthYear) => {
     setLoading(true);
@@ -129,6 +122,14 @@ const MessBillsDetail = () => {
     navigate('/published-students', { state: { month: month.title } });
   };
 
+  const handleShowPaidStudents = () => {
+    navigate('/paid-students', { state: { month: month.title } });
+  };
+
+  const handleShowUnpaidStudents = () => {
+    navigate('/unpaid-students', { state: { month: month.title } });
+  };
+
   if (!month) {
     return (
       <div className="light-mode flex min-h-screen text-gray-900">
@@ -199,20 +200,25 @@ const MessBillsDetail = () => {
                 ) : statusData ? (
                   <>
                     <div className="student-cards">
-                      <div className="student-card verified-card" onClick={handleShowVerifiedStudents}>
-                        <div className="card-icon">✓</div>
+
+
+                      {/* Paid/Unpaid Cards */}
+                      {/* Paid/Unpaid Cards */}
+                      <div className="student-card paid-card" onClick={handleShowPaidStudents}>
+                        <div className="card-icon">₹</div>
                         <div className="card-content">
-                          <div className="card-title">Verified Students</div>
-                          <div className="card-count">{statusData.verified_count}</div>
+                          <div className="card-title">Paid Students</div>
+                          <div className="card-count">{statusData.paid_count || 0}</div>
                         </div>
                       </div>
-                      <div className="student-card published-card" onClick={handleShowPublishedStudents}>
-                        <div className="card-icon">📢</div>
+                      <div className="student-card unpaid-card" onClick={handleShowUnpaidStudents}>
+                        <div className="card-icon">⚠</div>
                         <div className="card-content">
-                          <div className="card-title">Published Students</div>
-                          <div className="card-count">{statusData.show_count}</div>
+                          <div className="card-title">Unpaid Students</div>
+                          <div className="card-count">{statusData.unpaid_count || 0}</div>
                         </div>
                       </div>
+
                     </div>
                     <button className="btn" onClick={handlePublishClick}>Publish Bills</button>
                     {publishMessage && <div className="success-message">{publishMessage}</div>}
@@ -292,24 +298,7 @@ const MessBillsDetail = () => {
                   </tbody>
                 </table>
 
-                <div className="costs-cards">
-                  {month.costs.map((cost, i) => (
-                    i % 2 === 0 ? (
-                      <div key={i} className="cost-card">
-                        <div className="cost-item">
-                          <span className="cost-label">{cost.label}:</span>
-                          <span className="cost-value">{typeof cost.value === 'number' && cost.value > 100 ? `₹${cost.value.toFixed(2)}` : cost.value}</span>
-                        </div>
-                        {month.costs[i + 1] && (
-                          <div className="cost-item">
-                            <span className="cost-label">{month.costs[i + 1].label}:</span>
-                            <span className="cost-value">{typeof month.costs[i + 1].value === 'number' && month.costs[i + 1].value > 100 ? `₹${month.costs[i + 1].value.toFixed(2)}` : month.costs[i + 1].value}</span>
-                          </div>
-                        )}
-                      </div>
-                    ) : null
-                  ))}
-                </div>
+
 
                 <div className="years-section">
                   <h3>Department-wise Breakdown</h3>
@@ -353,7 +342,7 @@ const MessBillsDetail = () => {
 
           </div>
         </MainContent>
-      </div>
+      </div >
 
       <style>
         {`
@@ -847,6 +836,14 @@ const MessBillsDetail = () => {
             border-left: 4px solid #007bff;
           }
 
+          .paid-card {
+            border-left: 4px solid #20c997;
+          }
+
+          .unpaid-card {
+            border-left: 4px solid #dc3545;
+          }
+
           .card-icon {
             font-size: 2rem;
             color: #2575fc;
@@ -1027,58 +1024,13 @@ const MessBillsDetail = () => {
             font-size: 0.9rem;
           }
 
-          .costs-cards {
-            display: none;
+
           }
 
-          .costs-table {
-            display: table;
-          }
-          }
 
-          @media (max-width: 768px) {
-            .costs-cards {
-              display: block;
-            }
-
-            .costs-table {
-              display: none;
-            }
-
-            .cost-card {
-              background: #f8faff;
-              border-radius: 8px;
-              padding: 15px;
-              margin-bottom: 10px;
-              border-left: 4px solid #2575fc;
-            }
-
-            .cost-item {
-              display: flex;
-              justify-content: space-between;
-              align-items: center;
-              margin-bottom: 8px;
-            }
-
-            .cost-item:last-child {
-              margin-bottom: 0;
-            }
-
-            .cost-label {
-              font-weight: 600;
-              color: #333;
-              font-size: 0.9rem;
-            }
-
-            .cost-value {
-              font-weight: 600;
-              color: #2575fc;
-              font-size: 0.9rem;
-            }
-          }
         `}
       </style>
-    </div>
+    </div >
   );
 };
 

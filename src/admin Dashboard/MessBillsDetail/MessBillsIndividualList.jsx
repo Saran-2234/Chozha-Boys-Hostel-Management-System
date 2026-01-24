@@ -430,7 +430,7 @@ const MessBillsIndividualList = () => {
           : ((parseInt(student.non_veg_days) || 0) * (parseFloat(student.nonveg_extra_per_day) || 0)),
         totalAmount: parseFloat(student.total_amount) || 0,
         isEditing: false,
-        messStatus: student.payment_status || '',
+        messStatus: student.ispaid ? 'PAID' : (student.payment_status || 'UNPAID'),
         isveg: Boolean(student.isveg),
         vegDays: parseInt(student.veg_days) || 0,
         nonVegDays: parseInt(student.non_veg_days) || 0

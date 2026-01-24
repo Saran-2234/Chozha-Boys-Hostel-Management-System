@@ -22,7 +22,7 @@ const QuickStats = ({ studentData, setActiveSection }) => {
 
       try {
         // Fetch mess bill data
-        const messBillResponse = await axios.post(`${API_BASE_URL}/showmessbillbyid1`, {
+        const messBillResponse = await axios.post(`${API_BASE_URL}/students/showmessbillbyid1`, {
           student_id: studentId,
         }, {
           headers: {
@@ -127,7 +127,7 @@ const QuickStats = ({ studentData, setActiveSection }) => {
         </div>
         <div className="mt-4 flex items-center text-sm">
           <span className={`font-medium ${messBillData && messBillData.status === 'SUCCESS' ? 'text-green-400' : 'text-red-400'}`}>
-            {loading ? 'Loading...' : messBillData ? (messBillData.status === 'SUCCESS' ? 'Paid' : 'Pending') : 'No Data'}
+            {loading ? 'Loading...' : messBillData ? ((messBillData.status === 'SUCCESS' || messBillData.status === 'PAID' || messBillData.status === 'paid') ? 'Paid' : 'Pending') : 'No Data'}
           </span>
           <span className="text-slate-400 ml-2">
             {messBillData ? `Month: ${messBillData.month_year}` : ''}

@@ -160,7 +160,7 @@ const RecentActivities = ({ setActiveSection, studentData }) => {
       // Fetch recent mess bills
       try {
         const billsResponse = await axios.post(
-          'https://finalbackend1.vercel.app/showmessbillbyid1',
+          'https://finalbackend1.vercel.app/students/showmessbillbyid1',
           { student_id: studentId },
           {
             headers: {

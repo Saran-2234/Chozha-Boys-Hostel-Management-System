@@ -56,6 +56,7 @@ const MessBillIndividual = () => {
 
   const fetchStatusData = async () => {
     setLoadingStatus(true);
+    const token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
     try {
       // Use already fetched departments
       const deptData = { success: true, departments: departments };
@@ -73,6 +74,7 @@ const MessBillIndividual = () => {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
+                ...(token && { Authorization: `Bearer ${token}` }),
               },
               body: JSON.stringify({
                 department: dept.department,

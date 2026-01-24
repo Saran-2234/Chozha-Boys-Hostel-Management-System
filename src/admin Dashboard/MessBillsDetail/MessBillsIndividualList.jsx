@@ -63,6 +63,7 @@ const MessBillsIndividualList = () => {
 
   const fetchStatusData = async () => {
     setLoadingStatus(true);
+    const token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
     try {
       // Fetch departments
       const deptResponse = await fetch('https://finalbackend1.vercel.app/students/fetchdepartments');
@@ -85,6 +86,7 @@ const MessBillsIndividualList = () => {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
+                ...(token && { Authorization: `Bearer ${token}` }),
               },
               body: JSON.stringify({
                 department: dept.department,
@@ -317,6 +319,7 @@ const MessBillsIndividualList = () => {
 
   const handleUpdateStudent = async (student) => {
     try {
+      const token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
       const body = {
         id: student.id,
         number_of_days: student.daysPresent,
@@ -328,7 +331,10 @@ const MessBillsIndividualList = () => {
 
       const response = await fetch('https://finalbackend1.vercel.app/admin/upadatemessbill', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
         body: JSON.stringify(body),
       });
 
@@ -347,6 +353,7 @@ const MessBillsIndividualList = () => {
 
   const fetchBillsData = async (page = 1, limit = 10) => {
     setLoading(true);
+    const token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
     setError('');
     setSuccess('');
     setSelectedStudents([]);
@@ -375,6 +382,7 @@ const MessBillsIndividualList = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` }),
         },
         body: JSON.stringify(payload)
       });

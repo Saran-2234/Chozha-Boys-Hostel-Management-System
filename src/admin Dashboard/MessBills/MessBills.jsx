@@ -221,9 +221,11 @@ const MessBills = () => {
         }))
       };
 
+      const token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
       const response = await axios.post('https://finalbackend1.vercel.app/admin/create', requestBody, {
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` })
         }
       });
 
@@ -253,11 +255,15 @@ const MessBills = () => {
     try {
       const requestBody = year ? { year } : {};
 
+      const token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
       const response = await axios.post(
         'https://finalbackend1.vercel.app/admin/show',
         requestBody,
         {
-          headers: { 'Content-Type': 'application/json' }
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token && { Authorization: `Bearer ${token}` })
+          }
         }
       );
 

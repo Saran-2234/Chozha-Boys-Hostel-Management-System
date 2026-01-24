@@ -514,3 +514,37 @@ export const fetchStudentStats = async (studentId) => {
     throw error;
   }
 };
+
+// Fetch Student Mess Bills (Admin)
+export const fetchStudentMessBillsForAdmin = async (studentId, page = 1, limit = 10, status = null, year = null, month = null) => {
+  try {
+    const token = localStorage.getItem("accessToken");
+    if (!token) throw new Error("No access token found");
+
+    const payload = {
+      student_id: studentId,
+      token,
+      page,
+      limit
+    };
+
+    if (status) payload.status = status;
+    if (year) payload.year = year;
+    if (month) payload.month = month;
+
+    const response = await api.post(
+      "/admin/fetch-student-mess-bills",
+      payload,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+
+    if (response.data.success) {
+      return response.data;
+    } else {
+      throw new Error(response.data.error || "Failed to fetch mess bills");
+    }
+  } catch (error) {
+    console.error("Error fetching student mess bills:", error);
+    throw error;
+  }
+};

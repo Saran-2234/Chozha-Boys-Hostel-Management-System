@@ -64,21 +64,7 @@ const StudentDashboard = () => {
     // For now, we'll proceed and let components handle missing data gracefully
   }, [studentData, navigate]);
 
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      // Detect F5 or Ctrl+R
-      if (e.key === 'F5' || (e.ctrlKey && e.key === 'r') || (e.ctrlKey && e.key === 'R')) {
-        e.preventDefault();
-        setShowRefreshModal(true);
-      }
-    };
 
-    window.addEventListener('keydown', handleKeyDown);
-
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, []);
 
   // Handle logout click from both sidebar and header
   const handleLogoutClick = () => {
@@ -176,7 +162,7 @@ const StudentDashboard = () => {
           sidebarOpen={sidebarOpen}
           setSidebarOpen={setSidebarOpen}
         />
-        
+
         <MainContent>
           {renderSection()}
         </MainContent>

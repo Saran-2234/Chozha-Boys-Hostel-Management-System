@@ -39,41 +39,7 @@ const AdminDashboard = () => {
     if (location.state && location.state.activeSection) {
       setActiveSection(location.state.activeSection);
     }
-
-    const handleBeforeUnload = (e) => {
-      // Suppress native dialog if confirmed via custom modal
-      if (window.adminRefreshConfirmed) {
-        e.returnValue = '';
-        return;
-      }
-      e.preventDefault();
-      e.returnValue = "You're refreshing or reloading the page. You need to login again.";
-    };
-
-    const handleKeyDown = (e) => {
-      // Detect F5 or Ctrl+R
-      if (e.key === 'F5' || (e.ctrlKey && e.key === 'r') || (e.ctrlKey && e.key === 'R')) {
-        e.preventDefault();
-        setShowRefreshModal(true);
-      }
-    };
-
-    const handleUnload = () => {
-      localStorage.removeItem('accessToken');
-      sessionStorage.removeItem('accessToken');
-      document.cookie = 'token=; path=/; max-age=0';
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('unload', handleUnload);
-
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('unload', handleUnload);
-    };
-  }, []);
+  }, [location.state]);
 
   // Handle refresh confirmation
   const handleRefreshConfirm = () => {

@@ -1,4 +1,5 @@
 import React from 'react'
+import axios from 'axios';
 import Home from './Home.jsx'
 import Login from './Login.jsx'
 import Dashboard from './student Dashboard/StudentDashboard.jsx'
@@ -14,23 +15,111 @@ import { createBrowserRouter, RouterProvider, redirect } from "react-router-dom"
 
 
 
-function dashboardLoader() {
+async function dashboardLoader() {
   const token = localStorage.getItem('studentToken') || sessionStorage.getItem('studentToken');
-  if (!token) {
-    throw redirect('/', {
-      state: { fromDashboard: true, loginType: 'student' }
-    });
+  if (token) {
+    return null;
   }
-  return null;
+
+  try {
+    const response = await axios.get("https://finalbackend1.vercel.app/students/generateauthtokenforstudent", {
+      withCredentials: true
+    });
+    if (response.data.token) {
+      localStorage.setItem('studentToken', response.data.token);
+      if (response.data.data) {
+        localStorage.setItem('userData', JSON.stringify(response.data.data));
+        // Ensure the studentId is also set if needed by other components
+        if (response.data.data.id) {
+          localStorage.setItem("studentId", response.data.data.id);
+        }
+      }
+      return null;
+    }
+  } catch (error) {
+    console.log("Student Auto-login failed", error);
+  }
+
+  throw redirect('/', {
+    state: { fromDashboard: true, loginType: 'student' }
+  });
 }
 
-function adminDashboardLoader() {
+async function adminDashboardLoader() {
   const token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
-  if (!token) {
-    throw redirect('/', {
-      state: { fromDashboard: true, loginType: 'admin' }
-    });
+  if (token) {
+    return null;
   }
+
+  try {
+    const response = await axios.post("https://finalbackend1.vercel.app/admin/generateauthtokenforadmin", {}, {
+      withCredentials: true
+    });
+    if (response.data.token) {
+      localStorage.setItem('accessToken', response.data.token);
+      if (response.data.data) {
+        localStorage.setItem('userData', JSON.stringify(response.data.data));
+      }
+      return null;
+    }
+  } catch (error) {
+    console.log("Admin Auto-login failed", error);
+  }
+
+  throw redirect('/', {
+    state: { fromDashboard: true, loginType: 'admin' }
+  });
+}
+
+async function rootLoader() {
+  // 1. Check if we already have tokens in localStorage
+  const studentToken = localStorage.getItem('studentToken');
+  const adminToken = localStorage.getItem('accessToken');
+
+  if (studentToken) {
+    throw redirect('/dashboard');
+  }
+  if (adminToken) {
+    throw redirect('/admin-dashboard');
+  }
+
+  // 2. If no local tokens, try to auto-login via cookies
+  try {
+    // Try Student Auto-login first
+    const studentResponse = await axios.get("https://finalbackend1.vercel.app/students/generateauthtokenforstudent", {
+      withCredentials: true
+    });
+
+    if (studentResponse.data.token) {
+      localStorage.setItem('studentToken', studentResponse.data.token);
+      if (studentResponse.data.data) {
+        localStorage.setItem('userData', JSON.stringify(studentResponse.data.data));
+        if (studentResponse.data.data.id) {
+          localStorage.setItem("studentId", studentResponse.data.data.id);
+        }
+      }
+      throw redirect('/dashboard');
+    }
+  } catch (error) {
+    // Student auto-login failed, try Admin
+    try {
+      const adminResponse = await axios.post("https://finalbackend1.vercel.app/admin/generateauthtokenforadmin", {}, {
+        withCredentials: true
+      });
+
+      if (adminResponse.data.token) {
+        localStorage.setItem('accessToken', adminResponse.data.token);
+        if (adminResponse.data.data) {
+          localStorage.setItem('userData', JSON.stringify(adminResponse.data.data));
+        }
+        throw redirect('/admin-dashboard');
+      }
+    } catch (adminError) {
+      // Both failed, stay on Home page
+      return null;
+    }
+  }
+
   return null;
 }
 
@@ -40,6 +129,7 @@ function App() {
     {
       path: "/",
       element: <Home />,
+      loader: rootLoader,
     },
     {
       path: "/dashboard",

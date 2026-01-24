@@ -49,7 +49,7 @@ function Home() {
       <Notification />
       <Navigation
         isLight={true}
-        onToggleTheme={() => {}}
+        onToggleTheme={() => { }}
         onOpenLogin={(type) => {
           setLoginType(type || "student");
           setLoginOpen(true);

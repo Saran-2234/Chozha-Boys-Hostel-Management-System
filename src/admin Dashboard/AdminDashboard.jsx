@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import { useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar/Sidebar';
 import Header from './Header/Header';
@@ -24,11 +25,24 @@ const AdminDashboard = () => {
 
   const [showRefreshModal, setShowRefreshModal] = useState(false); // Refresh modal state
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await axios.post("https://finalbackend1.vercel.app/admin/logout", {}, {
+        withCredentials: true
+      });
+    } catch (error) {
+      console.error("Logout failed", error);
+    }
+
     // Handle logout logic here
     localStorage.removeItem('accessToken');
+    localStorage.removeItem('userData');
     sessionStorage.removeItem('accessToken');
+
     document.cookie = 'token=; path=/; max-age=0';
+    document.cookie = 'accessToken=; path=/; max-age=0';
+    document.cookie = 'refreshToken=; path=/; max-age=0';
+
     console.log('Logout clicked');
     // Redirect to landing page
     window.location.href = '/';

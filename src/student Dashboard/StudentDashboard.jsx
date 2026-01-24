@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import Sidebar from './Sidebar/Sidebar';
 import Header from './Header/Header';
 import MainContent from './Header/MainContent';
@@ -72,15 +73,28 @@ const StudentDashboard = () => {
   };
 
   // Handle logout confirmation
-  const handleLogoutConfirm = () => {
+  // Handle logout confirmation
+  const handleLogoutConfirm = async () => {
+    try {
+      // Call backend logout to clear HttpOnly cookies
+      await axios.post("https://finalbackend1.vercel.app/students/logout", {}, {
+        withCredentials: true
+      });
+    } catch (error) {
+      console.error("Logout endpoint failed", error);
+    }
+
     // Clear any stored authentication data
     localStorage.removeItem('studentToken');
-    localStorage.removeItem('studentData');
+    localStorage.removeItem('userData');
+    localStorage.removeItem('studentId');
     sessionStorage.removeItem('studentToken');
-    sessionStorage.removeItem('studentData');
+    sessionStorage.removeItem('userData');
 
-    // Clear authentication cookie
+    // Clear authentication cookie (client side cleanup where possible)
     document.cookie = 'token=; path=/; max-age=0';
+    document.cookie = 'studentToken=; path=/; max-age=0';
+    document.cookie = 'refreshToken=; path=/; max-age=0';
 
     // Close modal
     setShowLogoutModal(false);

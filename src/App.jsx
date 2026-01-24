@@ -72,52 +72,69 @@ async function adminDashboardLoader() {
 }
 
 async function rootLoader() {
-  // 1. Check if we already have tokens in localStorage
   const studentToken = localStorage.getItem('studentToken');
   const adminToken = localStorage.getItem('accessToken');
 
+  const checkStudent = () => axios.get("https://finalbackend1.vercel.app/students/generateauthtokenforstudent", { withCredentials: true });
+  const checkAdmin = () => axios.post("https://finalbackend1.vercel.app/admin/generateauthtokenforadmin", {}, { withCredentials: true });
+
+  const handleStudentSuccess = (response) => {
+    if (response.data.token) {
+      localStorage.setItem('studentToken', response.data.token);
+      if (response.data.data) {
+        localStorage.setItem('userData', JSON.stringify(response.data.data));
+        if (response.data.data.id) localStorage.setItem("studentId", response.data.data.id);
+      }
+      return redirect('/dashboard');
+    }
+    return null;
+  };
+
+  const handleAdminSuccess = (response) => {
+    if (response.data.token) {
+      localStorage.setItem('accessToken', response.data.token);
+      if (response.data.data) {
+        localStorage.setItem('userData', JSON.stringify(response.data.data));
+      }
+      return redirect('/admin-dashboard');
+    }
+    return null;
+  };
+
+  // 1. If we have a hint, try that one first (Fastest for valid users)
   if (studentToken) {
-    throw redirect('/dashboard');
-  }
-  if (adminToken) {
-    throw redirect('/admin-dashboard');
-  }
-
-  // 2. If no local tokens, try to auto-login via cookies
-  try {
-    // Try Student Auto-login first
-    const studentResponse = await axios.get("https://finalbackend1.vercel.app/students/generateauthtokenforstudent", {
-      withCredentials: true
-    });
-
-    if (studentResponse.data.token) {
-      localStorage.setItem('studentToken', studentResponse.data.token);
-      if (studentResponse.data.data) {
-        localStorage.setItem('userData', JSON.stringify(studentResponse.data.data));
-        if (studentResponse.data.data.id) {
-          localStorage.setItem("studentId", studentResponse.data.data.id);
-        }
-      }
-      throw redirect('/dashboard');
-    }
-  } catch (error) {
-    // Student auto-login failed, try Admin
     try {
-      const adminResponse = await axios.post("https://finalbackend1.vercel.app/admin/generateauthtokenforadmin", {}, {
-        withCredentials: true
-      });
+      const res = await checkStudent();
+      const result = handleStudentSuccess(res);
+      if (result) return result;
+    } catch { /* Fallback */ }
+  } else if (adminToken) {
+    try {
+      const res = await checkAdmin();
+      const result = handleAdminSuccess(res);
+      if (result) return result;
+    } catch { /* Fallback */ }
+  }
 
-      if (adminResponse.data.token) {
-        localStorage.setItem('accessToken', adminResponse.data.token);
-        if (adminResponse.data.data) {
-          localStorage.setItem('userData', JSON.stringify(adminResponse.data.data));
-        }
-        throw redirect('/admin-dashboard');
-      }
-    } catch (adminError) {
-      // Both failed, stay on Home page
-      return null;
-    }
+  // 2. If no tokens or the hint failed, run BOTH in parallel (Fastest for guests/switchers)
+  const [studentRes, adminRes] = await Promise.allSettled([checkStudent(), checkAdmin()]);
+
+  if (studentRes.status === 'fulfilled') {
+    const result = handleStudentSuccess(studentRes.value);
+    if (result) return result;
+  }
+
+  if (adminRes.status === 'fulfilled') {
+    const result = handleAdminSuccess(adminRes.value);
+    if (result) return result;
+  }
+
+  // If absolutely everything failed, verify clean slate
+  if (!studentToken && !adminToken) {
+    localStorage.removeItem('studentToken');
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('userData');
+    localStorage.removeItem('studentId');
   }
 
   return null;

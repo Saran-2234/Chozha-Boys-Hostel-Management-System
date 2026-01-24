@@ -157,9 +157,8 @@ const MessBillsIndividualList = () => {
   };
 
   const handleViewStudentBill = (student) => {
-    // For now, just log or navigate to individual bill if needed
-    console.log('View bill for student:', student);
-    // You can navigate to MessBillIndividual if required, passing student data
+    sessionStorage.setItem('billData', JSON.stringify(student));
+    navigate('/mess-bill-individual');
   };
 
   const handleVerifyBill = (student) => {
@@ -430,10 +429,19 @@ const MessBillsIndividualList = () => {
           : ((parseInt(student.non_veg_days) || 0) * (parseFloat(student.nonveg_extra_per_day) || 0)),
         totalAmount: parseFloat(student.total_amount) || 0,
         isEditing: false,
-        messStatus: student.ispaid ? 'PAID' : (student.payment_status || 'UNPAID'),
+        messStatus: student.ispaid ? 'PAID' : 'UNPAID',
         isveg: Boolean(student.isveg),
         vegDays: parseInt(student.veg_days) || 0,
-        nonVegDays: parseInt(student.non_veg_days) || 0
+        nonVegDays: parseInt(student.non_veg_days) || 0,
+        // Added fields
+        latest_order_id: student.latest_order_id || '',
+        show: Boolean(student.show),
+        paid_date: student.paid_date || null,
+        ispaid: Boolean(student.ispaid),
+        statusRaw: student.status || '',
+        student_id: student.student_id,
+        monthly_year_data_id: student.monthly_year_data_id,
+        monthly_base_cost_id: student.monthly_base_cost_id
       }));
 
       setBills(transformedData);
@@ -688,6 +696,13 @@ const MessBillsIndividualList = () => {
                           <td>{student.messStatus}</td>
                           <td>
                             <button
+                              className="view-btn"
+                              onClick={() => handleViewStudentBill(student)}
+                              style={{ marginRight: '5px' }}
+                            >
+                              View
+                            </button>
+                            <button
                               className={`update-btn ${student.id === null ? 'disabled' : ''}`}
                               onClick={() => handleUpdateStudent(student)}
                               disabled={student.id === null}
@@ -798,6 +813,17 @@ const MessBillsIndividualList = () => {
           }
           .update-btn:hover:not(.disabled) {
             background-color: #15803d;
+          }
+          .view-btn {
+            background-color: #2563eb;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+          }
+          .view-btn:hover {
+            background-color: #1d4ed8;
           }
           .update-btn.disabled {
             background-color: #6c757d;

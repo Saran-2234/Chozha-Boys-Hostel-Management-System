@@ -40,6 +40,88 @@ const MessBillIndividual = () => {
     navigate('/mess-bills-detail');
   };
 
+  const [isEditing, setIsEditing] = useState(false);
+  const [editFormData, setEditFormData] = useState({});
+
+  const handleEdit = () => {
+    setEditFormData({
+      ...bill,
+      paid_date: bill.paid_date ? bill.paid_date.split('T')[0] : '',
+      verified: bill.status === 'Verified' || bill.status === 'verified'
+    });
+    setIsEditing(true);
+  };
+
+  const handleCancel = () => {
+    setIsEditing(false);
+  };
+
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setEditFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
+  };
+
+  const handleSave = async () => {
+    try {
+      const token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
+
+      const body = {
+        id: editFormData.id, 
+        student_id: editFormData.student_id,
+        status: editFormData.statusRaw, 
+        latest_order_id: editFormData.latest_order_id,
+        monthly_year_data_id: editFormData.monthly_year_data_id,
+        number_of_days: editFormData.daysPresent, 
+        monthly_base_cost_id: editFormData.monthly_base_cost_id,
+        show: editFormData.show,
+        verified: editFormData.verified, 
+        isveg: editFormData.isveg,
+        veg_days: editFormData.vegDays,
+        non_veg_days: editFormData.nonVegDays,
+        paid_date: editFormData.paid_date || null,
+        ispaid: editFormData.ispaid
+      };
+
+      // Also update 'verified' explicit check if we have a checkbox for it specifically
+      // In list view we mapped 'status' string to Verified/Pending. 
+      // Let's rely on explicit verified field if we added it to form, else derive.
+      // We will add explicit verified checkbox to form.
+
+      const response = await fetch('https://finalbackend1.vercel.app/admin/upadatemessbill', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+        body: JSON.stringify(body),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        // Update local state and session storage
+        const updatedBill = {
+          ...bill,
+          ...editFormData,
+          status: editFormData.verified ? 'Verified' : 'Pending Verification', // Update display status
+          statusRaw: editFormData.statusRaw // Update raw status
+        };
+        setBill(updatedBill);
+        sessionStorage.setItem('billData', JSON.stringify(updatedBill));
+        setIsEditing(false);
+        alert('✅ Mess bill updated successfully');
+      } else {
+        alert('❌ ' + (result.error || 'Update failed'));
+      }
+    } catch (error) {
+      console.error('Error updating mess bill:', error);
+      alert('❌ Error updating mess bill');
+    }
+  };
+
   const fetchDepartments = async () => {
     try {
       const response = await fetch('https://finalbackend1.vercel.app/students/fetchdepartments');
@@ -167,36 +249,128 @@ const MessBillIndividual = () => {
             </div>
             <h1 className="text-2xl font-bold mb-4">Individual Bill Details</h1>
 
-            <div className="bill-card">
-              <div className="bill-card-header">
-                <div className="bill-card-title">{bill.name} - Room {bill.room}</div>
-                <div className={`bill-status ${bill.status}`}>{bill.status === 'verified' ? 'Verified' : 'Pending Verification'}</div>
+            {isEditing ? (
+              <div className="bill-card">
+                <div className="bill-card-header">
+                  <div className="bill-card-title">Edit Bill - {bill.name}</div>
+                </div>
+                <div className="edit-form grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="form-group">
+                    <label className="block text-sm font-bold mb-1">Status (Raw)</label>
+                    <input type="text" name="statusRaw" value={editFormData.statusRaw || ''} onChange={handleChange} className="w-full p-2 border rounded" />
+                  </div>
+                  <div className="form-group">
+                    <label className="block text-sm font-bold mb-1">Latest Order ID</label>
+                    <input type="text" name="latest_order_id" value={editFormData.latest_order_id || ''} onChange={handleChange} className="w-full p-2 border rounded" />
+                  </div>
+                  <div className="form-group">
+                    <label className="block text-sm font-bold mb-1">Paid Date</label>
+                    <input type="date" name="paid_date" value={editFormData.paid_date || ''} onChange={handleChange} className="w-full p-2 border rounded" />
+                  </div>
+                  <div className="form-group">
+                    <label className="block text-sm font-bold mb-1">Days Present</label>
+                    <input type="number" name="daysPresent" value={editFormData.daysPresent || 0} onChange={handleChange} className="w-full p-2 border rounded" />
+                  </div>
+
+                  <div className="form-group">
+                    <label className="flex items-center gap-2">
+                      <input type="checkbox" name="show" checked={editFormData.show || false} onChange={handleChange} />
+                      Show to Student
+                    </label>
+                  </div>
+                  <div className="form-group">
+                    <label className="flex items-center gap-2">
+                      <input type="checkbox" name="ispaid" checked={editFormData.ispaid || false} onChange={handleChange} />
+                      Is Paid
+                    </label>
+                  </div>
+                  <div className="form-group">
+                    <label className="flex items-center gap-2">
+                      <input type="checkbox" name="verified" checked={editFormData.verified || editFormData.status === 'Verified'} onChange={handleChange} />
+                      Verified
+                    </label>
+                  </div>
+
+                  <div className="form-group col-span-2 border-t pt-2 mt-2">
+                    <h3 className="font-bold">Meal Details</h3>
+                    <div className="flex gap-4 mt-2">
+                      <label className="flex items-center gap-2">
+                        <input type="checkbox" name="isveg" checked={editFormData.isveg || false} onChange={handleChange} />
+                        Is Veg
+                      </label>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 mt-2">
+                      <div>
+                        <label className="block text-sm">Veg Days</label>
+                        <input type="number" name="vegDays" value={editFormData.vegDays || 0} onChange={handleChange} className="w-full p-2 border rounded" disabled={!editFormData.isveg} />
+                      </div>
+                      <div>
+                        <label className="block text-sm">Non-Veg Days</label>
+                        <input type="number" name="nonVegDays" value={editFormData.nonVegDays || 0} onChange={handleChange} className="w-full p-2 border rounded" disabled={editFormData.isveg} />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="form-group col-span-2 border-t pt-2 mt-2">
+                    <h3 className="font-bold text-gray-500 text-sm">Detailed IDs (Advanced)</h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm">Monthly Year Data ID</label>
+                        <input type="number" name="monthly_year_data_id" value={editFormData.monthly_year_data_id || ''} onChange={handleChange} className="w-full p-2 border rounded" />
+                      </div>
+                      <div>
+                        <label className="block text-sm">Monthly Base Cost ID</label>
+                        <input type="number" name="monthly_base_cost_id" value={editFormData.monthly_base_cost_id || ''} onChange={handleChange} className="w-full p-2 border rounded" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="bill-actions mt-6">
+                  <button className="btn bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded" onClick={handleCancel}>Cancel</button>
+                  <button className="btn bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded" onClick={handleSave}>Save Changes</button>
+                </div>
               </div>
-              <div className="bill-details">
-                <div className="bill-detail">
-                  <span className="bill-detail-label">Days Present</span>
-                  <span className="bill-detail-value">{bill.days}</span>
+            ) : (
+              <div className="bill-card">
+                <div className="bill-card-header">
+                  <div className="bill-card-title">{bill.name} - Room {bill.room}</div>
+                  <div className={`bill-status ${bill.status}`}>{bill.status === 'verified' || bill.status === 'Verified' ? 'Verified' : 'Pending Verification'}</div>
                 </div>
-                <div className="bill-detail">
-                  <span className="bill-detail-label">Meal Rate</span>
-                  <span className="bill-detail-value">₹{bill.rate}.00</span>
+                <div className="bill-details">
+                  <div className="bill-detail">
+                    <span className="bill-detail-label">Days Present</span>
+                    <span className="bill-detail-value">{bill.daysPresent !== undefined ? bill.daysPresent : bill.days}</span>
+                  </div>
+                  <div className="bill-detail">
+                    <span className="bill-detail-label">Meal Rate</span>
+                    <span className="bill-detail-value">₹{bill.mealRate !== undefined ? bill.mealRate : bill.rate}.00</span>
+                  </div>
+                  <div className="bill-detail">
+                    <span className="bill-detail-label">Extra Charges</span>
+                    <span className="bill-detail-value">₹{bill.extraCharges !== undefined ? bill.extraCharges : bill.extra}.00</span>
+                  </div>
+                  <div className="bill-detail">
+                    <span className="bill-detail-label">Total Amount</span>
+                    <span className="bill-detail-value">₹{bill.totalAmount !== undefined ? bill.totalAmount : bill.total}.00</span>
+                  </div>
+                  <div className="bill-detail">
+                    <span className="bill-detail-label">Paid Status</span>
+                    <span className="bill-detail-value">{bill.ispaid ? 'Paid' : 'Unpaid'}</span>
+                  </div>
+                  <div className="bill-detail">
+                    <span className="bill-detail-label">Latest Order ID</span>
+                    <span className="bill-detail-value">{bill.latest_order_id || 'N/A'}</span>
+                  </div>
                 </div>
-                <div className="bill-detail">
-                  <span className="bill-detail-label">Extra Charges</span>
-                  <span className="bill-detail-value">₹{bill.extra}.00</span>
-                </div>
-                <div className="bill-detail">
-                  <span className="bill-detail-label">Total Amount</span>
-                  <span className="bill-detail-value">₹{bill.total}.00</span>
+                <div className="bill-actions">
+                  <button className="btn bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded" onClick={handleEdit}>Edit Bill</button>
+                  <button className={`btn-verify ${bill.status === 'verified' || bill.status === 'Verified' ? 'disabled' : ''}`} onClick={() => console.log(`Messbill ID: ${bill.id}`)} disabled={bill.status === 'verified' || bill.status === 'Verified'}>
+                    {bill.status === 'verified' || bill.status === 'Verified' ? 'Verified' : 'Verify Bill'}
+                  </button>
+                  <button className="btn-download">Download</button>
                 </div>
               </div>
-              <div className="bill-actions">
-                <button className={`btn-verify ${bill.status === 'verified' ? 'disabled' : ''}`} onClick={() => console.log(`Messbill ID: ${bill.id}`)} disabled={bill.status === 'verified'}>
-                  {bill.status === 'verified' ? 'Verified' : 'Verify Bill'}
-                </button>
-                <button className="btn-download">Download</button>
-              </div>
-            </div>
+            )}
           </div>
         </MainContent>
       </div>

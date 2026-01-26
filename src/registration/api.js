@@ -548,3 +548,34 @@ export const fetchStudentMessBillsForAdmin = async (studentId, page = 1, limit =
     throw error;
   }
 };
+
+// Fetch Transaction History (Payments)
+export const fetchTransactionHistory = async (studentId, page = 1, limit = 10, year = null, month = null) => {
+  try {
+    const token = localStorage.getItem("accessToken");
+    const payload = {
+      student_id: studentId,
+      page,
+      limit,
+      token // sending token just in case
+    };
+
+    if (year) payload.year = year;
+    if (month) payload.month = month;
+
+    const response = await api.post(
+      "/students/fetch-transaction-history",
+      payload,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+
+    if (response.data.success) {
+      return response.data;
+    } else {
+      throw new Error(response.data.message || "Failed to fetch transaction history");
+    }
+  } catch (error) {
+    console.error("Error fetching transaction history:", error);
+    throw error;
+  }
+};

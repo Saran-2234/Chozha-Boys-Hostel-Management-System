@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { fetchTransactionHistory } from '../../registration/api';
 
 const Profile = ({ studentData }) => {
   const [profileData, setProfileData] = useState(null);
@@ -78,6 +79,35 @@ const Profile = ({ studentData }) => {
   const [stats, setStats] = useState(null);
   const [statsLoading, setStatsLoading] = useState(false);
 
+  // Transaction History State
+  const [showTransModal, setShowTransModal] = useState(false);
+  const [transData, setTransData] = useState([]);
+  const [transLoading, setTransLoading] = useState(false);
+  const [transYear, setTransYear] = useState('');
+  const [transMonth, setTransMonth] = useState('');
+
+  const fetchHistory = async (year = '', month = '') => {
+    if (!data?.id) return;
+    setTransLoading(true);
+    setShowTransModal(true);
+    try {
+      const result = await fetchTransactionHistory(data.id, 1, 100, year, month);
+      if (result.success) {
+        setTransData(result.data);
+      }
+    } catch (error) {
+      console.error("Error fetching transactions:", error);
+    } finally {
+      setTransLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (showTransModal) {
+      fetchHistory(transYear, transMonth);
+    }
+  }, [transYear, transMonth, showTransModal]);
+
   useEffect(() => {
     const fetchStats = async () => {
       if (data?.id) {
@@ -140,7 +170,7 @@ const Profile = ({ studentData }) => {
         {stats && (
           <div className="glass-card rounded-xl p-8 mb-8">
             <h2 className="text-2xl font-bold text-white mb-6">Dashboard Statistics</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
               {/* Attendance Stats */}
               <div className="glass-effect p-6 rounded-xl border border-white/5 hover:border-white/10 transition-colors">
@@ -187,6 +217,27 @@ const Profile = ({ studentData }) => {
                       <div className="bg-red-500 h-2 rounded-full" style={{ width: '100%' }}></div>
                     </div>
                   </div>
+                </div>
+              </div>
+
+              {/* Transaction Stats */}
+              <div className="glass-effect p-6 rounded-xl border border-white/5 hover:border-white/10 transition-colors cursor-pointer"
+                onClick={() => {
+                  setTransYear('');
+                  setTransMonth('');
+                  fetchHistory();
+                }}
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-purple-400">Transactions</h3>
+                  <span className="text-xs text-slate-400 bg-slate-800/50 px-2 py-1 rounded">History</span>
+                </div>
+                <div className="space-y-4">
+                  <div className="text-center p-3 rounded-lg bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-white/5">
+                    <p className="text-slate-400 text-sm mb-1">Total Paid</p>
+                    <p className="text-2xl font-bold text-white">₹{stats.messBill.paid}</p>
+                  </div>
+                  <div className="mt-3 text-xs text-purple-400 text-right font-medium">Click to view details →</div>
                 </div>
               </div>
 
@@ -298,7 +349,106 @@ const Profile = ({ studentData }) => {
           </div>
         </div>
       </div>
-    </div>
+
+
+      {/* Transaction History Modal */}
+      {
+        showTransModal && (
+          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+            <div className="glass-card rounded-xl max-w-4xl w-full max-h-[85vh] flex flex-col border border-white/10">
+              <div className="p-6 border-b border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4">
+                <h3 className="font-bold text-xl text-white">Transaction History</h3>
+
+                {/* Filters */}
+                <div className="flex gap-2">
+                  <select
+                    className="px-3 py-1 bg-slate-800 border border-white/10 rounded-md text-sm text-slate-300 focus:outline-none focus:border-blue-500"
+                    value={transYear}
+                    onChange={(e) => setTransYear(e.target.value)}
+                  >
+                    <option value="">All Years</option>
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <option key={i} value={new Date().getFullYear() - 2 + i}>
+                        {new Date().getFullYear() - 2 + i}
+                      </option>
+                    ))}
+                  </select>
+                  <select
+                    className="px-3 py-1 bg-slate-800 border border-white/10 rounded-md text-sm text-slate-300 focus:outline-none focus:border-blue-500"
+                    value={transMonth}
+                    onChange={(e) => setTransMonth(e.target.value)}
+                  >
+                    <option value="">All Months</option>
+                    {Array.from({ length: 12 }).map((_, i) => (
+                      <option key={i} value={i + 1}>
+                        {new Date(0, i).toLocaleString('default', { month: 'long' })}
+                      </option>
+                    ))}
+                  </select>
+                  <button onClick={() => setShowTransModal(false)} className="text-slate-400 hover:text-white text-2xl ml-2">&times;</button>
+                </div>
+              </div>
+
+              <div className="p-6 overflow-y-auto flex-1 custom-scrollbar">
+                {transLoading ? (
+                  <div className="text-center py-10">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto"></div>
+                    <p className="mt-2 text-slate-400">Loading transactions...</p>
+                  </div>
+                ) : (
+                  <div>
+                    {transData && transData.length > 0 ? (
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse">
+                          <thead>
+                            <tr className="border-b border-white/10 text-slate-400 text-sm">
+                              <th className="pb-3 font-medium">Date</th>
+                              <th className="pb-3 font-medium">Amount</th>
+                              <th className="pb-3 font-medium">Status</th>
+                              <th className="pb-3 font-medium">Order ID</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-white/5">
+                            {transData.map((txn) => (
+                              <tr key={txn.id} className="hover:bg-white/5">
+                                <td className="py-4 text-slate-300 text-sm">
+                                  {new Date(txn.payment_time).toLocaleString()}
+                                </td>
+                                <td className="py-4 font-bold text-white">
+                                  ₹{Number(txn.payment_amount).toFixed(2)}
+                                </td>
+                                <td className="py-4">
+                                  <span className={`px-2 py-1 rounded text-xs font-semibold ${txn.payment_status === 'SUCCESS'
+                                    ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                                    : 'bg-red-500/20 text-red-400 border border-red-500/30'
+                                    }`}>
+                                    {txn.payment_status}
+                                  </span>
+                                </td>
+                                <td className="py-4 text-slate-500 text-xs font-mono">
+                                  {txn.order_id}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    ) : (
+                      <div className="text-center py-10 text-slate-500">
+                        No transactions found.
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+              <div className="p-4 border-t border-white/10 flex justify-end">
+                <button onClick={() => setShowTransModal(false)} className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg font-medium text-white transition">Close</button>
+              </div>
+            </div>
+          </div>
+        )
+      }
+    </div >
   );
 };
 

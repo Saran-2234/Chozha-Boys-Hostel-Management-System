@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import Sidebar from '../Sidebar/Sidebar';
 import Header from '../Header/Header';
 import MainContent from '../Header/MainContent';
-import { fetchStudents, fetchStudentStats, showAttends, fetchStudentMessBillsForAdmin } from '../../registration/api';
+import { fetchStudents, fetchStudentStats, showAttends, fetchStudentMessBillsForAdmin, fetchTransactionHistory } from '../../registration/api';
 import { parseRoomNumber } from '../../Common/roomUtils';
 
 const StudentProfilePage = () => {
@@ -32,6 +32,13 @@ const StudentProfilePage = () => {
     // For mess bill filter
     const [billYear, setBillYear] = useState('');
     const [billMonth, setBillMonth] = useState('');
+
+    // For transaction history
+    const [showTransModal, setShowTransModal] = useState(false);
+    const [transData, setTransData] = useState([]);
+    const [transYear, setTransYear] = useState('');
+    const [transMonth, setTransMonth] = useState('');
+    const [transLoading, setTransLoading] = useState(false);
 
     useEffect(() => {
         const loadData = async () => {
@@ -141,7 +148,30 @@ const StudentProfilePage = () => {
         if (showBillsModal) {
             fetchMessBillHistory(billYear, billMonth);
         }
-    }, [billYear, billMonth, showBillsModal]); // Added showBillsModal to dependency array to trigger on modal open
+    }, [billYear, billMonth, showBillsModal]);
+
+    const fetchHistory = async (year = '', month = '') => {
+        if (!id) return;
+        setTransLoading(true);
+        setShowTransModal(true);
+        try {
+            const result = await fetchTransactionHistory(id, 1, 100, year, month);
+            if (result.success) {
+                setTransData(result.data);
+            }
+        } catch (error) {
+            console.error("Error fetching transaction history:", error);
+        } finally {
+            setTransLoading(false);
+        }
+    };
+
+    // Handle Transaction Filter Change
+    useEffect(() => {
+        if (showTransModal) {
+            fetchHistory(transYear, transMonth);
+        }
+    }, [transYear, transMonth, showTransModal]);
 
     // Update calendar when year/month dropdowns change
     useEffect(() => {
@@ -276,7 +306,7 @@ const StudentProfilePage = () => {
                                     </h3>
 
                                     {stats ? (
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                             {/* Attendance Card - Clickable */}
                                             <div
                                                 className="bg-blue-50/50 rounded-xl p-5 border border-blue-100 cursor-pointer hover:shadow-md transition-shadow"
@@ -309,6 +339,8 @@ const StudentProfilePage = () => {
                                                         <div className="w-full bg-blue-200 rounded-full h-2">
                                                             <div className="bg-blue-500 h-2 rounded-full" style={{ width: `${stats.attendance.year.percentage}%` }}></div>
                                                         </div>
+
+
                                                     </div>
                                                 </div>
                                                 <div className="mt-3 text-xs text-blue-600 text-right font-medium">Click to view calendar →</div>
@@ -338,6 +370,26 @@ const StudentProfilePage = () => {
                                                     </div>
                                                 </div>
                                                 <div className="mt-3 text-xs text-orange-600 text-right font-medium">Click to view history →</div>
+                                            </div>
+
+                                            {/* Transaction History Card */}
+                                            <div
+                                                className="bg-purple-50/50 rounded-xl p-5 border border-purple-100 cursor-pointer hover:shadow-md transition-shadow"
+                                                onClick={() => {
+                                                    setTransYear('');
+                                                    setTransMonth('');
+                                                    fetchHistory();
+                                                }}
+                                            >
+                                                <h4 className="font-semibold text-purple-900 mb-4 flex justify-between">
+                                                    <span>Transactions</span>
+                                                    <span className="text-2xl">💳</span>
+                                                </h4>
+                                                <div className="bg-white p-3 rounded-lg shadow-sm border border-purple-50">
+                                                    <div className="text-xs text-gray-500 uppercase font-semibold">Total Paid</div>
+                                                    <div className="text-xl font-bold text-emerald-600">₹{stats.messBill.paid}</div>
+                                                </div>
+                                                <div className="mt-3 text-xs text-purple-600 text-right font-medium">Click to view details →</div>
                                             </div>
                                         </div>
                                     ) : (
@@ -631,6 +683,106 @@ const StudentProfilePage = () => {
                         </div>
                         <div className="p-4 border-t bg-gray-50 flex justify-end">
                             <button onClick={() => setShowBillsModal(false)} className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 font-medium text-gray-700 transition">Close</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Transaction History Modal */}
+            {showTransModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl shadow-xl max-w-4xl w-full max-h-[85vh] flex flex-col">
+                        <div className="p-4 border-b flex flex-col sm:flex-row justify-between items-center bg-gray-50 gap-4">
+                            <h3 className="font-bold text-lg text-gray-800">Transaction History</h3>
+
+                            {/* Filters */}
+                            <div className="flex gap-2">
+                                <select
+                                    className="px-3 py-1 border rounded-md text-sm bg-white"
+                                    value={transYear}
+                                    onChange={(e) => setTransYear(e.target.value)}
+                                >
+                                    <option value="">All Years</option>
+                                    {Array.from({ length: 5 }).map((_, i) => (
+                                        <option key={i} value={new Date().getFullYear() - 2 + i}>
+                                            {new Date().getFullYear() - 2 + i}
+                                        </option>
+                                    ))}
+                                </select>
+                                <select
+                                    className="px-3 py-1 border rounded-md text-sm bg-white"
+                                    value={transMonth}
+                                    onChange={(e) => setTransMonth(e.target.value)}
+                                >
+                                    <option value="">All Months</option>
+                                    {Array.from({ length: 12 }).map((_, i) => (
+                                        <option key={i} value={i + 1}>
+                                            {new Date(0, i).toLocaleString('default', { month: 'long' })}
+                                        </option>
+                                    ))}
+                                </select>
+                                <button onClick={() => setShowTransModal(false)} className="text-gray-400 hover:text-gray-600 text-2xl ml-2">&times;</button>
+                            </div>
+                        </div>
+
+                        <div className="p-6 overflow-y-auto flex-1">
+                            {transLoading ? (
+                                <div className="text-center py-10">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
+                                    <p className="mt-2 text-gray-500">Loading transactions...</p>
+                                </div>
+                            ) : (
+                                <div>
+                                    {transData && transData.length > 0 ? (
+                                        <div className="overflow-x-auto">
+                                            <table className="w-full text-left border-collapse">
+                                                <thead>
+                                                    <tr className="border-b border-gray-200 text-gray-500 text-sm">
+                                                        <th className="pb-3 font-medium">Date</th>
+                                                        <th className="pb-3 font-medium">Amount</th>
+                                                        <th className="pb-3 font-medium">Status</th>
+                                                        <th className="pb-3 font-medium">Order ID</th>
+                                                        <th className="pb-3 font-medium">Reference</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-gray-100">
+                                                    {transData.map((txn) => (
+                                                        <tr key={txn.id} className="hover:bg-gray-50">
+                                                            <td className="py-4 font-medium text-gray-900">
+                                                                {new Date(txn.payment_time).toLocaleString()}
+                                                            </td>
+                                                            <td className="py-4 font-bold text-gray-700">
+                                                                ₹{Number(txn.payment_amount).toFixed(2)}
+                                                            </td>
+                                                            <td className="py-4">
+                                                                <span className={`px-2 py-1 rounded text-xs font-semibold ${txn.payment_status === 'SUCCESS'
+                                                                    ? 'bg-green-100 text-green-700'
+                                                                    : 'bg-red-100 text-red-700'
+                                                                    }`}>
+                                                                    {txn.payment_status}
+                                                                </span>
+                                                            </td>
+                                                            <td className="py-4 text-gray-500 text-sm font-mono text-xs">
+                                                                {txn.order_id}
+                                                            </td>
+                                                            <td className="py-4 text-gray-500 text-sm">
+                                                                {txn.gateway_payment_id || '-'}
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    ) : (
+                                        <div className="text-center py-10 text-gray-500">
+                                            No transactions found.
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                        <div className="p-4 border-t bg-gray-50 flex justify-end">
+                            <button onClick={() => setShowTransModal(false)} className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 font-medium text-gray-700 transition">Close</button>
                         </div>
                     </div>
                 </div>

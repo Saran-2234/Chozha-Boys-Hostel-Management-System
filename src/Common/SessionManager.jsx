@@ -28,7 +28,7 @@ const SessionManager = () => {
         try {
             // NOTE: Using localhost:3001 as the new session endpoints are likely only local for now.
             // Update this URL if the backend is deployed.
-            const baseUrl = "http://localhost:3001";
+            const baseUrl = "https://finalbackend1.vercel.app";
             const endpoint = role === 'admin' ? '/admin/get-session' : '/students/get-session';
 
             const response = await axios.post(`${baseUrl}${endpoint}`, {
@@ -59,7 +59,7 @@ const SessionManager = () => {
         if (!window.confirm("Are you sure you want to end this session?")) return;
 
         try {
-            const baseUrl = "http://localhost:3001";
+            const baseUrl = "https://finalbackend1.vercel.app";
             const endpoint = role === 'admin' ? '/admin/remove-session' : '/students/remove-session';
 
             await axios.post(`${baseUrl}${endpoint}`, {
@@ -117,8 +117,8 @@ const SessionManager = () => {
                             <div
                                 key={session.id}
                                 className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-lg border ${isCurrent
-                                        ? 'bg-blue-600/10 border-blue-500/30'
-                                        : 'bg-slate-800/50 border-slate-700'
+                                    ? 'bg-blue-600/10 border-blue-500/30'
+                                    : 'bg-slate-800/50 border-slate-700'
                                     }`}
                             >
                                 <div className="mb-3 sm:mb-0">
@@ -145,8 +145,8 @@ const SessionManager = () => {
                                     <button
                                         onClick={() => removeSession(session.id)}
                                         className={`px-4 py-2 text-sm rounded-lg transition-colors ${isCurrent
-                                                ? 'bg-red-500/20 text-red-300 hover:bg-red-500/30'
-                                                : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                                            ? 'bg-red-500/20 text-red-300 hover:bg-red-500/30'
+                                            : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
                                             }`}
                                     >
                                         {isCurrent ? 'Logout' : 'Revoke'}

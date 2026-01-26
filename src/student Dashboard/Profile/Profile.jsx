@@ -83,7 +83,7 @@ const Profile = ({ studentData }) => {
       if (data?.id) {
         try {
           setStatsLoading(true);
-          const response = await axios.post('http://localhost:3001/students/stats', {
+          const response = await axios.post('https://finalbackend1.vercel.app/students/stats', {
             student_id: data.id
           });
           if (response.data.success) {

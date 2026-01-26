@@ -1,11 +1,11 @@
-import React from 'react';
+import SessionManager from '../../Common/SessionManager';
 
 const Settings = () => {
   return (
     <div className="max-w-4xl mx-auto">
       <h2 className="text-2xl font-bold text-white mb-8">Security & Settings</h2>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6">
         <div className="glass-card rounded-xl p-6">
           <h3 className="text-lg font-semibold text-white mb-6">Change Password</h3>
           <form>
@@ -29,7 +29,8 @@ const Settings = () => {
           </form>
         </div>
 
-
+        {/* Session Management */}
+        <SessionManager />
       </div>
     </div>
   );

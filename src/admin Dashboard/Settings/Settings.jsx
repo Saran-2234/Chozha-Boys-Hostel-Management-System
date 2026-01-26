@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import Button from '../Common/Button';
+import SessionManager from '../../Common/SessionManager';
 
 const Settings = () => {
   const [settings, setSettings] = useState({
@@ -186,6 +187,9 @@ const Settings = () => {
           </div>
         </div>
       </div>
+
+      {/* Session Management */}
+      <SessionManager />
 
       {/* System Settings */}
       <div className="glass-card rounded-xl p-6">

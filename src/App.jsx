@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import axios from 'axios';
 import Home from './Home.jsx'
 import Login from './Login.jsx'
@@ -11,6 +11,7 @@ import MessBillsIndividualList from './admin Dashboard/MessBillsDetail/MessBills
 import PaidStudents from './admin Dashboard/MessBillsDetail/PaidStudents.jsx'
 import UnpaidStudents from './admin Dashboard/MessBillsDetail/UnpaidStudents.jsx'
 import StudentProfilePage from './admin Dashboard/Students/StudentProfilePage.jsx'
+import Loader from './Common/Loader.jsx'
 import { createBrowserRouter, RouterProvider, redirect } from "react-router-dom";
 
 
@@ -101,32 +102,33 @@ async function rootLoader() {
     return null;
   };
 
-  // 1. If we have a hint, try that one first (Fastest for valid users)
-  if (studentToken) {
+  // Helper to read cookies
+  const getCookie = (name) => {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+    return null;
+  };
+
+  // Optimize auto-login by checking the stored role first (Cookie ONLY)
+  const userRole = getCookie('userRole');
+
+  if (userRole === 'student') {
     try {
       const res = await checkStudent();
       const result = handleStudentSuccess(res);
       if (result) return result;
-    } catch { /* Fallback */ }
-  } else if (adminToken) {
+    } catch (e) {
+      console.log("Student auto-login failed", e);
+    }
+  } else if (userRole === 'admin') {
     try {
       const res = await checkAdmin();
       const result = handleAdminSuccess(res);
       if (result) return result;
-    } catch { /* Fallback */ }
-  }
-
-  // 2. If no tokens or the hint failed, run BOTH in parallel (Fastest for guests/switchers)
-  const [studentRes, adminRes] = await Promise.allSettled([checkStudent(), checkAdmin()]);
-
-  if (studentRes.status === 'fulfilled') {
-    const result = handleStudentSuccess(studentRes.value);
-    if (result) return result;
-  }
-
-  if (adminRes.status === 'fulfilled') {
-    const result = handleAdminSuccess(adminRes.value);
-    if (result) return result;
+    } catch (e) {
+      console.log("Admin auto-login failed", e);
+    }
   }
 
   // If absolutely everything failed, verify clean slate
@@ -140,68 +142,78 @@ async function rootLoader() {
   return null;
 }
 
-function App() {
 
+
+import AppLayout from './Common/AppLayout.jsx'
+
+// ... existing imports ...
+
+function App() {
   const routes = [
     {
-      path: "/",
-      element: <Home />,
-      loader: rootLoader,
-    },
-    {
-      path: "/dashboard",
-      element: <Dashboard />,
-      loader: dashboardLoader,
-    },
-    {
-      path: "/admin-dashboard",
-      element: <AdminDashboard />,
-      loader: adminDashboardLoader,
-    },
-    {
-      path: "/admin/student/:id",
-      element: <StudentProfilePage />,
-      loader: adminDashboardLoader,
-    },
-    {
-      path: "/mess-bills",
-      element: <MessBills />,
-      loader: adminDashboardLoader,
-    },
-    {
-      path: "/mess-bills-detail",
-      element: <MessBillsDetail />,
-      loader: adminDashboardLoader,
-    },
-    {
-      path: "/mess-bill-individual",
-      element: <MessBillIndividual />,
-      loader: adminDashboardLoader,
-    },
-    {
-      path: "/mess-bills-individual-list",
-      element: <MessBillsIndividualList />,
-      loader: adminDashboardLoader,
-    },
-    {
-      path: "/paid-students",
-      element: <PaidStudents />,
-      loader: adminDashboardLoader,
-    },
-    {
-      path: "/unpaid-students",
-      element: <UnpaidStudents />,
-      loader: adminDashboardLoader,
-    },
-    {
-      path: "/login",
-      element: <Login />
+      element: <AppLayout />,
+      children: [
+        {
+          path: "/",
+          element: <Home />,
+          loader: rootLoader,
+        },
+        {
+          path: "/dashboard",
+          element: <Dashboard />,
+          loader: dashboardLoader,
+        },
+        {
+          path: "/admin-dashboard",
+          element: <AdminDashboard />,
+          loader: adminDashboardLoader,
+        },
+        {
+          path: "/admin/student/:id",
+          element: <StudentProfilePage />,
+          loader: adminDashboardLoader,
+        },
+        {
+          path: "/mess-bills",
+          element: <MessBills />,
+          loader: adminDashboardLoader,
+        },
+        {
+          path: "/mess-bills-detail",
+          element: <MessBillsDetail />,
+          loader: adminDashboardLoader,
+        },
+        {
+          path: "/mess-bill-individual",
+          element: <MessBillIndividual />,
+          loader: adminDashboardLoader,
+        },
+        {
+          path: "/mess-bills-individual-list",
+          element: <MessBillsIndividualList />,
+          loader: adminDashboardLoader,
+        },
+        {
+          path: "/paid-students",
+          element: <PaidStudents />,
+          loader: adminDashboardLoader,
+        },
+        {
+          path: "/unpaid-students",
+          element: <UnpaidStudents />,
+          loader: adminDashboardLoader,
+        },
+        {
+          path: "/login",
+          element: <Login />
+        }
+      ]
     }
   ];
 
   const router = createBrowserRouter(routes);
   return (
-    <RouterProvider router={router} />
+    <RouterProvider router={router} fallbackElement={<Loader />} />
   )
 }
 

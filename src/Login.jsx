@@ -155,6 +155,8 @@ function Login({ onClose, onOpenRegister, loginType }) {
       }
       if (data.role) {
         localStorage.setItem("userRole", data.role);
+        // Set userRole cookie accessible to frontend
+        document.cookie = `userRole=${data.role}; path=/; max-age=86400; samesite=lax`;
       }
 
       // Redirect based on user role from API response

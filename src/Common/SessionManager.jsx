@@ -10,8 +10,15 @@ const SessionManager = () => {
     const userData = JSON.parse(localStorage.getItem("userData") || "{}");
     const userId = userData.id; // Ensure this matches how ID is stored
     const role = localStorage.getItem("userRole");
-    const currentSession = JSON.parse(localStorage.getItem("sessionData") || "{}");
-    const currentSessionId = currentSession.id;
+    // Helper to read cookies
+    const getCookie = (name) => {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+        return null;
+    };
+
+    const currentSessionId = getCookie("refreshTokenId");
 
     useEffect(() => {
         fetchSessions();
@@ -43,8 +50,12 @@ const SessionManager = () => {
             if (response.data && response.data.data) {
                 // Sort sessions: Current session first, then by created_at desc
                 const sorted = response.data.data.sort((a, b) => {
-                    if (String(a.id) === String(currentSessionId)) return -1;
-                    if (String(b.id) === String(currentSessionId)) return 1;
+                    // Check purely against the ID from the cookie
+                    const isCurrentA = String(a.id) === String(currentSessionId);
+                    const isCurrentB = String(b.id) === String(currentSessionId);
+
+                    if (isCurrentA) return -1;
+                    if (isCurrentB) return 1;
                     return new Date(b.created_at) - new Date(a.created_at);
                 });
                 setSessions(sorted);
@@ -70,7 +81,7 @@ const SessionManager = () => {
                 role: role
             });
 
-            // If current session is removed, logout
+            // If current session is removed (checked against cookie ID), logout
             if (String(sessionId) === String(currentSessionId)) {
                 alert("Current session ended. You will be logged out.");
                 localStorage.clear();

@@ -29,8 +29,8 @@ export const handle401Error = async (error) => {
                 localStorage.clear();
                 sessionStorage.clear();
 
-                // Redirect to login
-                window.location.href = '/login';
+                // Redirect to landing page
+                window.location.href = '/';
             } finally {
                 isAlertOpen = false;
             }

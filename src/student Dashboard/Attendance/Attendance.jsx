@@ -71,7 +71,12 @@ const Attendance = () => {
         return;
       }
 
-      const response = await axios.post('https://finalbackend1.vercel.app/students/attendance', {
+      // NOTE: You are currently using the PRODUCTION backend.
+      // If you are debugging local backend changes, switch to 'http://localhost:3001'
+      const API_BASE_URL = 'https://finalbackend1.vercel.app';
+      // const API_BASE_URL = 'http://localhost:3001';
+
+      const response = await axios.post(`${API_BASE_URL}/students/attendance`, {
         id: studentId,
         token: token,
       }, {
@@ -129,7 +134,9 @@ const Attendance = () => {
       }
     } catch (err) {
       console.error('Error fetching attendance data:', err);
-      setError('Failed to load attendance data');
+      // Check for both 'error' (from controller) and 'message' (from auth middleware/server error)
+      const errorMsg = err.response?.data?.error || err.response?.data?.message || 'Failed to load attendance data';
+      setError(errorMsg);
     }
   };
 

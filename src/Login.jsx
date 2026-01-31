@@ -177,6 +177,10 @@ function Login({ onClose, onOpenRegister, loginType }) {
         document.cookie = `userRole=${data.role}; path=/; max-age=86400; samesite=lax`;
       }
 
+      if (data.refreshtokenId) {
+        document.cookie = `refreshTokenId=${data.refreshtokenId}; path=/; max-age=86400; samesite=lax`;
+      }
+
       // Redirect based on user role from API response
       if (userRole === "admin") {
         navigate("/admin-dashboard", { state: { data } });

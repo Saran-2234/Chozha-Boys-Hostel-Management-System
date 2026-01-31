@@ -20,10 +20,6 @@ const SessionManager = () => {
 
     const currentSessionId = getCookie("refreshTokenId");
 
-    // Debugging logs
-    console.log("All Cookies:", document.cookie);
-    console.log("Parsed refreshTokenId:", currentSessionId);
-
     useEffect(() => {
         fetchSessions();
     }, [userId, role]);

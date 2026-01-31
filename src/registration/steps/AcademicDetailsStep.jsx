@@ -67,10 +67,10 @@ const AcademicDetailsStep = ({
             ))}
           </select>
           {touched.department && errors.department && (
-            <p className={`text-red-600 text-xs mt-1`}>{errors.department}</p>
+            <p className={`!text-red-600 text-xs mt-1`}>{errors.department}</p>
           )}
           {error && (
-            <p className={`text-red-600 text-xs mt-1`}>{error}</p>
+            <p className={`!text-red-600 text-xs mt-1`}>{error}</p>
           )}
         </div>
 
@@ -98,7 +98,7 @@ const AcademicDetailsStep = ({
             <option value="4" style={{ backgroundColor: 'white', color: 'black' }}>4th Year</option>
           </select>
           {touched.academicYear && errors.academicYear && (
-            <p className={`text-red-600 text-xs mt-1`}>{errors.academicYear}</p>
+            <p className={`!text-red-600 text-xs mt-1`}>{errors.academicYear}</p>
           )}
         </div>
 
@@ -117,7 +117,7 @@ const AcademicDetailsStep = ({
             maxLength="15"
           />
           {touched.registrationNumber && errors.registrationNumber && (
-            <p className={`text-red-600 text-xs mt-1`}>{errors.registrationNumber}</p>
+            <p className={`!text-red-600 text-xs mt-1`}>{errors.registrationNumber}</p>
           )}
         </div>
 
@@ -136,7 +136,7 @@ const AcademicDetailsStep = ({
             maxLength="12"
           />
           {touched.rollNumber && errors.rollNumber && (
-            <p className={`text-red-600 text-xs mt-1`}>{errors.rollNumber}</p>
+            <p className={`!text-red-600 text-xs mt-1`}>{errors.rollNumber}</p>
           )}
         </div>
 
@@ -155,7 +155,7 @@ const AcademicDetailsStep = ({
             maxLength="3"
           />
           {touched.roomNumber && errors.roomNumber && (
-            <p className={`text-red-600 text-xs mt-1`}>{errors.roomNumber}</p>
+            <p className={`!text-red-600 text-xs mt-1`}>{errors.roomNumber}</p>
           )}
         </div>
       </div>

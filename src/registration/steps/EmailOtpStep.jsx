@@ -49,7 +49,7 @@ const EmailOtpStep = ({
           </div>
           <div className="mt-1">
             {touched.emailId && errors.emailId && (
-              <p className="text-red-600 text-xs">{errors.emailId}</p>
+              <p className="!text-red-600 text-xs">{errors.emailId}</p>
             )}
             {/* Inline OTP sent message */}
             {otpSent && emailSendMessage && !otpVerified && (
@@ -65,7 +65,7 @@ const EmailOtpStep = ({
           </div>
         </div>
 
-  <div className={otpSent && !otpVerified ? '' : 'hidden'}>
+        <div className={otpSent && !otpVerified ? '' : 'hidden'}>
           <label className="block text-sm font-semibold text-slate-300 mb-2">Enter OTP *</label>
           {/* OTP inputs and verify button: hide after verification */}
           {!otpVerified && (
@@ -158,7 +158,7 @@ const EmailOtpStep = ({
             )}
           </div>
           {touched.otpCode && errors.otpCode && (
-            <p className="text-red-600 text-xs mt-1">{errors.otpCode}</p>
+            <p className="!text-red-600 text-xs mt-1">{errors.otpCode}</p>
           )}
         </div>
       </div>

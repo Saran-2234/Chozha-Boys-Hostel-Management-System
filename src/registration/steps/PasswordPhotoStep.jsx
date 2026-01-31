@@ -30,9 +30,8 @@ const PasswordPhotoStep = ({
               type={showPassword ? "text" : "password"}
               id="password"
               name="password"
-              className={`w-full px-4 py-3 pr-12 glass-effect rounded-lg placeholder-slate-400 focus:ring-2 focus:ring-emerald-500 focus:border-transparent border-0 ${
-                errors.password ? 'border-red-500' : ''
-              } text-black`}
+              className={`w-full px-4 py-3 pr-12 glass-effect rounded-lg placeholder-slate-400 focus:ring-2 focus:ring-emerald-500 focus:border-transparent border-0 ${errors.password ? 'border-red-500' : ''
+                } text-black`}
               placeholder="Enter your password"
               value={formData.password}
               onChange={handleInputChange}
@@ -48,7 +47,7 @@ const PasswordPhotoStep = ({
             </button>
           </div>
           {touched.password && errors.password && (
-            <p className={`text-red-600 text-xs mt-1`}>{errors.password}</p>
+            <p className={`!text-red-600 text-xs mt-1`}>{errors.password}</p>
           )}
         </div>
 
@@ -59,9 +58,8 @@ const PasswordPhotoStep = ({
               type={showConfirmPassword ? "text" : "password"}
               id="confirmPassword"
               name="confirmPassword"
-              className={`w-full px-4 py-3 pr-12 glass-effect rounded-lg placeholder-slate-400 focus:ring-2 focus:ring-emerald-500 focus:border-transparent border-0 ${
-                errors.confirmPassword ? 'border-red-500' : ''
-              } text-black`}
+              className={`w-full px-4 py-3 pr-12 glass-effect rounded-lg placeholder-slate-400 focus:ring-2 focus:ring-emerald-500 focus:border-transparent border-0 ${errors.confirmPassword ? 'border-red-500' : ''
+                } text-black`}
               placeholder="Confirm your password"
               value={formData.confirmPassword}
               onChange={handleInputChange}
@@ -77,7 +75,7 @@ const PasswordPhotoStep = ({
             </button>
           </div>
           {touched.confirmPassword && errors.confirmPassword && (
-            <p className={`text-red-600 text-xs mt-1`}>{errors.confirmPassword}</p>
+            <p className={`!text-red-600 text-xs mt-1`}>{errors.confirmPassword}</p>
           )}
           {confirmPasswordSuccess && <p className="text-green-400 text-xs mt-1">✓ Passwords match</p>}
         </div>
@@ -127,7 +125,7 @@ const PasswordPhotoStep = ({
             )}
 
             {touched.photo && errors.photo && (
-              <p className={`text-red-600 text-xs mt-1`}>{errors.photo}</p>
+              <p className={`!text-red-600 text-xs mt-1`}>{errors.photo}</p>
             )}
           </div>
         </div>

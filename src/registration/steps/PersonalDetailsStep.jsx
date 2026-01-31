@@ -46,7 +46,7 @@ const PersonalDetailsStep = ({
             onBlur={handleBlur}
           />
           {touched.fullName && errors.fullName && (
-            <p className={`text-red-600 text-xs mt-1`}>{errors.fullName}</p>
+            <p className={`!text-red-600 text-xs mt-1`}>{errors.fullName}</p>
           )}
         </div>
 
@@ -64,7 +64,7 @@ const PersonalDetailsStep = ({
             onBlur={handleBlur}
           />
           {touched.fatherName && errors.fatherName && (
-            <p className={`text-red-600 text-xs mt-1`}>{errors.fatherName}</p>
+            <p className={`!text-red-600 text-xs mt-1`}>{errors.fatherName}</p>
           )}
         </div>
 
@@ -76,7 +76,7 @@ const PersonalDetailsStep = ({
             onBlur={() => handleBlur({ target: { id: 'dob', value: formData.dob } })}
           />
           {touched.dob && errors.dob && (
-            <p className={`text-red-600 text-xs mt-1`}>{errors.dob}</p>
+            <p className={`!text-red-600 text-xs mt-1`}>{errors.dob}</p>
           )}
         </div>
 
@@ -106,7 +106,7 @@ const PersonalDetailsStep = ({
             <option value="O-" style={{ backgroundColor: 'white', color: 'black' }}>O-</option>
           </select>
           {touched.bloodGroup && errors.bloodGroup && (
-            <p className={`text-red-600 text-xs mt-1`}>{errors.bloodGroup}</p>
+            <p className={`!text-red-600 text-xs mt-1`}>{errors.bloodGroup}</p>
           )}
         </div>
 
@@ -125,7 +125,7 @@ const PersonalDetailsStep = ({
             maxLength="10"
           />
           {touched.studentContact && errors.studentContact && (
-            <p className={`text-red-600 text-xs mt-1`}>{errors.studentContact}</p>
+            <p className={`!text-red-600 text-xs mt-1`}>{errors.studentContact}</p>
           )}
         </div>
 
@@ -144,7 +144,7 @@ const PersonalDetailsStep = ({
             maxLength="10"
           />
           {touched.parentContact && errors.parentContact && (
-            <p className={`text-red-600 text-xs mt-1`}>{errors.parentContact}</p>
+            <p className={`!text-red-600 text-xs mt-1`}>{errors.parentContact}</p>
           )}
         </div>
 
@@ -162,7 +162,7 @@ const PersonalDetailsStep = ({
             onBlur={handleBlur}
           />
           {touched.address && errors.address && (
-            <p className={`text-red-600 text-xs mt-1`}>{errors.address}</p>
+            <p className={`!text-red-600 text-xs mt-1`}>{errors.address}</p>
           )}
         </div>
       </div>

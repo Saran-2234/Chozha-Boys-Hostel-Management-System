@@ -74,7 +74,7 @@ function Register({ onClose, onOpenLogin }) {
     }
     return () => clearTimeout(timer);
   }, [resendCountdown]);
-  
+
   // Handle OTP sending
   const handleSendOTP = async () => {
     // Only require email field to be valid before sending OTP
@@ -237,6 +237,10 @@ function Register({ onClose, onOpenLogin }) {
         setNotificationType('error');
         return;
       }
+
+      // Clear any previous error messages
+      setNotificationMessage('');
+      setNotificationType('');
 
       // Create preview
       const reader = new FileReader();
@@ -412,7 +416,7 @@ function Register({ onClose, onOpenLogin }) {
 
   return (
     <div id="registerModal" className="fixed inset-0 bg-black bg-opacity-60 login-modal z-50 flex items-center justify-center p-4">
-  <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full mx-4 transform transition-all max-h-[90vh] overflow-y-auto overflow-x-visible">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full mx-4 transform transition-all max-h-[90vh] overflow-y-auto overflow-x-visible">
         <div className="p-6 sm:p-8">
           {/* Progress Bar */}
           <div className="mb-6 sm:mb-8">
@@ -450,9 +454,8 @@ function Register({ onClose, onOpenLogin }) {
           {/* Notification Message */}
           {notificationMessage && (
             <div
-              className={`mb-4 p-3 rounded ${
-                notificationType === 'success' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'
-              }`}
+              className={`mb-4 p-3 rounded ${notificationType === 'success' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'
+                }`}
               role="alert"
             >
               {notificationMessage}
@@ -556,11 +559,10 @@ function Register({ onClose, onOpenLogin }) {
                     <button
                       type="submit"
                       disabled={!isFormValid(formData) || !otpVerified || isRegistering}
-                      className={`w-full sm:w-auto px-4 py-3 text-white rounded-lg font-semibold transition-all ${
-                        isFormValid(formData) && otpVerified && !isRegistering
+                      className={`w-full sm:w-auto px-4 py-3 text-white rounded-lg font-semibold transition-all ${isFormValid(formData) && otpVerified && !isRegistering
                           ? 'bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700'
                           : 'bg-gray-500 cursor-not-allowed'
-                      }`}
+                        }`}
                     >
                       {isRegistering ? (
                         <div className="flex items-center justify-center gap-2">
@@ -587,7 +589,7 @@ function Register({ onClose, onOpenLogin }) {
           </div>
         </div>
 
-        
+
       </div>
 
       {/* Cancel confirmation dialog */}

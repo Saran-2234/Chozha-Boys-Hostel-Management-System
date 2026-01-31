@@ -90,8 +90,12 @@ function Login({ onClose, onOpenRegister, loginType }) {
 
       const endpoint = loginType === "admin" ? "admin/adminslogin" : "students/studentslogin";
 
+      const baseUrl = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+        ? "http://localhost:3001"
+        : "https://finalbackend1.vercel.app";
+
       const response = await axios.post(
-        `https://finalbackend1.vercel.app/${endpoint}`,
+        `${baseUrl}/${endpoint}`,
         requestData,
         {
           headers: { "Content-Type": "application/json" },

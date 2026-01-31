@@ -100,9 +100,6 @@ const QuickStats = ({ studentData, setActiveSection }) => {
               {loading ? '...' : attendanceData ? `${attendanceData.percentage}%` : '0%'}
             </p>
           </div>
-          <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center">
-            <span className="text-xl">✅</span>
-          </div>
         </div>
         <div className="mt-4 flex items-center text-sm">
           <span className="text-emerald-400">↗ 2.5%</span>
@@ -120,9 +117,6 @@ const QuickStats = ({ studentData, setActiveSection }) => {
             <p className="text-2xl font-bold text-white">
               {loading ? '...' : messBillData ? `₹${(messBillData.number_of_days * messBillData.mess_fee_per_day + messBillData.veg_days * messBillData.veg_extra_per_day + messBillData.non_veg_days * messBillData.nonveg_extra_per_day).toFixed(0)}` : '₹0'}
             </p>
-          </div>
-          <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center">
-            <span className="text-xl">🍽️</span>
           </div>
         </div>
         <div className="mt-4 flex items-center text-sm">
@@ -144,9 +138,6 @@ const QuickStats = ({ studentData, setActiveSection }) => {
             <p className="text-slate-400 text-sm font-medium">Complaints</p>
             <p className="text-2xl font-bold text-white">2</p>
           </div>
-          <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
-            <span className="text-xl">📝</span>
-          </div>
         </div>
         <div className="mt-4 flex items-center text-sm">
           <span className="text-blue-400">1 In Progress</span>
@@ -162,9 +153,6 @@ const QuickStats = ({ studentData, setActiveSection }) => {
           <div>
             <p className="text-slate-400 text-sm font-medium">Room</p>
             <p className="text-2xl font-bold text-white">{roomNumber}</p>
-          </div>
-          <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
-            <span className="text-xl">🏠</span>
           </div>
         </div>
         <div className="mt-4 flex items-center text-sm">

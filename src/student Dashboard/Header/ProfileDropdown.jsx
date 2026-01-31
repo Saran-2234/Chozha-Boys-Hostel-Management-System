@@ -16,34 +16,34 @@ const ProfileDropdown = ({ onLogoutClick, studentData, setActiveSection }) => {
         year: 'Year'
       };
     }
-    
+
     // Check different possible structures of studentData
     let student = {};
-    
+
     // Handle the structure from your console log: {success: true, message: '...', session: {...}, data: {...}}
     if (studentData.data) {
       student = studentData.data;
-    } 
+    }
     // Handle the old structure with userdata array
     else if (studentData.userdata && studentData.userdata.length > 0) {
       student = studentData.userdata[0];
-    } 
+    }
     // Handle direct student data
     else if (studentData.name) {
       student = studentData;
     }
-    
+
     // Get initials from name
-    const initials = student.name 
+    const initials = student.name
       ? student.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)
       : 'U';
-    
+
     // Get department and year
     const department = student.department || 'Department';
-    const year = student.academic_year 
+    const year = student.academic_year
       ? student.academic_year.replace('Year', '').trim() + ' Year'
       : 'Year';
-    
+
     return {
       initials,
       name: student.name || 'User',
@@ -67,7 +67,7 @@ const ProfileDropdown = ({ onLogoutClick, studentData, setActiveSection }) => {
   const handleViewProfile = () => {
     // Close dropdown
     setIsOpen(false);
-    
+
     // Navigate to profile section
     if (setActiveSection) {
       setActiveSection('profile');
@@ -77,7 +77,7 @@ const ProfileDropdown = ({ onLogoutClick, studentData, setActiveSection }) => {
   const handleSettings = () => {
     // Close dropdown
     setIsOpen(false);
-    
+
     // Navigate to settings section
     if (setActiveSection) {
       setActiveSection('settings');
@@ -94,9 +94,6 @@ const ProfileDropdown = ({ onLogoutClick, studentData, setActiveSection }) => {
           <p className="text-sm font-medium text-gray-900">{name}</p>
           <p className="text-xs text-gray-600">{department} - {year}</p>
         </div>
-        <svg className="w-4 h-4 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
-        </svg>
       </button>
 
       {isOpen && (
@@ -106,20 +103,20 @@ const ProfileDropdown = ({ onLogoutClick, studentData, setActiveSection }) => {
               onClick={handleViewProfile}
               className="w-full text-left block px-4 py-2 text-sm text-gray-900 hover:bg-gray-200"
             >
-              👤 View Profile
+              View Profile
             </button>
             <button
               onClick={handleSettings}
               className="w-full text-left block px-4 py-2 text-sm text-gray-900 hover:bg-gray-200"
             >
-              ⚙️ Settings
+              Settings
             </button>
             <hr className="my-2 border-gray-300" />
             <button
               onClick={handleLogoutClick}
               className="w-full text-left block px-4 py-2 text-sm text-red-600 hover:bg-red-200"
             >
-              🚪 Logout
+              Logout
             </button>
           </div>
         </div>

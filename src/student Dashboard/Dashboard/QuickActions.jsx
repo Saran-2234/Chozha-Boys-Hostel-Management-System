@@ -9,25 +9,21 @@ const QuickActions = ({ setActiveSection }) => {
 
   const actions = [
     {
-      icon: '✅',
       label: 'Mark Attendance',
       section: 'attendance',
       color: 'from-emerald-500 to-teal-600'
     },
     {
-      icon: '💳',
       label: 'Pay Mess Bill',
       section: 'messbill',
       color: 'from-orange-500 to-red-500'
     },
     {
-      icon: '📝',
       label: 'Raise Complaint',
       section: 'complaints',
       color: 'from-blue-500 to-indigo-600'
     },
     {
-      icon: '👤',
       label: 'View Profile',
       section: 'profile',
       color: 'from-green-500 to-lime-600'
@@ -44,9 +40,7 @@ const QuickActions = ({ setActiveSection }) => {
             onClick={() => handleActionClick(action.section)}
             className="btn-primary text-white p-4 rounded-lg text-center hover-lift transition-all duration-200 hover:scale-105"
           >
-            <div className={`w-12 h-12 bg-gradient-to-br ${action.color} rounded-lg flex items-center justify-center mx-auto mb-2`}>
-              <span className="text-xl">{action.icon}</span>
-            </div>
+
             <div className="text-sm font-medium">{action.label}</div>
           </button>
         ))}

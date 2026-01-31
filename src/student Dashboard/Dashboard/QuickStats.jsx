@@ -38,9 +38,9 @@ const QuickStats = ({ studentData, setActiveSection }) => {
         }
 
         // Fetch attendance data
-        const attendanceResponse = await axios.post(`${API_BASE_URL}/attendance`, {
-          id: studentId,
+        const attendanceResponse = await axios.post(`${API_BASE_URL}/students/showattendance`, {
           token: token,
+          limit: 500
         }, {
           headers: {
             'Content-Type': 'application/json',

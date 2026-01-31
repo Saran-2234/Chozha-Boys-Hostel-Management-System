@@ -82,8 +82,8 @@ const RecentActivities = ({ setActiveSection, studentData }) => {
       // Fetch recent attendance
       try {
         const attendanceResponse = await axios.post(
-          'https://finalbackend1.vercel.app/students/attendance',
-          { id: studentId, token },
+          'https://finalbackend1.vercel.app/students/showattendance',
+          { token, limit: 10 },
           {
             headers: {
               'Content-Type': 'application/json',

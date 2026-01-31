@@ -206,7 +206,7 @@ const Complaints = ({ isDarkMode }) => {
               >
                 <option value="all">All Priorities</option>
                 <option value="high">High</option>
-                <option value="normal">Normal</option>
+                <option value="medium">Medium</option>
                 <option value="low">Low</option>
               </select>
             </div>

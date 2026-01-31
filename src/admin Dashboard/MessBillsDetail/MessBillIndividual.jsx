@@ -40,6 +40,10 @@ const MessBillIndividual = () => {
     navigate('/mess-bills-detail');
   };
 
+  const handleSidebarNavigation = (section) => {
+    navigate('/admin-dashboard', { state: { activeSection: section } });
+  };
+
   const [isEditing, setIsEditing] = useState(false);
   const [editFormData, setEditFormData] = useState({});
 
@@ -69,15 +73,15 @@ const MessBillIndividual = () => {
       const token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
 
       const body = {
-        id: editFormData.id, 
+        id: editFormData.id,
         student_id: editFormData.student_id,
-        status: editFormData.statusRaw, 
+        status: editFormData.statusRaw,
         latest_order_id: editFormData.latest_order_id,
         monthly_year_data_id: editFormData.monthly_year_data_id,
-        number_of_days: editFormData.daysPresent, 
+        number_of_days: editFormData.daysPresent,
         monthly_base_cost_id: editFormData.monthly_base_cost_id,
         show: editFormData.show,
-        verified: editFormData.verified, 
+        verified: editFormData.verified,
         isveg: editFormData.isveg,
         veg_days: editFormData.vegDays,
         non_veg_days: editFormData.nonVegDays,
@@ -203,7 +207,7 @@ const MessBillIndividual = () => {
     return (
       <div className="light-mode flex min-h-screen text-gray-900">
         <Sidebar
-          setActiveSection={() => { }}
+          setActiveSection={handleSidebarNavigation}
           activeSection="messbills"
           onLogout={handleLogout}
           sidebarOpen={sidebarOpen}
@@ -229,7 +233,7 @@ const MessBillIndividual = () => {
   return (
     <div className="light-mode flex min-h-screen text-gray-900">
       <Sidebar
-        setActiveSection={() => { }}
+        setActiveSection={handleSidebarNavigation}
         activeSection="messbills"
         onLogout={handleLogout}
         sidebarOpen={sidebarOpen}

@@ -76,10 +76,14 @@ const UnpaidStudents = () => {
     navigate('/mess-bills-detail');
   };
 
+  const handleSidebarNavigation = (section) => {
+    navigate('/admin-dashboard', { state: { activeSection: section } });
+  };
+
   return (
     <div className="light-mode flex min-h-screen text-gray-900">
       <Sidebar
-        setActiveSection={() => { }}
+        setActiveSection={handleSidebarNavigation}
         activeSection="messbills"
         onLogout={handleLogout}
         sidebarOpen={sidebarOpen}

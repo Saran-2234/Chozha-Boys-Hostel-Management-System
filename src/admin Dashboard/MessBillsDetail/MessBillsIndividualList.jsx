@@ -484,11 +484,15 @@ const MessBillsIndividualList = () => {
     setSelectedStudents([]);
   };
 
+  const handleSidebarNavigation = (section) => {
+    navigate('/admin-dashboard', { state: { activeSection: section } });
+  };
+
   if (!month) {
     return (
       <div className="light-mode flex min-h-screen text-gray-900">
         <Sidebar
-          setActiveSection={() => { }}
+          setActiveSection={handleSidebarNavigation}
           activeSection="messbills"
           onLogout={handleLogout}
           sidebarOpen={sidebarOpen}
@@ -514,7 +518,7 @@ const MessBillsIndividualList = () => {
   return (
     <div className="light-mode flex min-h-screen text-gray-900">
       <Sidebar
-        setActiveSection={() => { }}
+        setActiveSection={handleSidebarNavigation}
         activeSection="messbills"
         onLogout={handleLogout}
         sidebarOpen={sidebarOpen}

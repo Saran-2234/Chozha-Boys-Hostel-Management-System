@@ -172,9 +172,7 @@ function Login({ onClose, onOpenRegister, loginType }) {
         localStorage.setItem("sessionData", JSON.stringify(data.session));
       }
       if (data.role) {
-        localStorage.setItem("userRole", data.role);
-        // Set userRole cookie accessible to frontend
-        document.cookie = `userRole=${data.role}; path=/; max-age=86400; samesite=lax`;
+
       }
 
       if (data.refreshtokenId) {

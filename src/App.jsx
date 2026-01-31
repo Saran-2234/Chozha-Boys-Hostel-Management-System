@@ -123,9 +123,9 @@ async function rootLoader() {
   };
 
   // Optimize auto-login by checking the stored role first (Cookie ONLY)
-  const userRole = getCookie('userRole');
+  const role = getCookie('role');
 
-  if (userRole === 'student') {
+  if (role === 'student') {
     try {
       const res = await checkStudent();
       const result = handleStudentSuccess(res);
@@ -133,7 +133,7 @@ async function rootLoader() {
     } catch (e) {
       console.log("Student auto-login failed", e);
     }
-  } else if (userRole === 'admin') {
+  } else if (role === 'admin') {
     try {
       const res = await checkAdmin();
       const result = handleAdminSuccess(res);

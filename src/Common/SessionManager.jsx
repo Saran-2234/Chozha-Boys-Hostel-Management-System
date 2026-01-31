@@ -26,9 +26,9 @@ const SessionManager = () => {
         setLoading(true);
         setError('');
         try {
-            // NOTE: Using localhost:3001 as the new session endpoints are likely only local for now.
-            // Update this URL if the backend is deployed.
-            const baseUrl = "https://finalbackend1.vercel.app";
+            const baseUrl = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+                ? "http://localhost:3001"
+                : "https://finalbackend1.vercel.app";
             const endpoint = role === 'admin' ? '/admin/get-session' : '/students/get-session';
 
             const response = await axios.post(`${baseUrl}${endpoint}`, {
@@ -59,7 +59,9 @@ const SessionManager = () => {
         if (!window.confirm("Are you sure you want to end this session?")) return;
 
         try {
-            const baseUrl = "https://finalbackend1.vercel.app";
+            const baseUrl = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+                ? "http://localhost:3001"
+                : "https://finalbackend1.vercel.app";
             const endpoint = role === 'admin' ? '/admin/remove-session' : '/students/remove-session';
 
             await axios.post(`${baseUrl}${endpoint}`, {
@@ -82,6 +84,30 @@ const SessionManager = () => {
             console.error("Error removing session:", err);
             alert("Failed to remove session. Please try again.");
         }
+    };
+
+    // Helper to format device info
+    const getDeviceInfoString = (info) => {
+        if (!info || typeof info !== 'object') return "Unknown Device";
+
+        const browser = info.browser?.name || "Unknown Browser";
+        const os = info.os?.name || "Unknown OS";
+        const deviceType = info.device?.type; // e.g., 'mobile', 'tablet'
+        const deviceVendor = info.device?.vendor;
+        const deviceModel = info.device?.model;
+
+        // Construct device name
+        let deviceName = "Desktop";
+        if (deviceType) {
+            deviceName = deviceType.charAt(0).toUpperCase() + deviceType.slice(1);
+        }
+        if (deviceVendor && deviceModel) {
+            deviceName = `${deviceVendor} ${deviceModel}`;
+        } else if (deviceModel) {
+            deviceName = deviceModel;
+        }
+
+        return `${browser} on ${os} (${deviceName})`;
     };
 
     if (!userId || !role) return null;
@@ -113,6 +139,9 @@ const SessionManager = () => {
                 <div className="space-y-4">
                     {sessions.map((session) => {
                         const isCurrent = String(session.id) === String(currentSessionId);
+                        const deviceInfo = session.device_info; // No JSON.parse needed here if axios auto-parses response
+                        // Note: If backend sends it as a string, use JSON.parse(session.device_info || "{}")
+
                         return (
                             <div
                                 key={session.id}
@@ -123,8 +152,8 @@ const SessionManager = () => {
                             >
                                 <div className="mb-3 sm:mb-0">
                                     <div className="flex items-center gap-2">
-                                        <span className="font-medium text-slate-200">
-                                            Session #{session.id}
+                                        <span className={`font-medium ${isCurrent ? 'text-blue-300' : 'text-slate-200'}`}>
+                                            {getDeviceInfoString(deviceInfo)}
                                         </span>
                                         {isCurrent && (
                                             <span className="px-2 py-0.5 text-xs bg-blue-500 text-white rounded-full">

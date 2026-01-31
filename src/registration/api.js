@@ -1,4 +1,5 @@
 import axios from "axios";
+import { setupInterceptors } from "../Common/axiosInterceptor";
 
 const API_BASE = "https://finalbackend1.vercel.app/";
 
@@ -10,6 +11,8 @@ const api = axios.create({
     "Content-Type": "application/json",
   },
 });
+
+setupInterceptors(api);
 
 // ====== API CALLS ======
 

@@ -48,6 +48,7 @@ const StudentDashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [showLogoutModal, setShowLogoutModal] = useState(false); // Centralized modal state
+  const [isLoggingOut, setIsLoggingOut] = useState(false); // Logging out state
   const [showRefreshModal, setShowRefreshModal] = useState(false); // Refresh modal state
 
   // Check authentication on component mount
@@ -76,6 +77,7 @@ const StudentDashboard = () => {
   // Handle logout confirmation
   const handleLogoutConfirm = async () => {
     try {
+      setIsLoggingOut(true);
       // Call backend logout to clear HttpOnly cookies
       const storedUserData = localStorage.getItem('userData');
       const userData = storedUserData ? JSON.parse(storedUserData) : {};
@@ -104,6 +106,7 @@ const StudentDashboard = () => {
 
     // Close modal
     setShowLogoutModal(false);
+    setIsLoggingOut(false);
 
     // Redirect to login page
     navigate('/', { replace: true });
@@ -193,6 +196,7 @@ const StudentDashboard = () => {
         isOpen={showLogoutModal}
         onClose={handleLogoutCancel}
         onConfirm={handleLogoutConfirm}
+        isLoggingOut={isLoggingOut}
       />
 
       {/* Refresh Confirmation Modal */}

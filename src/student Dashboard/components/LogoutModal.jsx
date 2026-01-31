@@ -1,6 +1,6 @@
 import React from 'react';
 
-const LogoutModal = ({ isOpen, onClose, onConfirm }) => {
+const LogoutModal = ({ isOpen, onClose, onConfirm, isLoggingOut }) => {
   if (!isOpen) return null;
 
   const handleBackdropClick = (e) => {
@@ -27,18 +27,27 @@ const LogoutModal = ({ isOpen, onClose, onConfirm }) => {
           </div>
 
           <div className="flex space-x-3">
-            <button
-              onClick={onClose}
-              className="flex-1 px-4 py-3 glass-effect rounded-lg text-white font-medium hover:bg-white hover:bg-opacity-10 transition-all"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={onConfirm}
-              className="flex-1 px-4 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-all"
-            >
-              Logout
-            </button>
+            {isLoggingOut ? (
+              <div className="w-full py-3 flex items-center justify-center space-x-2 text-white">
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                <span>Logging out...</span>
+              </div>
+            ) : (
+              <>
+                <button
+                  onClick={onClose}
+                  className="flex-1 px-4 py-3 glass-effect rounded-lg text-white font-medium hover:bg-white hover:bg-opacity-10 transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={onConfirm}
+                  className="flex-1 px-4 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-all"
+                >
+                  Logout
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>

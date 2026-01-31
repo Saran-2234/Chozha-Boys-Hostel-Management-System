@@ -603,7 +603,7 @@ const MessBillsIndividualList = () => {
                     <button className="btn" onClick={handleSelectAll}>Select All</button>
                     <button className="btn" onClick={handleDeselectAll}>Deselect All</button>
                     <button className="btn" onClick={handleSelectUnselected}>Select Unselected</button>
-                    <button className="btn" onClick={handleSelectUnselected}>Select Unselected</button>
+
                     <div className="results-count" id="resultsCount">Total: {totalRecords}</div>
                   </div>
                 </div>

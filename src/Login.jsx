@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import ForgotPasswordModal from "./registration/ForgotPasswordModal";
 
+import UAParser from "ua-parser-js";
+
 function Login({ onClose, onOpenRegister, loginType }) {
   const navigate = useNavigate();
   const [formData, setFormData] = React.useState({
@@ -75,10 +77,15 @@ function Login({ onClose, onOpenRegister, loginType }) {
     setIsLoading(true);
 
     try {
+      // Get Device Info
+      const parser = new UAParser();
+      const deviceInfo = parser.getResult();
+
       // Add login type to the request if your backend needs it
       const requestData = {
         ...formData,
-        userType: loginType // Add this if your backend distinguishes between student/admin
+        userType: loginType, // Add this if your backend distinguishes between student/admin
+        deviceInfo: deviceInfo,
       };
 
       const endpoint = loginType === "admin" ? "admin/adminslogin" : "students/studentslogin";

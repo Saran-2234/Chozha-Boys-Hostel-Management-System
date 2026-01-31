@@ -77,7 +77,13 @@ const StudentDashboard = () => {
   const handleLogoutConfirm = async () => {
     try {
       // Call backend logout to clear HttpOnly cookies
-      await axios.post("https://finalbackend1.vercel.app/students/logout", {}, {
+      const storedUserData = localStorage.getItem('userData');
+      const userData = storedUserData ? JSON.parse(storedUserData) : {};
+
+      await axios.post("https://finalbackend1.vercel.app/students/logout", {
+        user_id: userData.id,
+        email: userData.email
+      }, {
         withCredentials: true
       });
     } catch (error) {

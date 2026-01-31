@@ -27,7 +27,13 @@ const AdminDashboard = () => {
 
   const handleLogout = async () => {
     try {
-      await axios.post("https://finalbackend1.vercel.app/admin/logout", {}, {
+      const storedUserData = localStorage.getItem('userData');
+      const userData = storedUserData ? JSON.parse(storedUserData) : {};
+
+      await axios.post("https://finalbackend1.vercel.app/admin/logout", {
+        user_id: userData.id,
+        email: userData.email
+      }, {
         withCredentials: true
       });
     } catch (error) {

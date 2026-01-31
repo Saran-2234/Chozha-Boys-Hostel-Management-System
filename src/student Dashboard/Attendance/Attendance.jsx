@@ -39,7 +39,6 @@ const Attendance = () => {
     lateEntries: 0,
     percentage: 0
   });
-  const [showCalendar, setShowCalendar] = useState(false);
 
   const [currentDate, setCurrentDate] = useState(new Date());
 
@@ -307,12 +306,6 @@ const Attendance = () => {
 
         <div className="w-full md:w-auto md:flex-shrink-0 flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-3">
           <button
-            onClick={() => setShowCalendar(true)}
-            className="w-full md:inline-block bg-slate-700 hover:bg-slate-600 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 relative z-20"
-          >
-            📅 View Calendar
-          </button>
-          <button
             onClick={markAttendance}
             disabled={!isMobileDevice || loading || attendanceStatus !== null}
             className="w-full md:inline-block bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium disabled:opacity-50 transition-all duration-200 relative z-20"
@@ -398,94 +391,10 @@ const Attendance = () => {
       {/* Calendar View */}
 
 
-      <div className="glass-card rounded-xl p-6">
-        <h3 className="text-lg font-semibold text-white mb-6">Attendance List</h3>
-
-        {/* Desktop/Tablet Table */}
-        <div className="hidden md:block overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-slate-600">
-                <th className="text-left py-3 px-4 text-slate-400 font-medium">Date</th>
-                <th className="text-left py-3 px-4 text-slate-400 font-medium">Status</th>
-                <th className="text-left py-3 px-4 text-slate-400 font-medium">Admin Status</th>
-                <th className="text-left py-3 px-4 text-slate-400 font-medium">Time</th>
-              </tr>
-            </thead>
-            <tbody>
-              {attendanceData.slice(0, 10).map((record, idx) => {
-                const status = record.status || record.present;
-                const isPresent = status === 'present' || status === 'Present' || status === true || status === 1;
-                const statusText = isPresent ? 'Present' : 'Absent';
-                const adminStatus = record.admin_status || record.confirmed || 'Pending';
-
-                return (
-                  <tr key={idx} className="border-b border-slate-700">
-                    <td className="py-3 px-4 text-white">
-                      {record.date ? new Date(record.date).toLocaleDateString() : 'N/A'}
-                    </td>
-                    <td className="py-3 px-4">
-                      <span className={isPresent ? 'text-emerald-400 font-semibold' : 'text-red-400 font-semibold'}>
-                        {statusText}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4">
-                      <span className={adminStatus === 'Confirmed' || adminStatus === true ? 'text-emerald-400 font-semibold' : 'text-yellow-400 font-semibold'}>
-                        {adminStatus === 'Confirmed' || adminStatus === true ? 'Confirmed' : 'Pending'}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 text-slate-400">
-                      {record.time ? record.time : (record.created_at ? new Date(record.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A')}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Mobile stacked list */}
-        <div className="md:hidden space-y-4">
-          {attendanceData.slice(0, 10).map((record, idx) => {
-            const status = record.status || record.present;
-            const isPresent = status === 'present' || status === 'Present' || status === true || status === 1;
-            const statusText = isPresent ? 'Present' : 'Absent';
-            const adminStatus = record.admin_status || record.confirmed || 'Pending';
-
-            return (
-              <div key={idx} className="p-4 bg-slate-900 bg-opacity-20 rounded-lg">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="text-white font-medium">
-                    {record.date ? new Date(record.date).toLocaleDateString() : 'N/A'}
-                  </div>
-                  <div className="text-sm text-slate-400">
-                    {record.time ? record.time : (record.created_at ? new Date(record.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A')}
-                  </div>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-slate-400 text-sm">Status</div>
-                    <div className={isPresent ? 'text-emerald-400 font-semibold' : 'text-red-400 font-semibold'}>
-                      {statusText}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-slate-400 text-sm">Admin</div>
-                    <div className={adminStatus === 'Confirmed' || adminStatus === true ? 'text-emerald-400 font-semibold' : 'text-yellow-400 font-semibold'}>
-                      {adminStatus === 'Confirmed' || adminStatus === true ? 'Confirmed' : 'Pending'}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+      <div className="mb-8 w-full max-w-full overflow-hidden">
+        <AttendanceCalendar attendanceData={attendanceData} />
       </div>
-      {showCalendar && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
-          <AttendanceCalendar attendanceData={attendanceData} onClose={() => setShowCalendar(false)} />
-        </div>
-      )}
+
     </div>
   );
 };

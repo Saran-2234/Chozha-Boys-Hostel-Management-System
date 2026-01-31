@@ -39,6 +39,8 @@ const Attendance = () => {
     percentage: 0
   });
 
+  const [currentDate, setCurrentDate] = useState(new Date());
+
   useEffect(() => {
     const handleResize = () => {
       setIsMobileDevice(getIsMobile());
@@ -71,14 +73,12 @@ const Attendance = () => {
         return;
       }
 
-      // NOTE: You are currently using the PRODUCTION backend.
-      // If you are debugging local backend changes, switch to 'http://localhost:3001'
-      const API_BASE_URL = 'https://finalbackend1.vercel.app';
-      // const API_BASE_URL = 'http://localhost:3001';
+      // Updated to local backend to access the new 'showattendance' endpoint
+      const API_BASE_URL = 'http://localhost:3001';
 
-      const response = await axios.post(`${API_BASE_URL}/students/attendance`, {
-        id: studentId,
+      const response = await axios.post(`${API_BASE_URL}/students/showattendance`, {
         token: token,
+        limit: 500 // Fetch a large number of records to calculate stats and show history
       }, {
         headers: {
           'Content-Type': 'application/json',
@@ -103,7 +103,7 @@ const Attendance = () => {
 
         if (todaysRecord) {
           const status = todaysRecord.status || todaysRecord.present;
-          const isPresent = status === 'present' || status === true || status === 1;
+          const isPresent = status === 'present' || status === 'Present' || status === true || status === 1;
           setAttendanceStatus(isPresent ? 'present' : 'absent');
           setTodaysRecord(todaysRecord);
           // Store today's record for time display
@@ -118,7 +118,7 @@ const Attendance = () => {
         const totalDays = records.length;
         const presentDays = records.filter(record => {
           const status = record.status || record.present;
-          return status === 'present' || status === true || status === 1;
+          return status === 'present' || status === 'Present' || status === true || status === 1;
         }).length;
         const absentDays = totalDays - presentDays;
         const lateEntries = records.filter(record => record.late === true || record.late === 1).length;
@@ -162,6 +162,7 @@ const Attendance = () => {
         const lat = position.coords.latitude;
         const lng = position.coords.longitude;
         let token = localStorage.getItem('accessToken') || localStorage.getItem('studentToken');
+        const API_BASE_URL = 'http://localhost:3001';
 
         if (!token) {
           setError('No token found. Please log in.');
@@ -171,7 +172,7 @@ const Attendance = () => {
 
         try {
           const response = await axios.post(
-            'https://finalbackend1.vercel.app/students/attendance',
+            `${API_BASE_URL}/students/attendance`,
             {
               lat,
               lng,
@@ -238,6 +239,7 @@ const Attendance = () => {
         const lat = position.coords.latitude;
         const lng = position.coords.longitude;
         let token = localStorage.getItem('accessToken') || localStorage.getItem('studentToken');
+        const API_BASE_URL = 'http://localhost:3001';
 
         if (!token) {
           setError('No token found. Please log in.');
@@ -247,7 +249,7 @@ const Attendance = () => {
 
         try {
           const response = await axios.post(
-            'https://finalbackend1.vercel.app/students/absent',
+            `${API_BASE_URL}/students/absent`,
             {
               lat,
               lng,
@@ -292,16 +294,119 @@ const Attendance = () => {
     );
   };
 
+  // Calendar Helpers
+  const getDaysInMonth = (date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    return new Date(year, month + 1, 0).getDate();
+  };
 
-  // sample attendance history data (replace with real data when available)
-  const attendanceHistory = [
-    { date: 'Dec 20, 2024', self: 'Present', admin: 'Confirmed', time: '09:15 AM', remarks: 'On time' },
-    { date: 'Dec 19, 2024', self: 'Present', admin: 'Confirmed', time: '09:45 AM', remarks: 'Late entry' },
-    { date: 'Dec 18, 2024', self: 'Absent', admin: 'Confirmed', time: '-', remarks: 'Medical leave' }
-  ];
+  const getFirstDayOfMonth = (date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    return new Date(year, month, 1).getDay();
+  };
+
+  const prevMonth = () => {
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
+  };
+
+  const nextMonth = () => {
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+  };
+
+  const renderCalendar = () => {
+    const daysInMonth = getDaysInMonth(currentDate);
+    const firstDay = getFirstDayOfMonth(currentDate);
+    const monthName = currentDate.toLocaleString('default', { month: 'long' });
+    const year = currentDate.getFullYear();
+
+    const days = [];
+    // Empty cells for days before start of month
+    for (let i = 0; i < firstDay; i++) {
+      days.push(<div key={`empty-${i}`} className="h-24 md:h-32 border border-slate-700/50 bg-slate-800/30"></div>);
+    }
+
+    // Days of the month
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dateStr = `${year}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+      // Find record for this day
+      // Note: record.date might be ISO string
+      const record = attendanceData.find(r => {
+        if (!r.date) return false;
+        return r.date.startsWith(dateStr);
+      });
+
+      let statusClass = "bg-slate-800/30"; // Default
+      let statusIcon = "";
+      let statusLabel = "";
+
+      if (record) {
+        const status = record.status || record.present;
+        const isPresent = status === 'present' || status === 'Present' || status === true || status === 1;
+
+        if (isPresent) {
+          statusClass = "bg-emerald-900/20 border-emerald-500/30";
+          statusIcon = "✅";
+          statusLabel = "Present";
+        } else {
+          statusClass = "bg-red-900/20 border-red-500/30";
+          statusIcon = "❌";
+          statusLabel = "Absent";
+        }
+      }
+
+      days.push(
+        <div key={day} className={`h-24 md:h-32 p-2 border border-slate-700/50 relative hover:bg-slate-700/40 transition-colors ${statusClass}`}>
+          <span className="text-slate-300 font-medium">{day}</span>
+          {record && (
+            <div className="mt-2 flex flex-col items-center">
+              <span className="text-xl">{statusIcon}</span>
+              <span className={`text-xs mt-1 font-medium ${statusLabel === 'Present' ? 'text-emerald-400' : 'text-red-400'}`}>
+                {statusLabel}
+              </span>
+              <span className="text-[10px] text-slate-500 mt-1">
+                {record.time || (record.created_at ? new Date(record.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '')}
+              </span>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    return (
+      <div className="glass-card rounded-xl p-6 relative overflow-hidden">
+        <div className="flex justify-between items-center mb-6">
+          <button onClick={prevMonth} className="p-2 hover:bg-slate-700 rounded-full text-white transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <h3 className="text-xl font-bold text-white">{monthName} {year}</h3>
+          <button onClick={nextMonth} className="p-2 hover:bg-slate-700 rounded-full text-white transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </div>
+
+        <div className="grid grid-cols-7 gap-1 mb-2 text-center">
+          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
+            <div key={d} className="text-slate-400 font-medium py-2">{d}</div>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-7 gap-1 rounded-lg overflow-hidden border border-slate-700">
+          {days}
+        </div>
+      </div>
+    );
+  };
+
 
   return (
-    <div className="max-w-6xl mx-auto px-4">
+    <div className="max-w-6xl mx-auto px-4 pb-20">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 max-w-full relative z-10">
         <h2 className="text-2xl font-bold text-white mb-3 md:mb-0">Attendance Management</h2>
 
@@ -332,7 +437,7 @@ const Attendance = () => {
       {message && <p className="text-green-400 mb-4">{message}</p>}
       {error && <p className="text-red-400 mb-4">{error}</p>}
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="glass-card rounded-xl p-6 text-center">
           <div className="relative w-36 h-36 mx-auto mb-4 md:w-32 md:h-32">
             <svg className="progress-circle w-full h-full" viewBox="0 0 120 120">
@@ -383,15 +488,20 @@ const Attendance = () => {
               {attendanceStatus === 'present' ? 'Present' : attendanceStatus === 'absent' ? 'Absent' : 'Not Marked'}
             </p>
             <p className="text-slate-400 text-sm">
-              Marked at {attendanceMarked && todaysRecord ? (todaysRecord.time || new Date(todaysRecord.date).toLocaleTimeString()) : '-'}
+              Marked at {attendanceMarked && todaysRecord ? (todaysRecord.time || (todaysRecord.created_at ? new Date(todaysRecord.created_at).toLocaleTimeString() : '-')) : '-'}
             </p>
             <p className="text-slate-400 text-sm">Status: {attendanceStatus ? 'Confirmed' : 'Pending'}</p>
           </div>
         </div>
       </div>
 
+      {/* Calendar View */}
+      <div className="mb-8">
+        {renderCalendar()}
+      </div>
+
       <div className="glass-card rounded-xl p-6">
-        <h3 className="text-lg font-semibold text-white mb-6">Attendance History</h3>
+        <h3 className="text-lg font-semibold text-white mb-6">Attendance List</h3>
 
         {/* Desktop/Tablet Table */}
         <div className="hidden md:block overflow-x-auto">
@@ -407,7 +517,7 @@ const Attendance = () => {
             <tbody>
               {attendanceData.slice(0, 10).map((record, idx) => {
                 const status = record.status || record.present;
-                const isPresent = status === 'present' || status === true || status === 1;
+                const isPresent = status === 'present' || status === 'Present' || status === true || status === 1;
                 const statusText = isPresent ? 'Present' : 'Absent';
                 const adminStatus = record.admin_status || record.confirmed || 'Pending';
 
@@ -427,7 +537,7 @@ const Attendance = () => {
                       </span>
                     </td>
                     <td className="py-3 px-4 text-slate-400">
-                      {record.time ? record.time : (record.date ? new Date(record.date).toLocaleTimeString() : 'N/A')}
+                      {record.time ? record.time : (record.created_at ? new Date(record.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A')}
                     </td>
                   </tr>
                 );
@@ -440,7 +550,7 @@ const Attendance = () => {
         <div className="md:hidden space-y-4">
           {attendanceData.slice(0, 10).map((record, idx) => {
             const status = record.status || record.present;
-            const isPresent = status === 'present' || status === true || status === 1;
+            const isPresent = status === 'present' || status === 'Present' || status === true || status === 1;
             const statusText = isPresent ? 'Present' : 'Absent';
             const adminStatus = record.admin_status || record.confirmed || 'Pending';
 
@@ -451,7 +561,7 @@ const Attendance = () => {
                     {record.date ? new Date(record.date).toLocaleDateString() : 'N/A'}
                   </div>
                   <div className="text-sm text-slate-400">
-                    {record.time ? record.time : (record.date ? new Date(record.date).toLocaleTimeString() : 'N/A')}
+                    {record.time ? record.time : (record.created_at ? new Date(record.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A')}
                   </div>
                 </div>
                 <div className="flex items-center justify-between">
@@ -476,6 +586,5 @@ const Attendance = () => {
     </div>
   );
 };
-
 
 export default Attendance;

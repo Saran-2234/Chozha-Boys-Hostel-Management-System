@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import ForgotPasswordModal from "./registration/ForgotPasswordModal";
 
-import UAParser from "ua-parser-js";
+import { UAParser } from "ua-parser-js";
 
 function Login({ onClose, onOpenRegister, loginType }) {
   const navigate = useNavigate();
@@ -80,6 +80,7 @@ function Login({ onClose, onOpenRegister, loginType }) {
       // Get Device Info
       const parser = new UAParser();
       const deviceInfo = parser.getResult();
+      console.log("Device Info captured:", deviceInfo);
 
       // Add login type to the request if your backend needs it
       const requestData = {

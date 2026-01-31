@@ -22,8 +22,12 @@ async function dashboardLoader() {
     return null;
   }
 
+  const baseUrl = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+    ? "http://localhost:3001"
+    : "https://finalbackend1.vercel.app";
+
   try {
-    const response = await axios.get("https://finalbackend1.vercel.app/students/generateauthtokenforstudent", {
+    const response = await axios.get(`${baseUrl}/students/generateauthtokenforstudent`, {
       withCredentials: true
     });
     if (response.data.token) {
@@ -52,8 +56,12 @@ async function adminDashboardLoader() {
     return null;
   }
 
+  const baseUrl = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+    ? "http://localhost:3001"
+    : "https://finalbackend1.vercel.app";
+
   try {
-    const response = await axios.post("https://finalbackend1.vercel.app/admin/generateauthtokenforadmin", {}, {
+    const response = await axios.post(`${baseUrl}/admin/generateauthtokenforadmin`, {}, {
       withCredentials: true
     });
     if (response.data.token) {
@@ -76,8 +84,12 @@ async function rootLoader() {
   const studentToken = localStorage.getItem('studentToken');
   const adminToken = localStorage.getItem('accessToken');
 
-  const checkStudent = () => axios.get("https://finalbackend1.vercel.app/students/generateauthtokenforstudent", { withCredentials: true });
-  const checkAdmin = () => axios.post("https://finalbackend1.vercel.app/admin/generateauthtokenforadmin", {}, { withCredentials: true });
+  const baseUrl = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+    ? "http://localhost:3001"
+    : "https://finalbackend1.vercel.app";
+
+  const checkStudent = () => axios.get(`${baseUrl}/students/generateauthtokenforstudent`, { withCredentials: true });
+  const checkAdmin = () => axios.post(`${baseUrl}/admin/generateauthtokenforadmin`, {}, { withCredentials: true });
 
   const handleStudentSuccess = (response) => {
     if (response.data.token) {

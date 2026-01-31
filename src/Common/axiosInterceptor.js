@@ -7,7 +7,7 @@ export const handle401Error = async (error) => {
     // because they run on app load/reload to check auth status. 
     // If they fail, we just want to let the app handle it (redirect to login without popup).
     const url = error.config?.url || '';
-    if (url.includes('generateauthtokenforstudent') || url.includes('generateauthtokenforadmin')) {
+    if (url.includes('generateauthtokenforstudent') || url.includes('generateauthtokenforadmin') || url.includes('adminslogin') || url.includes('studentslogin')) {
         return Promise.reject(error);
     }
 

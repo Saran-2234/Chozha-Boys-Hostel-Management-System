@@ -74,7 +74,7 @@ const Attendance = () => {
       }
 
       // Updated to local backend to access the new 'showattendance' endpoint
-      const API_BASE_URL = 'http://localhost:3001';
+      const API_BASE_URL = 'https://finalbackend1.vercel.app';
 
       const response = await axios.post(`${API_BASE_URL}/students/showattendance`, {
         token: token,
@@ -162,7 +162,7 @@ const Attendance = () => {
         const lat = position.coords.latitude;
         const lng = position.coords.longitude;
         let token = localStorage.getItem('accessToken') || localStorage.getItem('studentToken');
-        const API_BASE_URL = 'http://localhost:3001';
+        const API_BASE_URL = 'https://finalbackend1.vercel.app';
 
         if (!token) {
           setError('No token found. Please log in.');
@@ -239,7 +239,7 @@ const Attendance = () => {
         const lat = position.coords.latitude;
         const lng = position.coords.longitude;
         let token = localStorage.getItem('accessToken') || localStorage.getItem('studentToken');
-        const API_BASE_URL = 'http://localhost:3001';
+        const API_BASE_URL = 'https://finalbackend1.vercel.app';
 
         if (!token) {
           setError('No token found. Please log in.');

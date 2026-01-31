@@ -46,6 +46,15 @@ const MessBills = () => {
   const [fieldErrors, setFieldErrors] = useState({});
   const [filterYear, setFilterYear] = useState('');
 
+  useEffect(() => {
+    if (success) {
+      const timer = setTimeout(() => {
+        setSuccess('');
+      }, 3000); // Clear success message after 3 seconds
+      return () => clearTimeout(timer);
+    }
+  }, [success]);
+
 
   const handleNavClick = (target) => {
     setActiveSection(target);

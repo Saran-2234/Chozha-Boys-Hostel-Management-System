@@ -93,7 +93,11 @@ async function rootLoader() {
 
   const handleStudentSuccess = (response) => {
     if (response.data.token) {
+      console.log("Student Auto-login Success", response.data);
       localStorage.setItem('studentToken', response.data.token);
+      // Explicitly set role for SessionManager
+      localStorage.setItem('userRole', 'student');
+
       if (response.data.data) {
         localStorage.setItem('userData', JSON.stringify(response.data.data));
         if (response.data.data.id) localStorage.setItem("studentId", response.data.data.id);
@@ -105,7 +109,11 @@ async function rootLoader() {
 
   const handleAdminSuccess = (response) => {
     if (response.data.token) {
+      console.log("Admin Auto-login Success", response.data);
       localStorage.setItem('accessToken', response.data.token);
+      // Explicitly set role for SessionManager
+      localStorage.setItem('userRole', 'admin');
+
       if (response.data.data) {
         localStorage.setItem('userData', JSON.stringify(response.data.data));
       }
@@ -124,6 +132,7 @@ async function rootLoader() {
 
   // Optimize auto-login by checking the stored role first (Cookie ONLY)
   const role = getCookie('role');
+  console.log("Checking Auto-login. Role Cookie:", role);
 
   if (role === 'student') {
     try {

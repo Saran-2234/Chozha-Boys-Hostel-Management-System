@@ -159,6 +159,8 @@ function Login({ onClose, onOpenRegister, loginType }) {
         } else {
           localStorage.setItem("accessToken", data.token);
         }
+        // Explicitly set role for SessionManager and AutoLogin consistency checks
+        localStorage.setItem("userRole", userRole);
         // Set cookie for backend authentication
         document.cookie = `token=${data.token}; path=/; max-age=86400; secure; samesite=lax`;
       }

@@ -78,9 +78,15 @@ function Login({ onClose, onOpenRegister, loginType }) {
 
     try {
       // Get Device Info
-      const parser = new UAParser();
-      const deviceInfo = parser.getResult();
-      console.log("Device Info captured:", deviceInfo);
+      let deviceInfo = {};
+      try {
+        const parser = new UAParser();
+        deviceInfo = parser.getResult() || {};
+        console.log("Device Info captured:", deviceInfo);
+      } catch (parserError) {
+        console.error("UA Parser Error:", parserError);
+        deviceInfo = { error: "Failed to capture device info" };
+      }
 
       // Add login type to the request if your backend needs it
       const requestData = {

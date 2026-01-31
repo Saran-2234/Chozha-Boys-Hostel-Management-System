@@ -340,21 +340,21 @@ const Attendance = () => {
       </Modal>
 
       <div className="space-y-6">
-        <div className="flex items-center justify-between select-none">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 select-none">
           <h2 className="text-2xl font-bold text-gray-900">
             Attendance Records
           </h2>
-          <div className="flex space-x-3">
-            <Button onClick={() => handleBulkMarkRequest('Present')} variant="success" disabled={isBulkProcessing}>
-              {isBulkProcessing && bulkAction === 'Present' ? 'Applying...' : 'Mark All Present'}
+          <div className="grid grid-cols-2 sm:flex sm:flex-row sm:space-x-3 gap-2 w-full sm:w-auto">
+            <Button onClick={() => handleBulkMarkRequest('Present')} variant="success" disabled={isBulkProcessing} className="w-full sm:w-auto justify-center">
+              {isBulkProcessing && bulkAction === 'Present' ? 'Applying...' : 'Mark Present'}
             </Button>
-            <Button onClick={() => handleBulkMarkRequest('Absent')} variant="danger" disabled={isBulkProcessing}>
-              {isBulkProcessing && bulkAction === 'Absent' ? 'Applying...' : 'Mark All Absent'}
+            <Button onClick={() => handleBulkMarkRequest('Absent')} variant="danger" disabled={isBulkProcessing} className="w-full sm:w-auto justify-center">
+              {isBulkProcessing && bulkAction === 'Absent' ? 'Applying...' : 'Mark Absent'}
             </Button>
-            <Button onClick={() => handleBulkMarkRequest('Not Marked')} variant="outline" disabled={isBulkProcessing}>
+            <Button onClick={() => handleBulkMarkRequest('Not Marked')} variant="outline" disabled={isBulkProcessing} className="w-full sm:w-auto justify-center">
               {isBulkProcessing && bulkAction === 'Not Marked' ? 'Applying...' : 'Reset All'}
             </Button>
-            <Button onClick={handleExport} variant="outline">
+            <Button onClick={handleExport} variant="outline" className="w-full sm:w-auto justify-center">
               Export CSV
             </Button>
           </div>
@@ -683,8 +683,8 @@ const Attendance = () => {
                     onClick={() => handlePageChange(currentPage - 1)}
                     disabled={currentPage === 1}
                     className={`px-3 py-1 rounded-md text-sm ${currentPage === 1
-                        ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                        : 'bg-white text-gray-900 hover:bg-gray-100 border border-gray-300'
+                      ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                      : 'bg-white text-gray-900 hover:bg-gray-100 border border-gray-300'
                       }`}
                   >
                     Previous
@@ -709,8 +709,8 @@ const Attendance = () => {
                           key={pageNum}
                           onClick={() => handlePageChange(pageNum)}
                           className={`px-3 py-1 rounded-md text-sm ${currentPage === pageNum
-                              ? 'bg-blue-500 text-white'
-                              : 'bg-white text-gray-900 hover:bg-gray-100 border border-gray-300'
+                            ? 'bg-blue-500 text-white'
+                            : 'bg-white text-gray-900 hover:bg-gray-100 border border-gray-300'
                             }`}
                         >
                           {pageNum}
@@ -723,8 +723,8 @@ const Attendance = () => {
                     onClick={() => handlePageChange(currentPage + 1)}
                     disabled={currentPage === totalPages}
                     className={`px-3 py-1 rounded-md text-sm ${currentPage === totalPages
-                        ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                        : 'bg-white text-gray-900 hover:bg-gray-100 border border-gray-300'
+                      ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                      : 'bg-white text-gray-900 hover:bg-gray-100 border border-gray-300'
                       }`}
                   >
                     Next

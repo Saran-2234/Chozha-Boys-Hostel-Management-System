@@ -409,59 +409,61 @@ const Students = ({ isDarkMode }) => {
                 Manage student information and approval status
               </p>
             </div>
-            <div className="flex items-center space-x-2 min-w-0 relative z-20">
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto relative z-20">
               <input
                 type="text"
                 placeholder="Search students..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className={`flex-1 min-w-0 px-3 py-2 border rounded-md text-sm ${isDarkMode
+                className={`w-full sm:w-48 px-3 py-2 border rounded-md text-sm ${isDarkMode
                   ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
                   : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
                   }`}
               />
-              <select
-                value={yearFilter}
-                onChange={handleFilterChange(setYearFilter)}
-                className={`w-auto px-3 py-2 border rounded-md text-sm ${isDarkMode
-                  ? 'bg-gray-700 border-gray-600 text-white'
-                  : 'bg-white border-gray-300 text-gray-900'
-                  }`}
-              >
-                <option value="all">All Years</option>
-                <option value="1">Year 1</option>
-                <option value="2">Year 2</option>
-                <option value="3">Year 3</option>
-                <option value="4">Year 4</option>
-              </select>
-              <select
-                value={departmentFilter}
-                onChange={handleFilterChange(setDepartmentFilter)}
-                className={`w-auto px-3 py-2 border rounded-md text-sm ${isDarkMode
-                  ? 'bg-gray-700 border-gray-600 text-white'
-                  : 'bg-white border-gray-300 text-gray-900'
-                  }`}
-                style={{
-                  minWidth: '180px',
-                  position: 'relative',
-                  zIndex: 30
-                }}
-              >
-                <option value="all">All Departments</option>
-                {departments && departments.length > 0 ? (
-                  departments.map((dept) => (
-                    <option key={dept.department_id || dept.id} value={dept.department}>
-                      {dept.department}
-                    </option>
-                  ))
-                ) : (
-                  <option disabled>No departments available</option>
-                )}
-              </select>
+              <div className="grid grid-cols-2 sm:flex sm:flex-row gap-2">
+                <select
+                  value={yearFilter}
+                  onChange={handleFilterChange(setYearFilter)}
+                  className={`w-full sm:w-auto px-3 py-2 border rounded-md text-sm ${isDarkMode
+                    ? 'bg-gray-700 border-gray-600 text-white'
+                    : 'bg-white border-gray-300 text-gray-900'
+                    }`}
+                >
+                  <option value="all">All Years</option>
+                  <option value="1">Year 1</option>
+                  <option value="2">Year 2</option>
+                  <option value="3">Year 3</option>
+                  <option value="4">Year 4</option>
+                </select>
+                <select
+                  value={departmentFilter}
+                  onChange={handleFilterChange(setDepartmentFilter)}
+                  className={`w-full sm:w-auto px-3 py-2 border rounded-md text-sm ${isDarkMode
+                    ? 'bg-gray-700 border-gray-600 text-white'
+                    : 'bg-white border-gray-300 text-gray-900'
+                    }`}
+                  style={{
+                    minWidth: 'auto', // CSS overrides line 445 if it exists in original, but here we replace it
+                    position: 'relative',
+                    zIndex: 30
+                  }}
+                >
+                  <option value="all">All Depts</option>
+                  {departments && departments.length > 0 ? (
+                    departments.map((dept) => (
+                      <option key={dept.department_id || dept.id} value={dept.department}>
+                        {dept.department}
+                      </option>
+                    ))
+                  ) : (
+                    <option disabled>No departments</option>
+                  )}
+                </select>
+              </div>
               <select
                 value={filter}
                 onChange={handleFilterChange(setFilter)}
-                className={`w-auto px-3 py-2 border rounded-md text-sm ${isDarkMode
+                className={`w-full sm:w-auto px-3 py-2 border rounded-md text-sm ${isDarkMode
                   ? 'bg-gray-700 border-gray-600 text-white'
                   : 'bg-white border-gray-300 text-gray-900'
                   }`}

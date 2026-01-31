@@ -32,6 +32,7 @@ async function dashboardLoader() {
     });
     if (response.data.token) {
       localStorage.setItem('studentToken', response.data.token);
+      localStorage.setItem('userRole', 'student');
       if (response.data.data) {
         localStorage.setItem('userData', JSON.stringify(response.data.data));
         // Ensure the studentId is also set if needed by other components
@@ -66,6 +67,7 @@ async function adminDashboardLoader() {
     });
     if (response.data.token) {
       localStorage.setItem('accessToken', response.data.token);
+      localStorage.setItem('userRole', 'admin');
       if (response.data.data) {
         localStorage.setItem('userData', JSON.stringify(response.data.data));
       }
@@ -130,8 +132,8 @@ async function rootLoader() {
     return null;
   };
 
-  // Optimize auto-login by checking the stored role first (Cookie ONLY)
-  const role = getCookie('role');
+  // Optimize auto-login by checking the stored role first (Cookie preferred, fallback to LS)
+  const role = getCookie('role') || localStorage.getItem('userRole');
   console.log("Checking Auto-login. Role Cookie:", role);
 
   if (role === 'student') {

@@ -34,7 +34,6 @@ const Logout = ({ onLogout }) => {
         onClick={handleLogoutClick}
         className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-all"
       >
-        <span>🚪</span>
         <span>Logout</span>
       </button>
 

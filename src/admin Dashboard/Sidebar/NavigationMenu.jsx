@@ -2,17 +2,17 @@ import React from 'react';
 
 const NavigationMenu = ({ setActiveSection, activeSection, setSidebarOpen }) => {
   const menuItems = [
-    { id: 'dashboard', icon: '📊', label: 'Dashboard' },
-    { id: 'students', icon: '👥', label: 'Students' },
-    { id: 'attendance', icon: '✅', label: 'Attendance' },
-    { id: 'messbills', icon: '🍽️', label: 'Mess Bills' },
-    { id: 'promotion', icon: '🚀', label: 'Promotion' },
+    { id: 'dashboard', label: 'Dashboard' },
+    { id: 'students', label: 'Students' },
+    { id: 'attendance', label: 'Attendance' },
+    { id: 'messbills', label: 'Mess Bills' },
+    { id: 'promotion', label: 'Promotion' },
 
-    { id: 'complaints', icon: '📝', label: 'Complaints' },
-    { id: 'rooms', icon: '🏠', label: 'Rooms' },
-    { id: 'messaging', icon: '📢', label: 'Messaging' },
-    { id: 'departments', icon: '🏢', label: 'Departments' },
-    { id: 'settings', icon: '⚙️', label: 'Settings' }
+    { id: 'complaints', label: 'Complaints' },
+    { id: 'rooms', label: 'Rooms' },
+    { id: 'messaging', label: 'Messaging' },
+    { id: 'departments', label: 'Departments' },
+    { id: 'settings', label: 'Settings' }
   ];
 
   const handleClick = (id) => {
@@ -29,7 +29,6 @@ const NavigationMenu = ({ setActiveSection, activeSection, setSidebarOpen }) => 
           className={`nav-item flex items-center space-x-3 px-4 py-3 rounded-lg transition-all cursor-pointer text-gray-900 hover:bg-gray-100 hover:bg-opacity-80 ${activeSection === item.id ? 'bg-gray-100 bg-opacity-80' : ''}`}
           type="button"
         >
-          <span className="text-lg">{item.icon}</span>
           <span className="font-medium">{item.label}</span>
           {item.badge && (
             <span className="notification-badge text-xs px-2 py-1 rounded-full bg-blue-400 text-gray-900">

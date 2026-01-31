@@ -17,6 +17,12 @@ const SessionManager = () => {
         fetchSessions();
     }, [userId, role]);
 
+    const getBaseUrl = () => {
+        return window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+            ? "http://localhost:3001"
+            : "https://finalbackend1.vercel.app";
+    };
+
     const fetchSessions = async () => {
         if (!userId || !role) {
             setError("User information not found. Please log in.");
@@ -26,9 +32,7 @@ const SessionManager = () => {
         setLoading(true);
         setError('');
         try {
-            const baseUrl = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
-                ? "http://localhost:3001"
-                : "https://finalbackend1.vercel.app";
+            const baseUrl = getBaseUrl();
             const endpoint = role === 'admin' ? '/admin/get-session' : '/students/get-session';
 
             const response = await axios.post(`${baseUrl}${endpoint}`, {
@@ -47,8 +51,6 @@ const SessionManager = () => {
             }
         } catch (err) {
             console.error("Error fetching sessions:", err);
-            // Don't show error if it's just a connection refused (meaning backend might be down or not local)
-            // to avoid breaking the UI flow, but good to inform user.
             setError("Failed to load active sessions.");
         } finally {
             setLoading(false);
@@ -59,9 +61,7 @@ const SessionManager = () => {
         if (!window.confirm("Are you sure you want to end this session?")) return;
 
         try {
-            const baseUrl = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
-                ? "http://localhost:3001"
-                : "https://finalbackend1.vercel.app";
+            const baseUrl = getBaseUrl();
             const endpoint = role === 'admin' ? '/admin/remove-session' : '/students/remove-session';
 
             await axios.post(`${baseUrl}${endpoint}`, {
@@ -86,28 +86,52 @@ const SessionManager = () => {
         }
     };
 
-    // Helper to format device info
-    const getDeviceInfoString = (info) => {
-        if (!info || typeof info !== 'object') return "Unknown Device";
+    const formatDeviceInfo = (deviceInfo) => {
+        if (!deviceInfo) return "Unknown Device";
+        // Handle if it comes as a JSON string (sometimes postgres returns it as object, sometimes string depending on driver config)
+        let info = deviceInfo;
+        if (typeof info === 'string') {
+            try {
+                info = JSON.parse(info);
+            } catch (e) {
+                return "Unknown Device";
+            }
+        }
 
         const browser = info.browser?.name || "Unknown Browser";
+        // const browserVer = info.browser?.version ? `(${info.browser.version})` : "";
         const os = info.os?.name || "Unknown OS";
-        const deviceType = info.device?.type; // e.g., 'mobile', 'tablet'
-        const deviceVendor = info.device?.vendor;
-        const deviceModel = info.device?.model;
+        const osVer = info.os?.version || "";
+        const deviceType = info.device?.type ? `(${info.device.type})` : "";
+        const vendor = info.device?.vendor ? `${info.device.vendor}` : "";
 
-        // Construct device name
-        let deviceName = "Desktop";
-        if (deviceType) {
-            deviceName = deviceType.charAt(0).toUpperCase() + deviceType.slice(1);
-        }
-        if (deviceVendor && deviceModel) {
-            deviceName = `${deviceVendor} ${deviceModel}`;
-        } else if (deviceModel) {
-            deviceName = deviceModel;
+        // Construct a readable string
+        // Example: Chrome on Windows 10
+        // Example: Safari on iOS
+        // Example: Mobile Safari on iPhone (iOS)
+
+        let deviceString = "";
+        if (vendor) deviceString += `${vendor} `;
+
+        let platformString = `${browser} on ${os} ${osVer}`;
+
+        return `${deviceString}${platformString} ${deviceType}`.trim();
+    };
+
+    const getDeviceIcon = (deviceInfo) => {
+        let info = deviceInfo;
+        if (typeof info === 'string') {
+            try { info = JSON.parse(info); } catch (e) { return "💻"; }
         }
 
-        return `${browser} on ${os} (${deviceName})`;
+        const os = info?.os?.name?.toLowerCase() || "";
+        const type = info?.device?.type?.toLowerCase() || "";
+
+        if (type === 'mobile' || os.includes('android') || os.includes('ios')) return "📱";
+        if (type === 'tablet' || os.includes('ipad')) return "📱";
+        if (os.includes('mac')) return "💻";
+        if (os.includes('windows')) return "💻";
+        return "💻";
     };
 
     if (!userId || !role) return null;
@@ -139,9 +163,6 @@ const SessionManager = () => {
                 <div className="space-y-4">
                     {sessions.map((session) => {
                         const isCurrent = String(session.id) === String(currentSessionId);
-                        const deviceInfo = session.device_info; // No JSON.parse needed here if axios auto-parses response
-                        // Note: If backend sends it as a string, use JSON.parse(session.device_info || "{}")
-
                         return (
                             <div
                                 key={session.id}
@@ -151,34 +172,43 @@ const SessionManager = () => {
                                     }`}
                             >
                                 <div className="mb-3 sm:mb-0">
-                                    <div className="flex items-center gap-2">
-                                        <span className={`font-medium ${isCurrent ? 'text-blue-300' : 'text-slate-200'}`}>
-                                            {getDeviceInfoString(deviceInfo)}
-                                        </span>
-                                        {isCurrent && (
-                                            <span className="px-2 py-0.5 text-xs bg-blue-500 text-white rounded-full">
-                                                Current
-                                            </span>
-                                        )}
-                                    </div>
-                                    <div className="text-sm text-slate-400 mt-1">
-                                        Created: {new Date(session.created_at).toLocaleString()}
-                                    </div>
-                                    <div className="text-xs text-slate-500">
-                                        Expires: {new Date(session.expires_at).toLocaleString()}
+                                    <div className="flex items-center gap-3">
+                                        <div className="h-10 w-10 rounded-full bg-slate-700 flex items-center justify-center text-xl">
+                                            {getDeviceIcon(session.device_info)}
+                                        </div>
+                                        <div>
+                                            <div className="flex items-center gap-2">
+                                                <span className="font-semibold text-white text-base">
+                                                    {formatDeviceInfo(session.device_info)}
+                                                </span>
+                                                {isCurrent && (
+                                                    <span className="px-2 py-0.5 text-xs bg-blue-500 text-white rounded-full">
+                                                        Current
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <div className="text-xs text-slate-400 mt-1 flex flex-col sm:flex-row gap-1 sm:gap-4">
+                                                <span>Session #{session.id}</span>
+                                                <span className="hidden sm:inline">•</span>
+                                                <span>Active since: {new Date(session.created_at).toLocaleString()}</span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
-                                <div className="flex items-center gap-3">
-                                    {/* We could add logic to show 'This Device' if we matched tokens, but we don't have that info easily */}
+                                <div className="flex items-center justify-end gap-3 mt-2 sm:mt-0">
+                                    <div className="text-right mr-4 hidden sm:block">
+                                        <div className="text-xs text-slate-500">Expires</div>
+                                        <div className="text-xs text-slate-400">{new Date(session.expires_at).toLocaleDateString()}</div>
+                                    </div>
                                     <button
                                         onClick={() => removeSession(session.id)}
-                                        className={`px-4 py-2 text-sm rounded-lg transition-colors ${isCurrent
-                                            ? 'bg-red-500/20 text-red-300 hover:bg-red-500/30'
+                                        className={`px-4 py-2 text-sm rounded-lg transition-colors font-medium ${isCurrent
+                                            ? 'bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/30'
                                             : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
                                             }`}
                                     >
-                                        {isCurrent ? 'Logout' : 'Revoke'}
+                                        {isCurrent ? 'Log Out' : 'Revoke'}
                                     </button>
                                 </div>
                             </div>

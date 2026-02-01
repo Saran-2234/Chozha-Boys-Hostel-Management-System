@@ -118,40 +118,7 @@ const StudentPreviewModal = ({ student, isOpen, onClose }) => {
                       <h5 className="font-bold text-gray-800">Attendance</h5>
                     </div>
 
-                    {/* Overall Progress */}
-                    <div className="mb-4">
-                      <div className="flex justify-between items-end mb-1">
-                        <span className="text-sm font-medium text-gray-600">Overall Attendance</span>
-                        <span className={`text-lg font-bold ${parseFloat(stats.attendance.overall.percentage) >= 75 ? 'text-emerald-600' : 'text-amber-600'}`}>
-                          {stats.attendance.overall.percentage}%
-                        </span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
-                        <div
-                          className={`h-2.5 rounded-full transition-all duration-1000 ease-out ${parseFloat(stats.attendance.overall.percentage) >= 75 ? 'bg-emerald-500' : 'bg-amber-500'}`}
-                          style={{ width: `${stats.attendance.overall.percentage}%` }}
-                        ></div>
-                      </div>
-                      <div className="text-xs text-gray-500 mt-1">
-                        {stats.attendance.overall.present} present out of {stats.attendance.overall.total} days
-                      </div>
-                    </div>
 
-                    {/* Yearly Progress */}
-                    <div>
-                      <div className="flex justify-between items-end mb-1">
-                        <span className="text-sm font-medium text-gray-600">Current Year ({stats.attendance.year.label})</span>
-                        <span className="text-lg font-bold text-blue-700">
-                          {stats.attendance.year.percentage}%
-                        </span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
-                        <div
-                          className="bg-blue-600 h-2.5 rounded-full transition-all duration-1000 ease-out"
-                          style={{ width: `${stats.attendance.year.percentage}%` }}
-                        ></div>
-                      </div>
-                    </div>
                   </div>
 
                   {/* Mess Bill Card */}
@@ -161,27 +128,7 @@ const StudentPreviewModal = ({ student, isOpen, onClose }) => {
                       <h5 className="font-bold text-gray-800">Mess Bill Status</h5>
                     </div>
 
-                    <div className="space-y-3">
-                      <div className="bg-white/60 p-3 rounded-lg border border-orange-100 flex justify-between items-center">
-                        <div>
-                          <p className="text-xs text-gray-500 uppercase font-semibold">Total Paid</p>
-                          <p className="text-2xl font-bold text-emerald-600">₹{stats.messBill.paid}</p>
-                        </div>
-                        <div className="h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
-                          ✔
-                        </div>
-                      </div>
 
-                      <div className="bg-white/60 p-3 rounded-lg border border-orange-100 flex justify-between items-center">
-                        <div>
-                          <p className="text-xs text-gray-500 uppercase font-semibold">Pending / Unpaid</p>
-                          <p className="text-2xl font-bold text-red-500">₹{stats.messBill.notPaid}</p>
-                        </div>
-                        <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center text-red-500">
-                          ⚠
-                        </div>
-                      </div>
-                    </div>
                   </div>
                 </div>
               ) : (

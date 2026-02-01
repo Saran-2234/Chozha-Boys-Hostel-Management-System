@@ -321,28 +321,7 @@ const StudentProfilePage = () => {
                                                     <span>Attendance</span>
                                                     <span className="text-2xl">📅</span>
                                                 </h4>
-                                                <div className="space-y-4">
-                                                    <div>
-                                                        <div className="flex justify-between text-sm mb-1">
-                                                            <span className="text-gray-600">Overall</span>
-                                                            <span className="font-bold text-gray-900">{stats.attendance.overall.percentage}%</span>
-                                                        </div>
-                                                        <div className="w-full bg-blue-200 rounded-full h-2">
-                                                            <div className="bg-blue-600 h-2 rounded-full" style={{ width: `${stats.attendance.overall.percentage}%` }}></div>
-                                                        </div>
-                                                    </div>
-                                                    <div>
-                                                        <div className="flex justify-between text-sm mb-1">
-                                                            <span className="text-gray-600">This Year</span>
-                                                            <span className="font-bold text-gray-900">{stats.attendance.year.percentage}%</span>
-                                                        </div>
-                                                        <div className="w-full bg-blue-200 rounded-full h-2">
-                                                            <div className="bg-blue-500 h-2 rounded-full" style={{ width: `${stats.attendance.year.percentage}%` }}></div>
-                                                        </div>
 
-
-                                                    </div>
-                                                </div>
                                                 <div className="mt-3 text-xs text-blue-600 text-right font-medium">Click to view calendar →</div>
                                             </div>
 
@@ -359,16 +338,7 @@ const StudentProfilePage = () => {
                                                     <span>Mess Bill</span>
                                                     <span className="text-2xl">🍽️</span>
                                                 </h4>
-                                                <div className="grid grid-cols-2 gap-4">
-                                                    <div className="bg-white p-3 rounded-lg shadow-sm border border-orange-50">
-                                                        <div className="text-xs text-gray-500 uppercase font-semibold">Paid</div>
-                                                        <div className="text-xl font-bold text-emerald-600">₹{stats.messBill.paid}</div>
-                                                    </div>
-                                                    <div className="bg-white p-3 rounded-lg shadow-sm border border-orange-50">
-                                                        <div className="text-xs text-gray-500 uppercase font-semibold">Due</div>
-                                                        <div className="text-xl font-bold text-red-500">₹{stats.messBill.notPaid}</div>
-                                                    </div>
-                                                </div>
+
                                                 <div className="mt-3 text-xs text-orange-600 text-right font-medium">Click to view history →</div>
                                             </div>
 
@@ -385,10 +355,7 @@ const StudentProfilePage = () => {
                                                     <span>Transactions</span>
                                                     <span className="text-2xl">💳</span>
                                                 </h4>
-                                                <div className="bg-white p-3 rounded-lg shadow-sm border border-purple-50">
-                                                    <div className="text-xs text-gray-500 uppercase font-semibold">Total Paid</div>
-                                                    <div className="text-xl font-bold text-emerald-600">₹{stats.messBill.paid}</div>
-                                                </div>
+
                                                 <div className="mt-3 text-xs text-purple-600 text-right font-medium">Click to view details →</div>
                                             </div>
                                         </div>

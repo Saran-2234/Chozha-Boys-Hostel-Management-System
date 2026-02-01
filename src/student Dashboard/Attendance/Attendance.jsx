@@ -330,63 +330,7 @@ const Attendance = () => {
       {message && <p className="text-green-400 mb-4">{message}</p>}
       {error && <p className="text-red-400 mb-4">{error}</p>}
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="glass-card rounded-xl p-6 text-center">
-          <div className="relative w-36 h-36 mx-auto mb-4 md:w-32 md:h-32">
-            <svg className="progress-circle w-full h-full" viewBox="0 0 120 120">
-              <circle cx="60" cy="60" r="50" stroke="rgba(255,255,255,0.1)" strokeWidth="8" fill="none" />
-              <circle cx="60" cy="60" r="50" stroke="#10b981" strokeWidth="8" fill="none"
-                strokeDasharray="314" strokeDashoffset={314 - (314 * attendanceStats.percentage / 100)} />
-            </svg>
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-white">{attendanceStats.percentage}%</div>
-                <div className="text-xs text-slate-400">Overall</div>
-              </div>
-            </div>
-          </div>
-          <h3 className="text-lg font-semibold text-white mb-2">Attendance Percentage</h3>
-          <p className="text-slate-400 text-sm">{attendanceStats.presentDays} out of {attendanceStats.totalDays} days</p>
-        </div>
 
-        <div className="glass-card rounded-xl p-6">
-          <h3 className="text-lg font-semibold text-white mb-4">Monthly Summary</h3>
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <span className="text-slate-400">Present Days</span>
-              <span className="text-emerald-400 font-semibold">{attendanceStats.presentDays}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-slate-400">Absent Days</span>
-              <span className="text-red-400 font-semibold">{attendanceStats.absentDays}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-slate-400">Late Entries</span>
-              <span className="text-yellow-400 font-semibold">{attendanceStats.lateEntries}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-slate-400">Total Days</span>
-              <span className="text-white font-semibold">{attendanceStats.totalDays}</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="glass-card rounded-xl p-6">
-          <h3 className="text-lg font-semibold text-white mb-4">Today's Status</h3>
-          <div className="text-center">
-            <div className={`w-16 h-16 ${attendanceStatus === 'present' ? 'bg-emerald-500' : attendanceStatus === 'absent' ? 'bg-red-500' : 'bg-gray-500'} rounded-full flex items-center justify-center mx-auto mb-4`}>
-              <span className="text-2xl">{attendanceStatus === 'present' ? '✅' : attendanceStatus === 'absent' ? '❌' : '⏳'}</span>
-            </div>
-            <p className={`${attendanceStatus === 'present' ? 'text-emerald-400' : attendanceStatus === 'absent' ? 'text-red-400' : 'text-gray-400'} font-semibold mb-2`}>
-              {attendanceStatus === 'present' ? 'Present' : attendanceStatus === 'absent' ? 'Absent' : 'Not Marked'}
-            </p>
-            <p className="text-slate-400 text-sm">
-              Marked at {attendanceMarked && todaysRecord ? (todaysRecord.time || (todaysRecord.created_at ? new Date(todaysRecord.created_at).toLocaleTimeString() : '-')) : '-'}
-            </p>
-            <p className="text-slate-400 text-sm">Status: {attendanceStatus ? 'Confirmed' : 'Pending'}</p>
-          </div>
-        </div>
-      </div>
 
       {/* Calendar View */}
 

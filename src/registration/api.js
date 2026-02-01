@@ -331,6 +331,9 @@ export const showAttends = async (filters = {}) => {
         status: filters.status,
         page: filters.page || 1,
         limit: filters.limit || 10,
+        from_date: filters.from_date,
+        to_date: filters.to_date,
+        specific_date: filters.specific_date,
       },
       {
         headers: {

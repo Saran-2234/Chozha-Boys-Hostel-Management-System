@@ -107,15 +107,24 @@ const StudentProfilePage = () => {
 
     // --- Detail Fetching Functions ---
 
-    const fetchAttendanceHistory = async () => {
+    const fetchAttendanceHistory = async (year, month) => {
         if (!student) return;
         setLoadingDetails(true);
         setShowAttendanceModal(true);
         try {
-            // Fetch all attendance for this student
+            // Fetch attendance for the specific month/year
+            // Use passed year/month or fall back to current state (which should be synced)
+            const targetYear = typeof year === 'number' ? year : attendanceYear;
+            const targetMonth = typeof month === 'number' ? month : attendanceMonth;
+
+            const startDate = new Date(Date.UTC(targetYear, targetMonth, 1));
+            const endDate = new Date(Date.UTC(targetYear, targetMonth + 1, 0));
+
             const result = await showAttends({
                 registration_number: student.registration_number,
-                limit: 1500 // Get enough records
+                limit: 1500, // Still use a high limit to ensure we get all days in the range
+                from_date: startDate.toISOString().split('T')[0],
+                to_date: endDate.toISOString().split('T')[0]
             });
             if (result.success) {
                 setAttendanceData(result.data);
@@ -184,6 +193,10 @@ const StudentProfilePage = () => {
     useEffect(() => {
         setAttendanceYear(currentDate.getFullYear());
         setAttendanceMonth(currentDate.getMonth());
+
+        if (showAttendanceModal) {
+            fetchAttendanceHistory(currentDate.getFullYear(), currentDate.getMonth());
+        }
     }, [currentDate]);
 
 
@@ -312,9 +325,14 @@ const StudentProfilePage = () => {
                                                 className="bg-blue-50/50 rounded-xl p-5 border border-blue-100 cursor-pointer hover:shadow-md transition-shadow"
                                                 onClick={() => {
                                                     const today = new Date();
+                                                    setCurrentDate(today);
                                                     setAttendanceYear(today.getFullYear());
                                                     setAttendanceMonth(today.getMonth());
-                                                    fetchAttendanceHistory();
+                                                    setShowAttendanceModal(true);
+                                                    // Allow useEffect to handle the fetch or fetch explicitly if needed
+                                                    // Since setting currentDate triggers the effect, this should work.
+                                                    // But if currentDate is already today, effect might not run.
+                                                    fetchAttendanceHistory(today.getFullYear(), today.getMonth());
                                                 }}
                                             >
                                                 <h4 className="font-semibold text-blue-900 mb-4 flex justify-between">

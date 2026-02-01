@@ -4,7 +4,7 @@ import { useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar/Sidebar';
 import Header from './Header/Header';
 import MainContent from './Header/MainContent';
-import Dashboard from './Dashboard/Dashboard';
+
 import Students from './Students/Students';
 import Attendance from './Attendance/Attendance';
 import MessBills from './MessBills/MessBills';
@@ -20,7 +20,7 @@ import './styles/adminDashboard.css';
 
 const AdminDashboard = () => {
   const location = useLocation();
-  const [activeSection, setActiveSection] = useState('dashboard');
+  const [activeSection, setActiveSection] = useState('students');
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [showRefreshModal, setShowRefreshModal] = useState(false); // Refresh modal state
@@ -87,8 +87,7 @@ const AdminDashboard = () => {
 
   const renderSection = () => {
     switch (activeSection) {
-      case 'dashboard':
-        return <Dashboard setActiveSection={setActiveSection} />;
+
       case 'students':
         return <Students />;
       case 'attendance':
@@ -113,7 +112,7 @@ const AdminDashboard = () => {
       case 'settings':
         return <Settings />;
       default:
-        return <Dashboard setActiveSection={setActiveSection} />;
+        return <Students />;
     }
   };
 

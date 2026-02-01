@@ -2,7 +2,7 @@ import React from 'react';
 
 const NavigationMenu = ({ setActiveSection, activeSection }) => {
   const menuItems = [
-    { id: 'dashboard', label: 'Dashboard' },
+
     { id: 'profile', label: 'Profile' },
     { id: 'attendance', label: 'Attendance' },
     { id: 'messbill', label: 'Mess Bill' },

@@ -3,7 +3,7 @@ import axios from 'axios';
 import Sidebar from './Sidebar/Sidebar';
 import Header from './Header/Header';
 import MainContent from './Header/MainContent';
-import Dashboard from './Dashboard/Dashboard';
+
 import Profile from './Profile/Profile';
 import Attendance from './Attendance/Attendance';
 import MessBill from './MessBill/MessBill';
@@ -44,7 +44,7 @@ const StudentDashboard = () => {
   const studentData = getStudentData();
   console.log('Student data:', studentData);
 
-  const [activeSection, setActiveSection] = useState('dashboard');
+  const [activeSection, setActiveSection] = useState('profile');
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [showLogoutModal, setShowLogoutModal] = useState(false); // Centralized modal state
@@ -141,8 +141,7 @@ const StudentDashboard = () => {
 
   const renderSection = () => {
     switch (activeSection) {
-      case 'dashboard':
-        return <Dashboard studentData={studentData} setActiveSection={setActiveSection} />;
+
       case 'profile':
         return <Profile studentData={studentData} />;
       case 'attendance':
@@ -158,7 +157,7 @@ const StudentDashboard = () => {
       case 'reduction':
         return <Reduction />;
       default:
-        return <Dashboard studentData={studentData} setActiveSection={setActiveSection} />;
+        return <Profile studentData={studentData} />;
     }
   };
 

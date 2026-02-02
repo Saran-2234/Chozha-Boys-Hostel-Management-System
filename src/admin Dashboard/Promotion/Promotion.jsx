@@ -3,16 +3,15 @@ import Button from '../Common/Button';
 import { promoteStudents } from '../../registration/api';
 
 const Promotion = ({ isDarkMode }) => {
-  const [email, setEmail] = useState('');
-  const [deleteFinalYear, setDeleteFinalYear] = useState(true);
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    if (!email.trim()) {
-      setError('Recipient email is required.');
+    if (!password.trim()) {
+      setError('Admin password is required to authorize promotion.');
       setMessage('');
       return;
     }
@@ -20,9 +19,10 @@ const Promotion = ({ isDarkMode }) => {
     setError('');
     setMessage('');
     try {
-      const response = await promoteStudents(email.trim(), deleteFinalYear);
+      const response = await promoteStudents(password.trim());
       if (response?.success) {
         setMessage(response.message || 'Promotion completed successfully.');
+        setPassword(''); // Clear password on success
       } else {
         setError(response?.error || 'Promotion failed.');
       }
@@ -34,8 +34,7 @@ const Promotion = ({ isDarkMode }) => {
   };
 
   const resetForm = () => {
-    setEmail('');
-    setDeleteFinalYear(true);
+    setPassword('');
     setMessage('');
     setError('');
   };
@@ -43,7 +42,6 @@ const Promotion = ({ isDarkMode }) => {
   const sectionTextColor = isDarkMode ? 'text-white' : 'text-gray-900';
   const cardBg = isDarkMode ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-slate-200';
   const descriptionText = isDarkMode ? 'text-slate-400' : 'text-slate-600';
-  const helperBg = isDarkMode ? 'bg-slate-900 border border-slate-700' : 'bg-slate-50 border border-slate-200';
   const helperText = isDarkMode ? 'text-slate-300' : 'text-slate-600';
 
   return (
@@ -53,45 +51,26 @@ const Promotion = ({ isDarkMode }) => {
           <div className="mb-6">
             <h2 className="text-3xl font-semibold">Promotion</h2>
             <p className={`mt-2 text-sm ${descriptionText}`}>
-              Promote students to the next academic year and email the 4th-year CSV to the chosen recipient.
+              Promote students to the next academic year. Final year students will be archived.
+              <br />
+              <span className="font-bold text-red-500">Warning: This action cannot be undone.</span>
             </p>
           </div>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block text-sm font-medium mb-2">Recipient Email</label>
+              <label className="block text-sm font-medium mb-2">Admin Password</label>
               <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 className={`w-full rounded-lg px-4 py-3 border focus:outline-none focus:ring-2 ${isDarkMode ? 'bg-slate-900 border-slate-700 focus:ring-blue-500 text-white' : 'bg-white border-slate-200 focus:ring-blue-500 text-gray-900'}`}
-                placeholder="admin@example.com"
+                placeholder="Enter your password to confirm"
               />
             </div>
-            <div className={`flex items-start justify-between rounded-xl px-4 py-3 ${helperBg}`}>
-              <div className="pr-4">
-                <p className="font-medium">Delete 4th-year students after promotion</p>
-                <p className={`text-sm mt-1 ${descriptionText}`}>
-                  The 4th-year CSV will always be emailed. Enable this option to remove them from the system afterward.
-                </p>
-              </div>
-              <label className="inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  className="sr-only"
-                  checked={deleteFinalYear}
-                  onChange={(e) => setDeleteFinalYear(e.target.checked)}
-                />
-                <div className={`relative w-14 h-8 transition-colors rounded-full ${deleteFinalYear ? 'bg-blue-600' : isDarkMode ? 'bg-slate-600' : 'bg-slate-300'}`}>
-                  <span className={`absolute top-1 left-1 w-6 h-6 bg-white rounded-full transition-transform ${deleteFinalYear ? 'translate-x-6' : 'translate-x-0'}`} />
-                </div>
-              </label>
-            </div>
+
             <div className="flex items-center gap-4">
               <Button type="submit" disabled={loading} isDarkMode={isDarkMode} className="min-w-[160px]">
-                {loading ? 'Processing...' : 'Run Promotion'}
-              </Button>
-              <Button type="button" variant="outline" isDarkMode={isDarkMode} onClick={resetForm}>
-                Reset
+                {loading ? 'Processing...' : 'Authorize & Promote'}
               </Button>
             </div>
           </form>
@@ -104,11 +83,12 @@ const Promotion = ({ isDarkMode }) => {
           </div>
         )}
         <div className={`rounded-2xl p-6 ${cardBg}`}>
-          <h3 className="text-lg font-semibold mb-3">Promotion steps</h3>
+          <h3 className="text-lg font-semibold mb-3">Promotion Steps</h3>
           <ol className={`list-decimal list-inside space-y-2 text-sm ${helperText}`}>
-            <li>4th-year student records are exported and emailed to the recipient.</li>
-            <li>4th-year students are removed when deletion is enabled.</li>
-            <li>Remaining students are promoted to the next academic year.</li>
+            <li><strong>Authenticate:</strong> Enter admin password to verify authority.</li>
+            <li><strong>Archive:</strong> 4th-year students are moved to the archive table.</li>
+            <li><strong>Cleanup:</strong> 4th-year students are removed from the active students list.</li>
+            <li><strong>Promote:</strong> 1st, 2nd, and 3rd-year students are promoted to the next year.</li>
           </ol>
         </div>
       </div>

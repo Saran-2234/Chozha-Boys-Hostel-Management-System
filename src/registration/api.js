@@ -411,7 +411,7 @@ export const showAttends = async (filters = {}) => {
   }
 };
 
-export const promoteStudents = async (email, isdeletefinalyear) => {
+export const promoteStudents = async (password) => {
   try {
     const token = localStorage.getItem("accessToken");
     if (!token) {
@@ -421,8 +421,7 @@ export const promoteStudents = async (email, isdeletefinalyear) => {
     const response = await axios.post(
       "https://finalbackend1.vercel.app/admin/promotion",
       {
-        email,
-        isdeletefinalyear,
+        password,
         token,
       },
       {

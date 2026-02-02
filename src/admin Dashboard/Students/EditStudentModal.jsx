@@ -28,7 +28,7 @@ const EditStudentModal = ({ isDarkMode, student, onSave, onCancel }) => {
       setFormData({
         name: student.name ? String(student.name) : '',
         father_guardian_name: student.father_guardian_name ? String(student.father_guardian_name) : '',
-        dob: student.dob ? String(student.dob) : '',
+        dob: student.dob ? String(student.dob).split('T')[0] : '',
         blood_group: student.blood_group ? String(student.blood_group) : '',
         student_contact_number: student.student_contact_number ? String(student.student_contact_number) : '',
         parent_guardian_contact_number: student.parent_guardian_contact_number ? String(student.parent_guardian_contact_number) : '',
@@ -149,11 +149,10 @@ const EditStudentModal = ({ isDarkMode, student, onSave, onCancel }) => {
               name="name"
               value={formData.name}
               onChange={handleInputChange}
-              className={`w-full px-3 py-2 border rounded-md text-sm ${
-                isDarkMode
+              className={`w-full px-3 py-2 border rounded-md text-sm ${isDarkMode
                   ? 'bg-gray-700 border-gray-600 text-white'
                   : 'bg-white border-gray-300 text-gray-900'
-              } ${errors.name ? 'border-red-500' : ''}`}
+                } ${errors.name ? 'border-red-500' : ''}`}
               placeholder="Enter student name"
             />
             {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
@@ -168,11 +167,10 @@ const EditStudentModal = ({ isDarkMode, student, onSave, onCancel }) => {
               name="father_guardian_name"
               value={formData.father_guardian_name}
               onChange={handleInputChange}
-              className={`w-full px-3 py-2 border rounded-md text-sm ${
-                isDarkMode
+              className={`w-full px-3 py-2 border rounded-md text-sm ${isDarkMode
                   ? 'bg-gray-700 border-gray-600 text-white'
                   : 'bg-white border-gray-300 text-gray-900'
-              } ${errors.father_guardian_name ? 'border-red-500' : ''}`}
+                } ${errors.father_guardian_name ? 'border-red-500' : ''}`}
               placeholder="Enter father/guardian name"
             />
             {errors.father_guardian_name && <p className="text-red-500 text-xs mt-1">{errors.father_guardian_name}</p>}
@@ -187,11 +185,10 @@ const EditStudentModal = ({ isDarkMode, student, onSave, onCancel }) => {
               name="dob"
               value={formData.dob}
               onChange={handleInputChange}
-              className={`w-full px-3 py-2 border rounded-md text-sm ${
-                isDarkMode
+              className={`w-full px-3 py-2 border rounded-md text-sm ${isDarkMode
                   ? 'bg-gray-700 border-gray-600 text-white'
                   : 'bg-white border-gray-300 text-gray-900'
-              } ${errors.dob ? 'border-red-500' : ''}`}
+                } ${errors.dob ? 'border-red-500' : ''}`}
             />
             {errors.dob && <p className="text-red-500 text-xs mt-1">{errors.dob}</p>}
           </div>
@@ -205,11 +202,10 @@ const EditStudentModal = ({ isDarkMode, student, onSave, onCancel }) => {
               name="blood_group"
               value={formData.blood_group}
               onChange={handleInputChange}
-              className={`w-full px-3 py-2 border rounded-md text-sm ${
-                isDarkMode
+              className={`w-full px-3 py-2 border rounded-md text-sm ${isDarkMode
                   ? 'bg-gray-700 border-gray-600 text-white'
                   : 'bg-white border-gray-300 text-gray-900'
-              } ${errors.blood_group ? 'border-red-500' : ''}`}
+                } ${errors.blood_group ? 'border-red-500' : ''}`}
               placeholder="Enter blood group (e.g., A+, O-)"
             />
             {errors.blood_group && <p className="text-red-500 text-xs mt-1">{errors.blood_group}</p>}
@@ -224,11 +220,10 @@ const EditStudentModal = ({ isDarkMode, student, onSave, onCancel }) => {
               name="email"
               value={formData.email}
               onChange={handleInputChange}
-              className={`w-full px-3 py-2 border rounded-md text-sm ${
-                isDarkMode
+              className={`w-full px-3 py-2 border rounded-md text-sm ${isDarkMode
                   ? 'bg-gray-700 border-gray-600 text-white'
                   : 'bg-white border-gray-300 text-gray-900'
-              } ${errors.email ? 'border-red-500' : ''}`}
+                } ${errors.email ? 'border-red-500' : ''}`}
               placeholder="Enter email address"
             />
             {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
@@ -243,11 +238,10 @@ const EditStudentModal = ({ isDarkMode, student, onSave, onCancel }) => {
               name="student_contact_number"
               value={formData.student_contact_number}
               onChange={handleInputChange}
-              className={`w-full px-3 py-2 border rounded-md text-sm ${
-                isDarkMode
+              className={`w-full px-3 py-2 border rounded-md text-sm ${isDarkMode
                   ? 'bg-gray-700 border-gray-600 text-white'
                   : 'bg-white border-gray-300 text-gray-900'
-              } ${errors.student_contact_number ? 'border-red-500' : ''}`}
+                } ${errors.student_contact_number ? 'border-red-500' : ''}`}
               placeholder="Enter phone number"
             />
             {errors.student_contact_number && <p className="text-red-500 text-xs mt-1">{errors.student_contact_number}</p>}
@@ -262,11 +256,10 @@ const EditStudentModal = ({ isDarkMode, student, onSave, onCancel }) => {
               name="parent_guardian_contact_number"
               value={formData.parent_guardian_contact_number}
               onChange={handleInputChange}
-              className={`w-full px-3 py-2 border rounded-md text-sm ${
-                isDarkMode
+              className={`w-full px-3 py-2 border rounded-md text-sm ${isDarkMode
                   ? 'bg-gray-700 border-gray-600 text-white'
                   : 'bg-white border-gray-300 text-gray-900'
-              } ${errors.parent_guardian_contact_number ? 'border-red-500' : ''}`}
+                } ${errors.parent_guardian_contact_number ? 'border-red-500' : ''}`}
               placeholder="Enter guardian phone number"
             />
             {errors.parent_guardian_contact_number && <p className="text-red-500 text-xs mt-1">{errors.parent_guardian_contact_number}</p>}
@@ -281,11 +274,10 @@ const EditStudentModal = ({ isDarkMode, student, onSave, onCancel }) => {
               value={formData.address}
               onChange={handleInputChange}
               rows={3}
-              className={`w-full px-3 py-2 border rounded-md text-sm ${
-                isDarkMode
+              className={`w-full px-3 py-2 border rounded-md text-sm ${isDarkMode
                   ? 'bg-gray-700 border-gray-600 text-white'
                   : 'bg-white border-gray-300 text-gray-900'
-              } ${errors.address ? 'border-red-500' : ''}`}
+                } ${errors.address ? 'border-red-500' : ''}`}
               placeholder="Enter address"
             />
             {errors.address && <p className="text-red-500 text-xs mt-1">{errors.address}</p>}
@@ -300,11 +292,10 @@ const EditStudentModal = ({ isDarkMode, student, onSave, onCancel }) => {
               name="registration_number"
               value={formData.registration_number}
               readOnly
-              className={`w-full px-3 py-2 border rounded-md text-sm bg-gray-100 ${
-                isDarkMode
+              className={`w-full px-3 py-2 border rounded-md text-sm bg-gray-100 ${isDarkMode
                   ? 'bg-gray-700 border-gray-600 text-white'
                   : 'bg-white border-gray-300 text-gray-900'
-              }`}
+                }`}
               placeholder="Registration number"
             />
           </div>
@@ -318,11 +309,10 @@ const EditStudentModal = ({ isDarkMode, student, onSave, onCancel }) => {
               name="roll_number"
               value={formData.roll_number}
               onChange={handleInputChange}
-              className={`w-full px-3 py-2 border rounded-md text-sm ${
-                isDarkMode
+              className={`w-full px-3 py-2 border rounded-md text-sm ${isDarkMode
                   ? 'bg-gray-700 border-gray-600 text-white'
                   : 'bg-white border-gray-300 text-gray-900'
-              } ${errors.roll_number ? 'border-red-500' : ''}`}
+                } ${errors.roll_number ? 'border-red-500' : ''}`}
               placeholder="Enter roll number"
             />
             {errors.roll_number && <p className="text-red-500 text-xs mt-1">{errors.roll_number}</p>}
@@ -337,11 +327,10 @@ const EditStudentModal = ({ isDarkMode, student, onSave, onCancel }) => {
               name="room_number"
               value={formData.room_number}
               onChange={handleInputChange}
-              className={`w-full px-3 py-2 border rounded-md text-sm ${
-                isDarkMode
+              className={`w-full px-3 py-2 border rounded-md text-sm ${isDarkMode
                   ? 'bg-gray-700 border-gray-600 text-white'
                   : 'bg-white border-gray-300 text-gray-900'
-              } ${errors.room_number ? 'border-red-500' : ''}`}
+                } ${errors.room_number ? 'border-red-500' : ''}`}
               placeholder="Enter room number"
             />
             {errors.room_number && <p className="text-red-500 text-xs mt-1">{errors.room_number}</p>}
@@ -356,11 +345,10 @@ const EditStudentModal = ({ isDarkMode, student, onSave, onCancel }) => {
               name="department"
               value={formData.department}
               onChange={handleInputChange}
-              className={`w-full px-3 py-2 border rounded-md text-sm ${
-                isDarkMode
+              className={`w-full px-3 py-2 border rounded-md text-sm ${isDarkMode
                   ? 'bg-gray-700 border-gray-600 text-white'
                   : 'bg-white border-gray-300 text-gray-900'
-              } ${errors.department ? 'border-red-500' : ''}`}
+                } ${errors.department ? 'border-red-500' : ''}`}
               placeholder="Enter department"
             />
             {errors.department && <p className="text-red-500 text-xs mt-1">{errors.department}</p>}
@@ -375,11 +363,10 @@ const EditStudentModal = ({ isDarkMode, student, onSave, onCancel }) => {
               name="academic_year"
               value={formData.academic_year}
               onChange={handleInputChange}
-              className={`w-full px-3 py-2 border rounded-md text-sm ${
-                isDarkMode
+              className={`w-full px-3 py-2 border rounded-md text-sm ${isDarkMode
                   ? 'bg-gray-700 border-gray-600 text-white'
                   : 'bg-white border-gray-300 text-gray-900'
-              } ${errors.academic_year ? 'border-red-500' : ''}`}
+                } ${errors.academic_year ? 'border-red-500' : ''}`}
               placeholder="Enter academic year"
             />
             {errors.academic_year && <p className="text-red-500 text-xs mt-1">{errors.academic_year}</p>}
@@ -394,11 +381,10 @@ const EditStudentModal = ({ isDarkMode, student, onSave, onCancel }) => {
               name="year"
               value={formData.year}
               onChange={handleInputChange}
-              className={`w-full px-3 py-2 border rounded-md text-sm ${
-                isDarkMode
+              className={`w-full px-3 py-2 border rounded-md text-sm ${isDarkMode
                   ? 'bg-gray-700 border-gray-600 text-white'
                   : 'bg-white border-gray-300 text-gray-900'
-              } ${errors.year ? 'border-red-500' : ''}`}
+                } ${errors.year ? 'border-red-500' : ''}`}
               placeholder="Enter year"
             />
             {errors.year && <p className="text-red-500 text-xs mt-1">{errors.year}</p>}
@@ -413,11 +399,10 @@ const EditStudentModal = ({ isDarkMode, student, onSave, onCancel }) => {
               name="status"
               value={formData.status}
               readOnly
-              className={`w-full px-3 py-2 border rounded-md text-sm bg-gray-100 ${
-                isDarkMode
+              className={`w-full px-3 py-2 border rounded-md text-sm bg-gray-100 ${isDarkMode
                   ? 'bg-gray-700 border-gray-600 text-white'
                   : 'bg-white border-gray-300 text-gray-900'
-              }`}
+                }`}
               placeholder="Status"
             />
           </div>
@@ -431,11 +416,10 @@ const EditStudentModal = ({ isDarkMode, student, onSave, onCancel }) => {
               name="approved_by"
               value={formData.approved_by}
               readOnly
-              className={`w-full px-3 py-2 border rounded-md text-sm bg-gray-100 ${
-                isDarkMode
+              className={`w-full px-3 py-2 border rounded-md text-sm bg-gray-100 ${isDarkMode
                   ? 'bg-gray-700 border-gray-600 text-white'
                   : 'bg-white border-gray-300 text-gray-900'
-              }`}
+                }`}
               placeholder="Approved by"
             />
           </div>

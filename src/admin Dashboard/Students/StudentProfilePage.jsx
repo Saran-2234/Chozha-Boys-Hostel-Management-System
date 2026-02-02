@@ -455,6 +455,20 @@ const StudentProfilePage = () => {
                                                 </div>
                                             </li>
                                         )}
+                                        <li className="flex items-start">
+                                            <span className="text-lg mr-3">🎂</span>
+                                            <div>
+                                                <label className="text-xs text-gray-500 block">Date of Birth</label>
+                                                <span className="text-gray-900">{student.dob ? formatDate(student.dob) : 'N/A'}</span>
+                                            </div>
+                                        </li>
+                                        <li className="flex items-start">
+                                            <span className="text-lg mr-3">🩸</span>
+                                            <div>
+                                                <label className="text-xs text-gray-500 block">Blood Group</label>
+                                                <span className="text-gray-900">{student.blood_group || 'N/A'}</span>
+                                            </div>
+                                        </li>
                                     </ul>
                                 </div>
                             </div>

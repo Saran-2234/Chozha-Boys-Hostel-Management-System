@@ -73,9 +73,26 @@ export const validateField = (id, value, newFormData = null) => {
       }
       break;
 
-    case 'academicYear':
       if (!value) {
         error = '*Academic year is required';
+      }
+      break;
+
+    case 'batchStartYear':
+      if (!value) {
+        error = '*Batch start year is required';
+      } else if (!/^\d{4}$/.test(value)) {
+        error = '*Year must be 4 digits';
+      }
+      break;
+
+    case 'batchEndYear':
+      if (!value) {
+        error = '*Batch end year is required';
+      } else if (!/^\d{4}$/.test(value)) {
+        error = '*Year must be 4 digits';
+      } else if (newFormData && newFormData.batchStartYear && parseInt(value) <= parseInt(newFormData.batchStartYear)) {
+        error = '*End year must be greater than start year';
       }
       break;
 
@@ -178,7 +195,7 @@ export const isStepValid = (step, formData, otpVerified) => {
   const stepFields = {
     1: ['emailId', 'otpCode'],
     2: ['fullName', 'fatherName', 'dob', 'bloodGroup', 'studentContact', 'parentContact', 'address'],
-    3: ['department', 'academicYear', 'registrationNumber', 'rollNumber', 'roomNumber'],
+    3: ['department', 'academicYear', 'batchStartYear', 'batchEndYear', 'registrationNumber', 'rollNumber', 'roomNumber'],
     4: ['password', 'confirmPassword', 'photo'],
     5: ['agreeTerms', 'agreePrivacy', 'agreeRules']
   };
@@ -203,7 +220,7 @@ export const isStepValid = (step, formData, otpVerified) => {
 export const isFormValid = (formData) => {
   const allFields = [
     'fullName', 'fatherName', 'dob', 'bloodGroup', 'studentContact', 'parentContact', 'address',
-    'department', 'academicYear', 'registrationNumber', 'rollNumber', 'roomNumber',
+    'department', 'academicYear', 'batchStartYear', 'batchEndYear', 'registrationNumber', 'rollNumber', 'roomNumber',
     'emailId', 'password', 'confirmPassword',
     'agreeTerms', 'agreePrivacy', 'agreeRules'
   ];

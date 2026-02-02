@@ -174,6 +174,17 @@ const Profile = ({ studentData }) => {
                 </div>
 
                 <div>
+                  <label className="block text-sm font-medium text-slate-400 mb-2">Batch</label>
+                  <div className="glass-effect p-3 rounded-lg">
+                    <p className="text-white">
+                      {data.batch_start_year && data.batch_end_year
+                        ? `${data.batch_start_year} - ${data.batch_end_year}`
+                        : (data.batch_start_year || data.batch_end_year || 'Not Available')}
+                    </p>
+                  </div>
+                </div>
+
+                <div>
                   <label className="block text-sm font-medium text-slate-400 mb-2">Student Contact</label>
                   <div className="glass-effect p-3 rounded-lg">
                     <p className="text-white">{data.student_contact_number || 'Not Available'}</p>

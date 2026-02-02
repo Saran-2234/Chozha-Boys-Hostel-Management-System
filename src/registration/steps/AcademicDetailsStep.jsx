@@ -102,6 +102,47 @@ const AcademicDetailsStep = ({
           )}
         </div>
 
+
+        <div className="relative z-50">
+          <label className="block text-sm font-semibold text-slate-300 mb-2">Batch Start Year *</label>
+          <input
+            type="number"
+            id="batchStartYear"
+            name="batchStartYear"
+            className={`w-full px-4 py-3 glass-effect rounded-lg placeholder-slate-400 focus:ring-2 focus:ring-emerald-500 focus:border-transparent border-0
+              ${errors.batchStartYear ? 'border-red-500' : ''} text-black`}
+            placeholder="YYYY"
+            value={formData.batchStartYear}
+            onChange={handleInputChange}
+            onBlur={handleBlur}
+            min="2000"
+            max="2100"
+          />
+          {touched.batchStartYear && errors.batchStartYear && (
+            <p className={`!text-red-600 text-xs mt-1`}>{errors.batchStartYear}</p>
+          )}
+        </div>
+
+        <div className="relative z-50">
+          <label className="block text-sm font-semibold text-slate-300 mb-2">Batch End Year *</label>
+          <input
+            type="number"
+            id="batchEndYear"
+            name="batchEndYear"
+            className={`w-full px-4 py-3 glass-effect rounded-lg placeholder-slate-400 focus:ring-2 focus:ring-emerald-500 focus:border-transparent border-0
+              ${errors.batchEndYear ? 'border-red-500' : ''} text-black`}
+            placeholder="YYYY"
+            value={formData.batchEndYear}
+            onChange={handleInputChange}
+            onBlur={handleBlur}
+            min="2000"
+            max="2100"
+          />
+          {touched.batchEndYear && errors.batchEndYear && (
+            <p className={`!text-red-600 text-xs mt-1`}>{errors.batchEndYear}</p>
+          )}
+        </div>
+
         <div>
           <label className="block text-sm font-semibold text-slate-300 mb-2">Registration Number *</label>
           <input

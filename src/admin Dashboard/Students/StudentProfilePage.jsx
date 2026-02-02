@@ -398,6 +398,14 @@ const StudentProfilePage = () => {
                                             <label className="text-sm font-medium text-gray-500 block mb-1">Academic Year</label>
                                             <p className="text-gray-900 font-medium">{student.academic_year || 'N/A'}</p>
                                         </div>
+                                        <div>
+                                            <label className="text-sm font-medium text-gray-500 block mb-1">Batch</label>
+                                            <p className="text-gray-900 font-medium">
+                                                {student.batch_start_year && student.batch_end_year
+                                                    ? `${student.batch_start_year} - ${student.batch_end_year}`
+                                                    : (student.batch_start_year || student.batch_end_year || 'N/A')}
+                                            </p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

@@ -18,7 +18,9 @@ const EditStudentModal = ({ isDarkMode, student, onSave, onCancel }) => {
     email: '',
     status: '',
     approved_by: '',
-    year: ''
+    year: '',
+    batch_start_year: '',
+    batch_end_year: ''
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
@@ -41,7 +43,9 @@ const EditStudentModal = ({ isDarkMode, student, onSave, onCancel }) => {
         email: student.email ? String(student.email) : '',
         status: student.status ? String(student.status) : '',
         approved_by: student.approved_by ? String(student.approved_by) : '',
-        year: student.year ? String(student.year) : ''
+        year: student.year ? String(student.year) : '',
+        batch_start_year: student.batch_start_year ? String(student.batch_start_year) : '',
+        batch_end_year: student.batch_end_year ? String(student.batch_end_year) : ''
       });
     }
   }, [student]);
@@ -150,8 +154,8 @@ const EditStudentModal = ({ isDarkMode, student, onSave, onCancel }) => {
               value={formData.name}
               onChange={handleInputChange}
               className={`w-full px-3 py-2 border rounded-md text-sm ${isDarkMode
-                  ? 'bg-gray-700 border-gray-600 text-white'
-                  : 'bg-white border-gray-300 text-gray-900'
+                ? 'bg-gray-700 border-gray-600 text-white'
+                : 'bg-white border-gray-300 text-gray-900'
                 } ${errors.name ? 'border-red-500' : ''}`}
               placeholder="Enter student name"
             />
@@ -168,8 +172,8 @@ const EditStudentModal = ({ isDarkMode, student, onSave, onCancel }) => {
               value={formData.father_guardian_name}
               onChange={handleInputChange}
               className={`w-full px-3 py-2 border rounded-md text-sm ${isDarkMode
-                  ? 'bg-gray-700 border-gray-600 text-white'
-                  : 'bg-white border-gray-300 text-gray-900'
+                ? 'bg-gray-700 border-gray-600 text-white'
+                : 'bg-white border-gray-300 text-gray-900'
                 } ${errors.father_guardian_name ? 'border-red-500' : ''}`}
               placeholder="Enter father/guardian name"
             />
@@ -186,8 +190,8 @@ const EditStudentModal = ({ isDarkMode, student, onSave, onCancel }) => {
               value={formData.dob}
               onChange={handleInputChange}
               className={`w-full px-3 py-2 border rounded-md text-sm ${isDarkMode
-                  ? 'bg-gray-700 border-gray-600 text-white'
-                  : 'bg-white border-gray-300 text-gray-900'
+                ? 'bg-gray-700 border-gray-600 text-white'
+                : 'bg-white border-gray-300 text-gray-900'
                 } ${errors.dob ? 'border-red-500' : ''}`}
             />
             {errors.dob && <p className="text-red-500 text-xs mt-1">{errors.dob}</p>}
@@ -203,8 +207,8 @@ const EditStudentModal = ({ isDarkMode, student, onSave, onCancel }) => {
               value={formData.blood_group}
               onChange={handleInputChange}
               className={`w-full px-3 py-2 border rounded-md text-sm ${isDarkMode
-                  ? 'bg-gray-700 border-gray-600 text-white'
-                  : 'bg-white border-gray-300 text-gray-900'
+                ? 'bg-gray-700 border-gray-600 text-white'
+                : 'bg-white border-gray-300 text-gray-900'
                 } ${errors.blood_group ? 'border-red-500' : ''}`}
               placeholder="Enter blood group (e.g., A+, O-)"
             />
@@ -221,8 +225,8 @@ const EditStudentModal = ({ isDarkMode, student, onSave, onCancel }) => {
               value={formData.email}
               onChange={handleInputChange}
               className={`w-full px-3 py-2 border rounded-md text-sm ${isDarkMode
-                  ? 'bg-gray-700 border-gray-600 text-white'
-                  : 'bg-white border-gray-300 text-gray-900'
+                ? 'bg-gray-700 border-gray-600 text-white'
+                : 'bg-white border-gray-300 text-gray-900'
                 } ${errors.email ? 'border-red-500' : ''}`}
               placeholder="Enter email address"
             />
@@ -239,8 +243,8 @@ const EditStudentModal = ({ isDarkMode, student, onSave, onCancel }) => {
               value={formData.student_contact_number}
               onChange={handleInputChange}
               className={`w-full px-3 py-2 border rounded-md text-sm ${isDarkMode
-                  ? 'bg-gray-700 border-gray-600 text-white'
-                  : 'bg-white border-gray-300 text-gray-900'
+                ? 'bg-gray-700 border-gray-600 text-white'
+                : 'bg-white border-gray-300 text-gray-900'
                 } ${errors.student_contact_number ? 'border-red-500' : ''}`}
               placeholder="Enter phone number"
             />
@@ -257,8 +261,8 @@ const EditStudentModal = ({ isDarkMode, student, onSave, onCancel }) => {
               value={formData.parent_guardian_contact_number}
               onChange={handleInputChange}
               className={`w-full px-3 py-2 border rounded-md text-sm ${isDarkMode
-                  ? 'bg-gray-700 border-gray-600 text-white'
-                  : 'bg-white border-gray-300 text-gray-900'
+                ? 'bg-gray-700 border-gray-600 text-white'
+                : 'bg-white border-gray-300 text-gray-900'
                 } ${errors.parent_guardian_contact_number ? 'border-red-500' : ''}`}
               placeholder="Enter guardian phone number"
             />
@@ -275,8 +279,8 @@ const EditStudentModal = ({ isDarkMode, student, onSave, onCancel }) => {
               onChange={handleInputChange}
               rows={3}
               className={`w-full px-3 py-2 border rounded-md text-sm ${isDarkMode
-                  ? 'bg-gray-700 border-gray-600 text-white'
-                  : 'bg-white border-gray-300 text-gray-900'
+                ? 'bg-gray-700 border-gray-600 text-white'
+                : 'bg-white border-gray-300 text-gray-900'
                 } ${errors.address ? 'border-red-500' : ''}`}
               placeholder="Enter address"
             />
@@ -293,8 +297,8 @@ const EditStudentModal = ({ isDarkMode, student, onSave, onCancel }) => {
               value={formData.registration_number}
               readOnly
               className={`w-full px-3 py-2 border rounded-md text-sm bg-gray-100 ${isDarkMode
-                  ? 'bg-gray-700 border-gray-600 text-white'
-                  : 'bg-white border-gray-300 text-gray-900'
+                ? 'bg-gray-700 border-gray-600 text-white'
+                : 'bg-white border-gray-300 text-gray-900'
                 }`}
               placeholder="Registration number"
             />
@@ -310,8 +314,8 @@ const EditStudentModal = ({ isDarkMode, student, onSave, onCancel }) => {
               value={formData.roll_number}
               onChange={handleInputChange}
               className={`w-full px-3 py-2 border rounded-md text-sm ${isDarkMode
-                  ? 'bg-gray-700 border-gray-600 text-white'
-                  : 'bg-white border-gray-300 text-gray-900'
+                ? 'bg-gray-700 border-gray-600 text-white'
+                : 'bg-white border-gray-300 text-gray-900'
                 } ${errors.roll_number ? 'border-red-500' : ''}`}
               placeholder="Enter roll number"
             />
@@ -328,8 +332,8 @@ const EditStudentModal = ({ isDarkMode, student, onSave, onCancel }) => {
               value={formData.room_number}
               onChange={handleInputChange}
               className={`w-full px-3 py-2 border rounded-md text-sm ${isDarkMode
-                  ? 'bg-gray-700 border-gray-600 text-white'
-                  : 'bg-white border-gray-300 text-gray-900'
+                ? 'bg-gray-700 border-gray-600 text-white'
+                : 'bg-white border-gray-300 text-gray-900'
                 } ${errors.room_number ? 'border-red-500' : ''}`}
               placeholder="Enter room number"
             />
@@ -346,8 +350,8 @@ const EditStudentModal = ({ isDarkMode, student, onSave, onCancel }) => {
               value={formData.department}
               onChange={handleInputChange}
               className={`w-full px-3 py-2 border rounded-md text-sm ${isDarkMode
-                  ? 'bg-gray-700 border-gray-600 text-white'
-                  : 'bg-white border-gray-300 text-gray-900'
+                ? 'bg-gray-700 border-gray-600 text-white'
+                : 'bg-white border-gray-300 text-gray-900'
                 } ${errors.department ? 'border-red-500' : ''}`}
               placeholder="Enter department"
             />
@@ -364,12 +368,46 @@ const EditStudentModal = ({ isDarkMode, student, onSave, onCancel }) => {
               value={formData.academic_year}
               onChange={handleInputChange}
               className={`w-full px-3 py-2 border rounded-md text-sm ${isDarkMode
-                  ? 'bg-gray-700 border-gray-600 text-white'
-                  : 'bg-white border-gray-300 text-gray-900'
+                ? 'bg-gray-700 border-gray-600 text-white'
+                : 'bg-white border-gray-300 text-gray-900'
                 } ${errors.academic_year ? 'border-red-500' : ''}`}
               placeholder="Enter academic year"
             />
             {errors.academic_year && <p className="text-red-500 text-xs mt-1">{errors.academic_year}</p>}
+          </div>
+
+          <div>
+            <label className={`block text-sm font-medium mb-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+              Batch Start Year
+            </label>
+            <input
+              type="number"
+              name="batch_start_year"
+              value={formData.batch_start_year}
+              onChange={handleInputChange}
+              className={`w-full px-3 py-2 border rounded-md text-sm ${isDarkMode
+                ? 'bg-gray-700 border-gray-600 text-white'
+                : 'bg-white border-gray-300 text-gray-900'
+                }`}
+              placeholder="YYYY"
+            />
+          </div>
+
+          <div>
+            <label className={`block text-sm font-medium mb-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+              Batch End Year
+            </label>
+            <input
+              type="number"
+              name="batch_end_year"
+              value={formData.batch_end_year}
+              onChange={handleInputChange}
+              className={`w-full px-3 py-2 border rounded-md text-sm ${isDarkMode
+                ? 'bg-gray-700 border-gray-600 text-white'
+                : 'bg-white border-gray-300 text-gray-900'
+                }`}
+              placeholder="YYYY"
+            />
           </div>
 
           <div>
@@ -382,8 +420,8 @@ const EditStudentModal = ({ isDarkMode, student, onSave, onCancel }) => {
               value={formData.year}
               onChange={handleInputChange}
               className={`w-full px-3 py-2 border rounded-md text-sm ${isDarkMode
-                  ? 'bg-gray-700 border-gray-600 text-white'
-                  : 'bg-white border-gray-300 text-gray-900'
+                ? 'bg-gray-700 border-gray-600 text-white'
+                : 'bg-white border-gray-300 text-gray-900'
                 } ${errors.year ? 'border-red-500' : ''}`}
               placeholder="Enter year"
             />
@@ -400,8 +438,8 @@ const EditStudentModal = ({ isDarkMode, student, onSave, onCancel }) => {
               value={formData.status}
               readOnly
               className={`w-full px-3 py-2 border rounded-md text-sm bg-gray-100 ${isDarkMode
-                  ? 'bg-gray-700 border-gray-600 text-white'
-                  : 'bg-white border-gray-300 text-gray-900'
+                ? 'bg-gray-700 border-gray-600 text-white'
+                : 'bg-white border-gray-300 text-gray-900'
                 }`}
               placeholder="Status"
             />
@@ -417,8 +455,8 @@ const EditStudentModal = ({ isDarkMode, student, onSave, onCancel }) => {
               value={formData.approved_by}
               readOnly
               className={`w-full px-3 py-2 border rounded-md text-sm bg-gray-100 ${isDarkMode
-                  ? 'bg-gray-700 border-gray-600 text-white'
-                  : 'bg-white border-gray-300 text-gray-900'
+                ? 'bg-gray-700 border-gray-600 text-white'
+                : 'bg-white border-gray-300 text-gray-900'
                 }`}
               placeholder="Approved by"
             />

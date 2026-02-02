@@ -30,7 +30,10 @@ function Register({ onClose, onOpenLogin }) {
     academicYear: '',
     registrationNumber: '',
     rollNumber: '',
+    rollNumber: '',
     roomNumber: '',
+    batchStartYear: '',
+    batchEndYear: '',
 
     // Step 4: Password & Photo
     password: '',
@@ -190,7 +193,7 @@ function Register({ onClose, onOpenLogin }) {
       const stepFields = {
         1: ['emailId', 'otpCode'],
         2: ['fullName', 'fatherName', 'dob', 'bloodGroup', 'studentContact', 'parentContact', 'address'],
-        3: ['department', 'academicYear', 'registrationNumber', 'rollNumber', 'roomNumber'],
+        3: ['department', 'academicYear', 'batchStartYear', 'batchEndYear', 'registrationNumber', 'rollNumber', 'roomNumber'],
         4: ['password', 'confirmPassword', 'photo'],
         5: ['agreeTerms', 'agreePrivacy', 'agreeRules']
       };
@@ -371,7 +374,9 @@ function Register({ onClose, onOpenLogin }) {
       profile_photo: formData.photo,
       status: 'pending',
       approved_by: 'Admin',
-      token: verificationToken
+      token: verificationToken,
+      batch_start_year: formData.batchStartYear,
+      batch_end_year: formData.batchEndYear
     };
 
     try {
@@ -560,8 +565,8 @@ function Register({ onClose, onOpenLogin }) {
                       type="submit"
                       disabled={!isFormValid(formData) || !otpVerified || isRegistering}
                       className={`w-full sm:w-auto px-4 py-3 text-white rounded-lg font-semibold transition-all ${isFormValid(formData) && otpVerified && !isRegistering
-                          ? 'bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700'
-                          : 'bg-gray-500 cursor-not-allowed'
+                        ? 'bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700'
+                        : 'bg-gray-500 cursor-not-allowed'
                         }`}
                     >
                       {isRegistering ? (

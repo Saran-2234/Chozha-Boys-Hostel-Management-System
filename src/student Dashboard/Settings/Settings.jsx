@@ -79,7 +79,7 @@ const Settings = () => {
 
       <div className="grid grid-cols-1 gap-6">
         <div className="glass-card rounded-xl p-6">
-          <h3 className="text-lg font-semibold text-white mb-6">Change Password</h3>
+          <h3 className="text-lg font-semibold text-black mb-6">Change Password</h3>
           <form onSubmit={handlePasswordChange}>
             <div className="space-y-4">
               <div>
@@ -88,7 +88,7 @@ const Settings = () => {
                   type="password"
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
-                  className="w-full px-4 py-3 glass-effect rounded-lg text-white placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent border-0"
+                  className="w-full px-4 py-3 glass-effect rounded-lg text-black placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent border-0"
                   placeholder="Enter current password"
                   required
                 />
@@ -99,7 +99,7 @@ const Settings = () => {
                   type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full px-4 py-3 glass-effect rounded-lg text-white placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent border-0"
+                  className="w-full px-4 py-3 glass-effect rounded-lg text-black placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent border-0"
                   placeholder="Enter new password"
                   required
                 />
@@ -110,7 +110,7 @@ const Settings = () => {
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full px-4 py-3 glass-effect rounded-lg text-white placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent border-0"
+                  className="w-full px-4 py-3 glass-effect rounded-lg text-black placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent border-0"
                   placeholder="Confirm new password"
                   required
                 />

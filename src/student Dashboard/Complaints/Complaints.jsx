@@ -256,7 +256,7 @@ const Complaints = () => {
             }`}
           onClick={() => handleFilterClick('all')}
         >
-          <div className="text-2xl font-bold text-white mb-2">{stats.total}</div>
+          <div className="text-2xl font-bold text-black mb-2">{stats.total}</div>
           <div className="text-slate-400 text-sm">Total Complaints</div>
         </div>
         <div
@@ -287,7 +287,7 @@ const Complaints = () => {
 
       <div className="glass-card rounded-xl p-6">
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-semibold text-white">
+          <h3 className="text-lg font-semibold text-black">
             My Complaints
             {activeFilter !== 'all' && (
               <span className="ml-2 text-sm text-slate-400">
@@ -350,8 +350,8 @@ const Complaints = () => {
           <div className="space-y-4">
             {filteredComplaints.map((complaint) => (
               <div key={complaint.complaint_id} className={`glass-effect rounded-lg p-4 border-l-4 ${complaint.status && complaint.status.toLowerCase() === 'pending' ? 'border-yellow-400' :
-                  complaint.status && complaint.status.toLowerCase() === 'in progress' ? 'border-blue-400' :
-                    complaint.status && complaint.status.toLowerCase() === 'resolved' ? 'border-emerald-400' : 'border-gray-400'
+                complaint.status && complaint.status.toLowerCase() === 'in progress' ? 'border-blue-400' :
+                  complaint.status && complaint.status.toLowerCase() === 'resolved' ? 'border-emerald-400' : 'border-gray-400'
                 }`}>
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center space-x-3">
@@ -361,17 +361,17 @@ const Complaints = () => {
                           complaint.category === 'Infrastructure' ? '🏗️' : '📋'
                     }</span>
                     <div>
-                      <h4 className="text-white font-medium">{complaint.title}</h4>
+                      <h4 className="text-black font-medium">{complaint.title}</h4>
                     </div>
                   </div>
                   <span className={`px-3 py-1 rounded-full text-sm font-medium text-white ${complaint.status && complaint.status.toLowerCase() === 'pending' ? 'bg-yellow-500 bg-opacity-20' :
-                      complaint.status && complaint.status.toLowerCase() === 'in progress' ? 'bg-blue-500 bg-opacity-20' :
-                        complaint.status && complaint.status.toLowerCase() === 'resolved' ? 'bg-emerald-500 bg-opacity-20' : 'bg-gray-500 bg-opacity-20'
+                    complaint.status && complaint.status.toLowerCase() === 'in progress' ? 'bg-blue-500 bg-opacity-20' :
+                      complaint.status && complaint.status.toLowerCase() === 'resolved' ? 'bg-emerald-500 bg-opacity-20' : 'bg-gray-500 bg-opacity-20'
                     }`}>
                     {complaint.status}
                   </span>
                 </div>
-                <p className="text-slate-300 text-sm mb-3">{complaint.description}</p>
+                <p className="text-gray-700 text-sm mb-3">{complaint.description}</p>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-slate-400">
                     {new Date(complaint.created_at).toLocaleDateString()}
@@ -381,7 +381,7 @@ const Complaints = () => {
                 {complaint.admin_response && (
                   <div className="mt-3 p-3 bg-emerald-900 bg-opacity-20 rounded">
                     <p className="text-emerald-400 text-sm font-medium">Admin Response:</p>
-                    <p className="text-slate-300 text-sm">{complaint.admin_response}</p>
+                    <p className="text-gray-700 text-sm">{complaint.admin_response}</p>
                   </div>
                 )}
               </div>

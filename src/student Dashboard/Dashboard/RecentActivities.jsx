@@ -243,15 +243,15 @@ const RecentActivities = ({ setActiveSection, studentData }) => {
 
   return (
     <Card>
-      <h3 className="text-lg font-semibold text-white mb-4">Recent Activities</h3>
+      <h3 className="text-lg font-semibold text-black mb-4">Recent Activities</h3>
       <div className="space-y-4">
         {loading ? (
-          <div className="text-center text-slate-400 py-4">
+          <div className="text-center text-slate-500 py-4">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500 mx-auto mb-2"></div>
             Loading activities...
           </div>
         ) : activities.length === 0 ? (
-          <div className="text-center text-slate-400 py-4">
+          <div className="text-center text-slate-500 py-4">
             <div className="text-lg mb-2">📋</div>
             <div className="text-sm">No recent activities</div>
           </div>
@@ -266,7 +266,7 @@ const RecentActivities = ({ setActiveSection, studentData }) => {
                 <span className="text-sm">{activity.icon}</span>
               </div>
               <div className="flex-1">
-                <p className="text-white text-sm font-medium">{activity.title}</p>
+                <p className="text-black text-sm font-medium">{activity.title}</p>
                 <p className="text-slate-400 text-xs">{activity.time}</p>
               </div>
             </div>

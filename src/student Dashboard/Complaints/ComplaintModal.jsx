@@ -82,7 +82,7 @@ const ComplaintModal = ({ onClose }) => {
       <div className="glass-card rounded-2xl shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
         <div className="p-6 sm:p-8">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-white">Raise New Complaint</h2>
+            <h2 className="text-xl font-bold text-black">Raise New Complaint</h2>
             <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -101,7 +101,7 @@ const ComplaintModal = ({ onClose }) => {
                   <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
-                    className="w-full max-w-full px-4 py-3 glass-effect rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent border-0 max-h-48 overflow-y-auto"
+                    className="w-full max-w-full px-4 py-3 glass-effect rounded-lg text-black focus:ring-2 focus:ring-blue-500 focus:border-transparent border-0 max-h-48 overflow-y-auto"
                     style={{
                       whiteSpace: 'normal'
                     }}
@@ -151,7 +151,7 @@ const ComplaintModal = ({ onClose }) => {
                   <select
                     value={priority}
                     onChange={(e) => setPriority(e.target.value)}
-                    className="w-full px-4 py-3 glass-effect rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent border-0"
+                    className="w-full px-4 py-3 glass-effect rounded-lg text-black focus:ring-2 focus:ring-blue-500 focus:border-transparent border-0"
                   >
                     <option value="Low">Low</option>
                     <option value="Medium">Medium</option>
@@ -166,7 +166,7 @@ const ComplaintModal = ({ onClose }) => {
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full px-4 py-3 glass-effect rounded-lg text-white placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent border-0"
+                  className="w-full px-4 py-3 glass-effect rounded-lg text-black placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent border-0"
                   placeholder="Brief description of the issue"
                   required
                 />
@@ -178,14 +178,14 @@ const ComplaintModal = ({ onClose }) => {
                   rows="4"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="w-full px-4 py-3 glass-effect rounded-lg text-white placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent border-0 resize-none"
+                  className="w-full px-4 py-3 glass-effect rounded-lg text-black placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent border-0 resize-none"
                   placeholder="Please provide detailed information about the issue..."
                   required
                 ></textarea>
               </div>
 
               <div className="flex justify-end space-x-4">
-                <button type="button" onClick={onClose} className="btn-secondary text-white px-6 py-3 rounded-lg font-medium">
+                <button type="button" onClick={onClose} className="btn-secondary text-black px-6 py-3 rounded-lg font-medium">
                   Cancel
                 </button>
                 <button type="submit" disabled={loading} className="btn-primary text-white px-6 py-3 rounded-lg font-medium">

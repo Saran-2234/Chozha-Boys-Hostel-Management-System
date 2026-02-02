@@ -27,10 +27,10 @@ const EditProfile = ({ studentData, onSave, onCancel }) => {
   useEffect(() => {
     if (studentData) {
       // Check different possible structures of studentData
-      const student = studentData.userdata && studentData.userdata.length > 0 
-        ? studentData.userdata[0] 
+      const student = studentData.userdata && studentData.userdata.length > 0
+        ? studentData.userdata[0]
         : studentData;
-      
+
       setFormData({
         name: student.name || '',
         father_guardian_name: student.father_guardian_name || '',
@@ -151,7 +151,7 @@ const EditProfile = ({ studentData, onSave, onCancel }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -176,10 +176,10 @@ const EditProfile = ({ studentData, onSave, onCancel }) => {
       <div className="max-w-4xl mx-auto">
         <div className="glass-card rounded-xl p-8">
           <div className="flex items-center justify-between mb-8">
-            <h2 className="text-2xl font-bold text-white">Edit Profile</h2>
-            <button 
+            <h2 className="text-2xl font-bold text-black">Edit Profile</h2>
+            <button
               onClick={onCancel}
-              className="px-4 py-2 glass-effect text-white rounded-lg font-medium hover:bg-white hover:bg-opacity-10 transition-all"
+              className="px-4 py-2 glass-effect text-black rounded-lg font-medium hover:bg-white hover:bg-opacity-10 transition-all"
             >
               Cancel
             </button>
@@ -208,7 +208,7 @@ const EditProfile = ({ studentData, onSave, onCancel }) => {
                     </span>
                   )}
                 </div>
-                
+
                 <input
                   type="file"
                   ref={fileInputRef}
@@ -216,19 +216,19 @@ const EditProfile = ({ studentData, onSave, onCancel }) => {
                   accept="image/*"
                   className="hidden"
                 />
-                
+
                 <button
                   type="button"
                   onClick={() => fileInputRef.current.click()}
-                  className="px-4 py-2 glass-effect text-white rounded-lg font-medium hover:bg-white hover:bg-opacity-10 transition-all mb-2"
+                  className="px-4 py-2 glass-effect text-black rounded-lg font-medium hover:bg-white hover:bg-opacity-10 transition-all mb-2"
                 >
                   Change Photo
                 </button>
-                
+
                 {errors.profile_photo && (
                   <p className="text-red-400 text-xs mt-2">{errors.profile_photo}</p>
                 )}
-                
+
                 <p className="text-xs text-slate-400 mt-2">
                   JPG, PNG, JPEG (Max 2MB)
                 </p>
@@ -253,9 +253,8 @@ const EditProfile = ({ studentData, onSave, onCancel }) => {
                       name="name"
                       value={formData.name}
                       onChange={handleInputChange}
-                      className={`w-full px-4 py-3 glass-effect rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent border-0 ${
-                        errors.name ? 'border-red-500' : ''
-                      }`}
+                      className={`w-full px-4 py-3 glass-effect rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent border-0 ${errors.name ? 'border-red-500' : ''
+                        }`}
                     />
                     {errors.name && <p className="text-red-400 text-xs mt-1">{errors.name}</p>}
                   </div>
@@ -269,9 +268,8 @@ const EditProfile = ({ studentData, onSave, onCancel }) => {
                       name="father_guardian_name"
                       value={formData.father_guardian_name}
                       onChange={handleInputChange}
-                      className={`w-full px-4 py-3 glass-effect rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent border-0 ${
-                        errors.father_guardian_name ? 'border-red-500' : ''
-                      }`}
+                      className={`w-full px-4 py-3 glass-effect rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent border-0 ${errors.father_guardian_name ? 'border-red-500' : ''
+                        }`}
                     />
                     {errors.father_guardian_name && <p className="text-red-400 text-xs mt-1">{errors.father_guardian_name}</p>}
                   </div>
@@ -285,9 +283,8 @@ const EditProfile = ({ studentData, onSave, onCancel }) => {
                       name="dob"
                       value={formData.dob}
                       onChange={handleInputChange}
-                      className={`w-full px-4 py-3 glass-effect rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent border-0 ${
-                        errors.dob ? 'border-red-500' : ''
-                      }`}
+                      className={`w-full px-4 py-3 glass-effect rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent border-0 ${errors.dob ? 'border-red-500' : ''
+                        }`}
                     />
                     {errors.dob && <p className="text-red-400 text-xs mt-1">{errors.dob}</p>}
                   </div>
@@ -300,9 +297,8 @@ const EditProfile = ({ studentData, onSave, onCancel }) => {
                       name="blood_group"
                       value={formData.blood_group}
                       onChange={handleInputChange}
-                      className={`w-full px-4 py-3 glass-effect rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent border-0 ${
-                        errors.blood_group ? 'border-red-500' : ''
-                      }`}
+                      className={`w-full px-4 py-3 glass-effect rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent border-0 ${errors.blood_group ? 'border-red-500' : ''
+                        }`}
                     >
                       <option value="">Select Blood Group</option>
                       <option value="A+">A+</option>
@@ -326,9 +322,8 @@ const EditProfile = ({ studentData, onSave, onCancel }) => {
                       name="student_contact_number"
                       value={formData.student_contact_number}
                       onChange={handleInputChange}
-                      className={`w-full px-4 py-3 glass-effect rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent border-0 ${
-                        errors.student_contact_number ? 'border-red-500' : ''
-                      }`}
+                      className={`w-full px-4 py-3 glass-effect rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent border-0 ${errors.student_contact_number ? 'border-red-500' : ''
+                        }`}
                     />
                     {errors.student_contact_number && <p className="text-red-400 text-xs mt-1">{errors.student_contact_number}</p>}
                   </div>
@@ -342,9 +337,8 @@ const EditProfile = ({ studentData, onSave, onCancel }) => {
                       name="parent_guardian_contact_number"
                       value={formData.parent_guardian_contact_number}
                       onChange={handleInputChange}
-                      className={`w-full px-4 py-3 glass-effect rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent border-0 ${
-                        errors.parent_guardian_contact_number ? 'border-red-500' : ''
-                      }`}
+                      className={`w-full px-4 py-3 glass-effect rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent border-0 ${errors.parent_guardian_contact_number ? 'border-red-500' : ''
+                        }`}
                     />
                     {errors.parent_guardian_contact_number && <p className="text-red-400 text-xs mt-1">{errors.parent_guardian_contact_number}</p>}
                   </div>
@@ -358,9 +352,8 @@ const EditProfile = ({ studentData, onSave, onCancel }) => {
                       value={formData.address}
                       onChange={handleInputChange}
                       rows="3"
-                      className={`w-full px-4 py-3 glass-effect rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent border-0 resize-none ${
-                        errors.address ? 'border-red-500' : ''
-                      }`}
+                      className={`w-full px-4 py-3 glass-effect rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent border-0 resize-none ${errors.address ? 'border-red-500' : ''
+                        }`}
                     />
                     {errors.address && <p className="text-red-400 text-xs mt-1">{errors.address}</p>}
                   </div>
@@ -380,9 +373,8 @@ const EditProfile = ({ studentData, onSave, onCancel }) => {
                       name="department"
                       value={formData.department}
                       onChange={handleInputChange}
-                      className={`w-full px-4 py-3 glass-effect rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent border-0 ${
-                        errors.department ? 'border-red-500' : ''
-                      }`}
+                      className={`w-full px-4 py-3 glass-effect rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent border-0 ${errors.department ? 'border-red-500' : ''
+                        }`}
                     >
                       <option value="">Select Department</option>
                       <option value="Computer Science Engineering">Computer Science Engineering</option>
@@ -405,9 +397,8 @@ const EditProfile = ({ studentData, onSave, onCancel }) => {
                       name="academic_year"
                       value={formData.academic_year}
                       onChange={handleInputChange}
-                      className={`w-full px-4 py-3 glass-effect rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent border-0 ${
-                        errors.academic_year ? 'border-red-500' : ''
-                      }`}
+                      className={`w-full px-4 py-3 glass-effect rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent border-0 ${errors.academic_year ? 'border-red-500' : ''
+                        }`}
                     >
                       <option value="">Select Year</option>
                       <option value="1st Year">1st Year</option>
@@ -427,9 +418,8 @@ const EditProfile = ({ studentData, onSave, onCancel }) => {
                       name="registration_number"
                       value={formData.registration_number}
                       onChange={handleInputChange}
-                      className={`w-full px-4 py-3 glass-effect rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent border-0 ${
-                        errors.registration_number ? 'border-red-500' : ''
-                      }`}
+                      className={`w-full px-4 py-3 glass-effect rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent border-0 ${errors.registration_number ? 'border-red-500' : ''
+                        }`}
                     />
                     {errors.registration_number && <p className="text-red-400 text-xs mt-1">{errors.registration_number}</p>}
                   </div>
@@ -443,9 +433,8 @@ const EditProfile = ({ studentData, onSave, onCancel }) => {
                       name="roll_number"
                       value={formData.roll_number}
                       onChange={handleInputChange}
-                      className={`w-full px-4 py-3 glass-effect rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent border-0 ${
-                        errors.roll_number ? 'border-red-500' : ''
-                      }`}
+                      className={`w-full px-4 py-3 glass-effect rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent border-0 ${errors.roll_number ? 'border-red-500' : ''
+                        }`}
                     />
                     {errors.roll_number && <p className="text-red-400 text-xs mt-1">{errors.roll_number}</p>}
                   </div>
@@ -459,9 +448,8 @@ const EditProfile = ({ studentData, onSave, onCancel }) => {
                       name="room_number"
                       value={formData.room_number}
                       onChange={handleInputChange}
-                      className={`w-full px-4 py-3 glass-effect rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent border-0 ${
-                        errors.room_number ? 'border-red-500' : ''
-                      }`}
+                      className={`w-full px-4 py-3 glass-effect rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent border-0 ${errors.room_number ? 'border-red-500' : ''
+                        }`}
                     />
                     {errors.room_number && <p className="text-red-400 text-xs mt-1">{errors.room_number}</p>}
                   </div>
@@ -475,9 +463,8 @@ const EditProfile = ({ studentData, onSave, onCancel }) => {
                       name="email"
                       value={formData.email}
                       onChange={handleInputChange}
-                      className={`w-full px-4 py-3 glass-effect rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent border-0 ${
-                        errors.email ? 'border-red-500' : ''
-                      }`}
+                      className={`w-full px-4 py-3 glass-effect rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent border-0 ${errors.email ? 'border-red-500' : ''
+                        }`}
                     />
                     {errors.email && <p className="text-red-400 text-xs mt-1">{errors.email}</p>}
                   </div>
@@ -488,16 +475,15 @@ const EditProfile = ({ studentData, onSave, onCancel }) => {
                   <button
                     type="button"
                     onClick={onCancel}
-                    className="px-6 py-3 glass-effect text-white rounded-lg font-semibold hover:bg-white hover:bg-opacity-10 transition-all"
+                    className="px-6 py-3 glass-effect text-black rounded-lg font-semibold hover:bg-white hover:bg-opacity-10 transition-all"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className={`px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg font-semibold hover:from-blue-600 hover:to-purple-700 transition-all ${
-                      isLoading ? 'opacity-75 cursor-not-allowed' : ''
-                    }`}
+                    className={`px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg font-semibold hover:from-blue-600 hover:to-purple-700 transition-all ${isLoading ? 'opacity-75 cursor-not-allowed' : ''
+                      }`}
                   >
                     {isLoading ? 'Saving...' : 'Save Changes'}
                   </button>

@@ -67,7 +67,7 @@ const AttendanceCalendar = ({ attendanceData, onClose }) => {
                 return r.date.startsWith(dateStr);
             });
 
-            let statusClass = "bg-transparent text-slate-300 hover:bg-slate-700/50";
+            let statusClass = "bg-transparent text-gray-600 hover:bg-slate-200/50";
             let statusColor = ""; // For the dot or background
             let isPresent = false;
             let isAbsent = false;
@@ -114,7 +114,7 @@ const AttendanceCalendar = ({ attendanceData, onClose }) => {
     return (
         <div className="glass-card rounded-xl p-6 relative w-full max-w-md mx-auto">
             {onClose && (
-                <button onClick={onClose} className="absolute top-4 right-4 text-slate-400 hover:text-white">
+                <button onClick={onClose} className="absolute top-4 right-4 text-slate-400 hover:text-black">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
                     </svg>
@@ -122,7 +122,7 @@ const AttendanceCalendar = ({ attendanceData, onClose }) => {
             )}
 
             <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-bold text-white">Attendance Calendar</h3>
+                <h3 className="text-xl font-bold text-black">Attendance Calendar</h3>
                 <div className="flex space-x-2">
                     <select
                         value={currentDate.getMonth()}
@@ -146,15 +146,15 @@ const AttendanceCalendar = ({ attendanceData, onClose }) => {
             </div>
 
             <div className="flex items-center justify-between mb-6 px-4">
-                <button onClick={prevMonth} className="text-slate-400 hover:text-white transition-colors">
+                <button onClick={prevMonth} className="text-slate-400 hover:text-black transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                     </svg>
                 </button>
-                <span className="text-lg font-semibold text-slate-200">
+                <span className="text-lg font-semibold text-gray-800">
                     {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
                 </span>
-                <button onClick={nextMonth} className="text-slate-400 hover:text-white transition-colors">
+                <button onClick={nextMonth} className="text-slate-400 hover:text-black transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                     </svg>

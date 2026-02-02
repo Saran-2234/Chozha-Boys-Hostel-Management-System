@@ -95,8 +95,8 @@ const QuickStats = ({ studentData, setActiveSection }) => {
       >
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-slate-400 text-sm font-medium">Attendance</p>
-            <p className="text-2xl font-bold text-white">
+            <p className="text-gray-600 text-sm font-medium">Attendance</p>
+            <p className="text-2xl font-bold text-black">
               {loading ? '...' : attendanceData ? `${attendanceData.percentage}%` : '0%'}
             </p>
           </div>
@@ -113,8 +113,8 @@ const QuickStats = ({ studentData, setActiveSection }) => {
       >
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-slate-400 text-sm font-medium">Mess Bill</p>
-            <p className="text-2xl font-bold text-white">
+            <p className="text-gray-600 text-sm font-medium">Mess Bill</p>
+            <p className="text-2xl font-bold text-black">
               {loading ? '...' : messBillData ? `₹${(messBillData.number_of_days * messBillData.mess_fee_per_day + messBillData.veg_days * messBillData.veg_extra_per_day + messBillData.non_veg_days * messBillData.nonveg_extra_per_day).toFixed(0)}` : '₹0'}
             </p>
           </div>
@@ -135,8 +135,8 @@ const QuickStats = ({ studentData, setActiveSection }) => {
       >
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-slate-400 text-sm font-medium">Complaints</p>
-            <p className="text-2xl font-bold text-white">2</p>
+            <p className="text-gray-600 text-sm font-medium">Complaints</p>
+            <p className="text-2xl font-bold text-black">2</p>
           </div>
         </div>
         <div className="mt-4 flex items-center text-sm">
@@ -151,8 +151,8 @@ const QuickStats = ({ studentData, setActiveSection }) => {
       >
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-slate-400 text-sm font-medium">Room</p>
-            <p className="text-2xl font-bold text-white">{roomNumber}</p>
+            <p className="text-gray-600 text-sm font-medium">Room</p>
+            <p className="text-2xl font-bold text-black">{roomNumber}</p>
           </div>
         </div>
         <div className="mt-4 flex items-center text-sm">

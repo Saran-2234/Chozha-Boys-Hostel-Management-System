@@ -117,7 +117,7 @@ const Profile = ({ studentData }) => {
 
         <div className="glass-card rounded-xl p-8">
           <div className="flex items-center justify-between mb-8">
-            <h2 className="text-2xl font-bold text-white">Personal Information</h2>
+            <h2 className="text-2xl font-bold text-black">Personal Information</h2>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -136,7 +136,7 @@ const Profile = ({ studentData }) => {
                   </span>
                 )}
               </div>
-              <h3 className="text-xl font-bold text-white mb-2">{data.name || 'Student Name'}</h3>
+              <h3 className="text-xl font-bold text-black mb-2">{data.name || 'Student Name'}</h3>
               <p className="text-slate-400">Reg. Number: {data.registration_number || 'N/A'}</p>
               <p className="text-slate-400">Roll Number: {data.roll_number || 'N/A'}</p>
               <p className="text-slate-400 mt-2">Room Number: {data.room_number || 'N/A'}</p>
@@ -148,70 +148,70 @@ const Profile = ({ studentData }) => {
                 <div>
                   <label className="block text-sm font-medium text-slate-400 mb-2">Full Name</label>
                   <div className="glass-effect p-3 rounded-lg">
-                    <p className="text-white">{data.name || 'Not Available'}</p>
+                    <p className="text-black">{data.name || 'Not Available'}</p>
                   </div>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-slate-400 mb-2">Father's Name</label>
                   <div className="glass-effect p-3 rounded-lg">
-                    <p className="text-white">{data.father_guardian_name || 'Not Available'}</p>
+                    <p className="text-black">{data.father_guardian_name || 'Not Available'}</p>
                   </div>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-slate-400 mb-2">Department</label>
                   <div className="glass-effect p-3 rounded-lg">
-                    <p className="text-white">{data.department || 'Not Available'}</p>
+                    <p className="text-black">{data.department || 'Not Available'}</p>
                   </div>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-slate-400 mb-2">Academic Year</label>
                   <div className="glass-effect p-3 rounded-lg">
-                    <p className="text-white">{data.academic_year || 'Not Available'}</p>
+                    <p className="text-black">{data.academic_year || 'Not Available'}</p>
                   </div>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-slate-400 mb-2">Student Contact</label>
                   <div className="glass-effect p-3 rounded-lg">
-                    <p className="text-white">{data.student_contact_number || 'Not Available'}</p>
+                    <p className="text-black">{data.student_contact_number || 'Not Available'}</p>
                   </div>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-slate-400 mb-2">Parent Contact</label>
                   <div className="glass-effect p-3 rounded-lg">
-                    <p className="text-white">{data.parent_guardian_contact_number || 'Not Available'}</p>
+                    <p className="text-black">{data.parent_guardian_contact_number || 'Not Available'}</p>
                   </div>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-slate-400 mb-2">Date of Birth</label>
                   <div className="glass-effect p-3 rounded-lg">
-                    <p className="text-white">{data.dob ? new Date(data.dob).toLocaleDateString() : 'Not Available'}</p>
+                    <p className="text-black">{data.dob ? new Date(data.dob).toLocaleDateString() : 'Not Available'}</p>
                   </div>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-slate-400 mb-2">Blood Group</label>
                   <div className="glass-effect p-3 rounded-lg">
-                    <p className="text-white">{data.blood_group || 'Not Available'}</p>
+                    <p className="text-black">{data.blood_group || 'Not Available'}</p>
                   </div>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-slate-400 mb-2">Email ID</label>
                   <div className="glass-effect p-3 rounded-lg">
-                    <p className="text-white">{data.email || 'Not Available'}</p>
+                    <p className="text-black">{data.email || 'Not Available'}</p>
                   </div>
                 </div>
 
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-slate-400 mb-2">Address</label>
                   <div className="glass-effect p-3 rounded-lg">
-                    <p className="text-white">{data.address || 'Not Available'}</p>
+                    <p className="text-black">{data.address || 'Not Available'}</p>
                   </div>
                 </div>
               </div>

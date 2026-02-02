@@ -2,7 +2,7 @@ import React from 'react';
 
 function Herosection({ isLight, onOpenLogin }) {
   return (
-    <section className={isLight?"light-mode":""}>
+    <section className={isLight ? "light-mode" : ""}>
       <div className="relative min-h-screen flex items-center justify-center px-4 py-8 sm:py-12 md:py-20">
         <div className="max-w-6xl mx-auto text-center relative z-10">
           <div className="fade-in-up">

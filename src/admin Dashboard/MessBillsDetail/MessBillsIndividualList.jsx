@@ -75,7 +75,7 @@ const MessBillsIndividualList = () => {
       const [year, month] = selectedMonthYear.split('-');
       const formattedMonthYear = `${month}-${year}`;
 
-      const response = await fetch('http://localhost:3001/admin/get-department-verifications', {
+      const response = await fetch('https://finalbackend1.vercel.app/admin/get-department-verifications', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

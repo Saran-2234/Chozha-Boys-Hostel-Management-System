@@ -62,60 +62,92 @@ const MessBillsIndividualList = () => {
   }, [showStatusModal]);
 
   const fetchStatusData = async () => {
+    if (!selectedMonthYear) {
+      alert("Please select a month and year first.");
+      setShowStatusModal(false);
+      return;
+    }
+
     setLoadingStatus(true);
     const token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
     try {
-      // Fetch departments
-      const deptResponse = await fetch('https://finalbackend1.vercel.app/students/fetchdepartments');
-      const deptData = await deptResponse.json();
+      // Format month-year to MM-YYYY as expected by backend
+      const [year, month] = selectedMonthYear.split('-');
+      const formattedMonthYear = `${month}-${year}`;
 
-      if (!deptData.success || !deptData.departments) {
-        throw new Error('Failed to fetch departments');
-      }
-
-      // For each department, check verification status for each year
-      const statusPromises = deptData.departments.map(async (dept) => {
-        const yearStatuses = {};
-
-        // Check for each year (1st, 2nd, 3rd, 4th)
-        for (let year = 1; year <= 4; year++) {
-          try {
-            // This is a simplified check - in reality you'd need an API endpoint
-            // that checks if there are verified bills for this department and year
-            const response = await fetch('https://finalbackend1.vercel.app/admin/check-verification-status', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                ...(token && { Authorization: `Bearer ${token}` }),
-              },
-              body: JSON.stringify({
-                department: dept.department,
-                year: year
-              })
-            });
-
-            if (response.ok) {
-              const data = await response.json();
-              yearStatuses[`${year}st year`] = data.verified ? '✓' : '✗';
-            } else {
-              yearStatuses[`${year}st year`] = '✗';
-            }
-          } catch (error) {
-            yearStatuses[`${year}st year`] = '✗';
-          }
-        }
-
-        return {
-          department: dept.department,
-          ...yearStatuses
-        };
+      const response = await fetch('http://localhost:3001/admin/get-department-verifications', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+        body: JSON.stringify({
+          month_year: formattedMonthYear
+        })
       });
 
-      const statusResults = await Promise.all(statusPromises);
-      setStatusData(statusResults);
+      const data = await response.json();
+
+      if (data.success && Array.isArray(data.result)) {
+        // Map backend results to the grid structure
+        const statusMap = new Map();
+
+        // Helper to parse year from various formats (1, I, 1st, etc)
+        const parseYear = (yearStr) => {
+          if (!yearStr) return 0;
+          const s = String(yearStr).trim().toUpperCase();
+          if (s.startsWith('1') || s === 'I' || s.startsWith('I ') || s.startsWith('1ST')) return 1;
+          if (s.startsWith('2') || s === 'II' || s.startsWith('II ') || s.startsWith('2ND')) return 2;
+          if (s.startsWith('3') || s === 'III' || s.startsWith('III ') || s.startsWith('3RD')) return 3;
+          if (s.startsWith('4') || s === 'IV' || s.startsWith('IV ') || s.startsWith('4TH')) return 4;
+          return parseInt(s) || 0;
+        };
+
+        // Populate map with results: "Dept|Year" -> verified
+        data.result.forEach(item => {
+          const year = parseYear(item.academic_year);
+          if (year > 0) {
+            const key = `${item.department}|${year}`;
+            statusMap.set(key, item.all_verified && parseInt(item.bill_count) > 0);
+          }
+        });
+
+        const newStatusData = departments.map(dept => {
+          const row = { department: dept.department };
+
+          // Check for years 1 to 4
+          [1, 2, 3, 4].forEach(year => {
+            const isVerified = statusMap.get(`${dept.department}|${year}`);
+
+            // Define column keys matching the table render
+            let colKey = '';
+            if (year === 1) colKey = '1st year';
+            else if (year === 2) colKey = '2nd year';
+            else if (year === 3) colKey = '3rd year';
+            else if (year === 4) colKey = '4th year';
+
+            row[colKey] = isVerified ? '✓' : '✗';
+          });
+
+          return row;
+        });
+
+        setStatusData(newStatusData);
+      } else {
+        console.error('Failed to fetch department verifications');
+        // Fallback to empty/failed state
+        const defaultStatusData = departments.map(dept => ({
+          department: dept.department,
+          '1st year': '✗',
+          '2nd year': '✗',
+          '3rd year': '✗',
+          '4th year': '✗'
+        }));
+        setStatusData(defaultStatusData);
+      }
     } catch (error) {
       console.error('Error fetching status data:', error);
-      // Create status data for all available departments with default values
+      // Fallback in case of error
       const defaultStatusData = departments.map(dept => ({
         department: dept.department,
         '1st year': '✗',

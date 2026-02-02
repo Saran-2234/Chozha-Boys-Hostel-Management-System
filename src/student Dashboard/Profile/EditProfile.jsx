@@ -176,10 +176,10 @@ const EditProfile = ({ studentData, onSave, onCancel }) => {
       <div className="max-w-4xl mx-auto">
         <div className="glass-card rounded-xl p-8">
           <div className="flex items-center justify-between mb-8">
-            <h2 className="text-2xl font-bold text-black">Edit Profile</h2>
+            <h2 className="text-2xl font-bold text-white">Edit Profile</h2>
             <button
               onClick={onCancel}
-              className="px-4 py-2 glass-effect text-black rounded-lg font-medium hover:bg-white hover:bg-opacity-10 transition-all"
+              className="px-4 py-2 glass-effect text-white rounded-lg font-medium hover:bg-white hover:bg-opacity-10 transition-all"
             >
               Cancel
             </button>
@@ -220,7 +220,7 @@ const EditProfile = ({ studentData, onSave, onCancel }) => {
                 <button
                   type="button"
                   onClick={() => fileInputRef.current.click()}
-                  className="px-4 py-2 glass-effect text-black rounded-lg font-medium hover:bg-white hover:bg-opacity-10 transition-all mb-2"
+                  className="px-4 py-2 glass-effect text-white rounded-lg font-medium hover:bg-white hover:bg-opacity-10 transition-all mb-2"
                 >
                   Change Photo
                 </button>
@@ -475,7 +475,7 @@ const EditProfile = ({ studentData, onSave, onCancel }) => {
                   <button
                     type="button"
                     onClick={onCancel}
-                    className="px-6 py-3 glass-effect text-black rounded-lg font-semibold hover:bg-white hover:bg-opacity-10 transition-all"
+                    className="px-6 py-3 glass-effect text-white rounded-lg font-semibold hover:bg-white hover:bg-opacity-10 transition-all"
                   >
                     Cancel
                   </button>

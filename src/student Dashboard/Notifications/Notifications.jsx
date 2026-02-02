@@ -17,10 +17,10 @@ const Notifications = () => {
               <span className="text-white text-sm">🍽️</span>
             </div>
             <div className="flex-1">
-              <h4 className="text-black font-medium mb-1">New Mess Bill Generated</h4>
-              <p className="text-gray-600 text-sm mb-2">Your December 2024 mess bill of ₹2,450 has been generated. Payment due by Dec 30, 2024.</p>
+              <h4 className="text-white font-medium mb-1">New Mess Bill Generated</h4>
+              <p className="text-slate-300 text-sm mb-2">Your December 2024 mess bill of ₹2,450 has been generated. Payment due by Dec 30, 2024.</p>
               <div className="flex items-center justify-between">
-                <span className="text-gray-500 text-xs">2 hours ago</span>
+                <span className="text-slate-400 text-xs">2 hours ago</span>
                 <button className="text-blue-400 hover:text-blue-300 text-sm">View Bill →</button>
               </div>
             </div>
@@ -33,10 +33,10 @@ const Notifications = () => {
               <span className="text-white text-sm">📝</span>
             </div>
             <div className="flex-1">
-              <h4 className="text-black font-medium mb-1">Complaint Update</h4>
-              <p className="text-gray-600 text-sm mb-2">Your complaint #C002 about food quality has been updated. Admin has provided a response.</p>
+              <h4 className="text-white font-medium mb-1">Complaint Update</h4>
+              <p className="text-slate-300 text-sm mb-2">Your complaint #C002 about food quality has been updated. Admin has provided a response.</p>
               <div className="flex items-center justify-between">
-                <span className="text-gray-500 text-xs">5 hours ago</span>
+                <span className="text-slate-400 text-xs">5 hours ago</span>
                 <button className="text-blue-400 hover:text-blue-300 text-sm">View Update →</button>
               </div>
             </div>
@@ -49,10 +49,10 @@ const Notifications = () => {
               <span className="text-white text-sm">✅</span>
             </div>
             <div className="flex-1">
-              <h4 className="text-black font-medium mb-1">Attendance Confirmed</h4>
-              <p className="text-gray-600 text-sm mb-2">Your attendance for Dec 19, 2024 has been confirmed by the admin.</p>
+              <h4 className="text-white font-medium mb-1">Attendance Confirmed</h4>
+              <p className="text-slate-300 text-sm mb-2">Your attendance for Dec 19, 2024 has been confirmed by the admin.</p>
               <div className="flex items-center justify-between">
-                <span className="text-gray-500 text-xs">1 day ago</span>
+                <span className="text-slate-400 text-xs">1 day ago</span>
                 <span className="text-slate-500 text-xs">Read</span>
               </div>
             </div>

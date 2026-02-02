@@ -296,7 +296,7 @@ const MessBill = () => {
       {isModalOpen && (
         <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
           <div className="p-6">
-            <h3 className="text-xl font-bold text-black mb-4">Apply for Mess Bill Reduction</h3>
+            <h3 className="text-xl font-bold text-white mb-4">Apply for Mess Bill Reduction</h3>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-slate-300 mb-2">Reduction From Date</label>
@@ -334,7 +334,7 @@ const MessBill = () => {
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="flex-1 btn-secondary text-black py-2 rounded-lg"
+                  className="flex-1 btn-secondary text-white py-2 rounded-lg"
                 >
                   Cancel
                 </button>

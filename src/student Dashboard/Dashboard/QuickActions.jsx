@@ -32,7 +32,7 @@ const QuickActions = ({ setActiveSection }) => {
 
   return (
     <div className="glass-card rounded-xl p-6">
-      <h3 className="text-lg font-semibold text-black mb-4">Quick Actions</h3>
+      <h3 className="text-lg font-semibold text-white mb-4">Quick Actions</h3>
       <div className="grid grid-cols-2 gap-4">
         {actions.map((action, index) => (
           <button

@@ -215,7 +215,7 @@ const SessionManager = () => {
                                     <button
                                         onClick={() => removeSession(session.id)}
                                         className={`px-4 py-2 text-sm rounded-lg transition-colors font-medium ${isCurrent
-                                            ? 'bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/30'
+                                            ? 'bg-red-500/10 text-white hover:bg-red-500/20 border border-red-500/30'
                                             : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
                                             }`}
                                     >

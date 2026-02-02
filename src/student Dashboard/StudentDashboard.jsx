@@ -74,6 +74,13 @@ const StudentDashboard = () => {
   };
 
   // Handle logout confirmation
+  // Helper to determine the API base URL
+  const getBaseUrl = () => {
+    return window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+      ? "http://localhost:3001"
+      : "https://finalbackend1.vercel.app";
+  };
+
   // Handle logout confirmation
   const handleLogoutConfirm = async () => {
     try {
@@ -81,8 +88,9 @@ const StudentDashboard = () => {
       // Call backend logout to clear HttpOnly cookies
       const storedUserData = localStorage.getItem('userData');
       const userData = storedUserData ? JSON.parse(storedUserData) : {};
+      const baseUrl = getBaseUrl();
 
-      await axios.post("https://finalbackend1.vercel.app/students/logout", {
+      await axios.post(`${baseUrl}/students/logout`, {
         user_id: userData.id,
         email: userData.email
       }, {

@@ -114,7 +114,7 @@ const ProfileDropdown = ({ onLogoutClick, studentData, setActiveSection }) => {
             <hr className="my-2 border-gray-300" />
             <button
               onClick={handleLogoutClick}
-              className="w-full text-left block px-4 py-2 text-sm text-red-600 hover:bg-red-200"
+              className="w-full text-left block px-4 py-2 text-sm bg-red-600 text-white hover:bg-red-700"
             >
               Logout
             </button>

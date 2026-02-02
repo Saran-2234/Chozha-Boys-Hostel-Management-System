@@ -168,6 +168,11 @@
         .light-mode .text-white {
             color: #1e293b !important;
         }
+
+        /* Ensure buttons with text-white keep their white text */
+        .light-mode button.text-white {
+            color: #ffffff !important;
+        }
         
         .light-mode input,
         .light-mode select,

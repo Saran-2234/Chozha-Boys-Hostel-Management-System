@@ -42,7 +42,7 @@ const LogoutModal = ({ isOpen, onClose, onConfirm, isLoggingOut }) => {
                 </button>
                 <button
                   onClick={onConfirm}
-                  className="flex-1 px-4 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-all"
+                  className="flex-1 px-4 py-3 bg-red-600 hover:bg-red-700 !text-white rounded-lg font-medium transition-all"
                 >
                   Logout
                 </button>

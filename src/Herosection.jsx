@@ -35,7 +35,7 @@ function Herosection({ isLight, onOpenLogin }) {
               </button>
               <button
                 onClick={() => onOpenLogin("admin")}
-                className="w-full sm:w-auto btn-secondary text-white px-6 sm:px-8 py-3 sm:py-4 rounded-xl text-base sm:text-lg font-semibold hover-lift"
+                className="w-full sm:w-auto btn-secondary text-black px-6 sm:px-8 py-3 sm:py-4 rounded-xl text-base sm:text-lg font-semibold hover-lift"
               >
                 👨‍💼 Admin Dashboard
               </button>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import Modal from '../../admin Dashboard/Common/Modal';
+import Modal from '../../Admin Dashboard/Common/Modal';
 
 const MessBill = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
